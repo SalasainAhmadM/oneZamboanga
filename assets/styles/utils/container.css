@@ -1,0 +1,50 @@
+.main-wrapper {
+    /* background-color: red; */
+    margin-top: 2rem;
+    margin-inline: auto;
+    height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* padding: 1rem; */
+}
+
+.main-container {
+    background-color: var(--clr-white);
+    box-shadow: var(--box-shadow);
+    width: 100%;
+    max-width: 1200px;
+    height: 100%;
+    border-radius: 1rem;
+
+    padding: 1rem; /*optional*/
+}
+
+/*media queries*/
+
+
+
+/* responsive */
+/* @media screen and (max-width: 1232px) {
+    
+}
+
+@media screen and (max-width: 1200px) {
+    
+}
+
+
+@media screen and (max-width: 992px) {
+    
+
+
+}
+
+@media screen and (max-width: 768px) {
+    
+    
+}
+
+@media screen and (max-width: 480px) {
+    
+} */

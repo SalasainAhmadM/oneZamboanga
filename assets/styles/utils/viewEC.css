@@ -1,0 +1,483 @@
+.main-wrapper {
+    margin-top: 1em;
+}
+
+.overview {
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.ecNavbar {
+    background-color: var(--clr-slate200);
+    padding: .5em 1em;
+    position: relative;
+
+    /* box-shadow: var(--box-shadow); */
+}
+
+.ecNavbar ul {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    align-items: center;
+    list-style: none;
+}
+
+.navList {
+
+}
+
+/* .navList li {
+    font-size: var(--size-lg);
+
+    a {
+        color: var(--clr-dark);
+    }
+} */
+
+/* .navList li.active {
+    a {
+        color: var(--clr-slate600);
+        font-weight: 500;
+    }
+} */
+
+.navList li {
+    font-size: var(--size-lg);
+}
+
+.navList li a {
+    color: var(--clr-dark);
+}
+
+.active {
+    color: var(--clr-slate600);
+    font-weight: 600;
+}
+
+
+
+.navList .indicator {
+    position: absolute;
+    width: 80px;
+    height: 2.5px;
+    background-color: var(--clr-slate600);
+    border-radius: .5em;
+    bottom: 0;
+}
+
+.indicator.long {
+    width: 194px;
+}
+
+.indicator.workers {
+    width: 175px;
+}
+
+.indicator.mid {
+    width: 84px;
+}
+
+.indicator.small {
+    width: 70px;
+}
+
+.indicator.extrasmall {
+    width: 50px;
+}
+
+.indicator.assign {
+    width: 60px;
+}
+
+.indicator.manage {
+    width: 67px;
+}
+
+.indicator.ec {
+    width: 155px;
+}
+
+/* content */
+.ecView-content {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    /* grid-template-columns: 1fr 2fr; */
+    gap: 1em;
+    height: 100%;
+}
+
+.description {
+    /* background-color: red; */
+    background-color: var(--clr-slate200);
+    /* background-color: #f1f5f9; */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding-inline: 1em;
+}
+
+.ecenter-cta {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+
+    label {
+        color: var(--clr-dark);
+    }
+
+    .ecenterAction {
+        border: none;
+        outline: none;
+        background-color: transparent;
+        color: var(--clr-slate600);
+
+        &:hover {
+            color: var(--clr-dark);
+            cursor: pointer;
+        }
+    }
+}
+
+.ecenter-toggle {
+    display: none;
+}
+
+.ecenterOptions {
+    position: absolute;
+    list-style: none;
+    /* width: 80px; */
+    padding: .5em 1em;
+    border-radius: .5em;
+    top: 15px;
+    left: 15px;
+    margin-inline: auto;
+    z-index: 100;
+    box-shadow: var(--box-shadow);
+    background-color: var(--clr-white);
+    display: none;
+    
+    li {
+        font-size: var(--size-base);
+        margin-bottom: .2em;
+        cursor: pointer;
+        padding-inline: .5em;
+        transition: .3s;
+        color: var(--clr-dark);
+
+        &:hover {
+            color: var(--clr-white);
+            background-color: var(--clr-slate600);
+        }
+    }
+}
+
+.ecenter-toggle:checked + .ecenterOptions {
+    display: block;
+}
+
+.bgEc-img {
+    width: 250px;
+    height: 150px;
+    /* background-color: red; */
+    object-fit: contain; 
+    margin-inline: auto;
+}
+
+.bgEc-status {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    right: 10px;
+    top: 5px;
+}
+
+.bgEc-status.red {
+    background-color: var(--clr-red);
+}
+
+
+.bgEc-status.green {
+    background-color: var(--clr-green);
+}
+
+.bgEc-status.yellow {
+    background-color: var(--clr-yellow);
+}
+
+.bgEc-info {
+    list-style: none;
+    padding-inline: 1.5em;
+    margin-top: 1em;
+}
+
+.bgEc-info li {
+    font-size: var(--size-base);
+}
+
+
+/* edit evacuation center form */
+.editEC-container {
+    position: fixed;
+    top: 15%;
+    /* left: 60%; */
+    left: 50%;
+    
+    transform: translateX(-50%);
+    background-color: var(--clr-white);
+    z-index: 10;
+    display: none;
+    border-radius: .5em;
+}
+/* .editEC-container {
+    display: block;
+} */
+
+.editEC-form {
+    position: relative;
+}
+
+
+
+.closeEdit {
+    outline: none;
+    border: none;
+    background-color: transparent;
+    color: var(--clr-slate600);
+    transform: .3s;
+    cursor: pointer;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+
+    &:hover {
+        color: var(--clr-dark);
+    }
+
+    i {
+        font-size: var(--size-lg);
+        font-weight: 600;
+    }
+}
+
+.body-overlay::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); 
+    z-index: 9;
+}
+
+
+/* chart */
+.chart {
+    background-color: var(--clr-slate200);
+    /* background-color: #f1f5f9; */
+    padding: 1em;
+    display: grid;
+    place-items: center;
+}
+
+
+
+/* responsive */
+@media screen and (max-width: 1232px) {
+    
+}
+
+@media screen and (max-width: 1200px) {
+    
+}
+
+
+@media screen and (max-width: 992px) {
+    .ecView-content {
+        grid-template-columns: 1fr;
+        /* grid-template-columns: 1fr 2fr; */
+    }
+
+    .description {
+        padding-block: 1em;
+    }
+
+    .navList li {
+        font-size: var(--size-base);
+    }
+    .navList .indicator {
+        width: 72px;
+    }
+
+    .indicator.long {
+        width: 175px;
+    }
+    .indicator.mid {
+        width: 83px;
+    }
+    .indicator.workers {
+        width: 160px;
+    }
+
+    .indicator.assign {
+        width: 53px;
+    }
+
+    .indicator.manage {
+        width: 60px;
+    }
+
+    .indicator.extrasmall {
+        width: 45px;
+    }
+    .indicator.ec {
+        width: 140px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .navList li {
+        font-size: var(--size-xs);
+    }
+
+    .navList .indicator {
+        width: 52px;
+    }
+
+    .indicator.long {
+        width: 135px;
+    }
+    .indicator.mid {
+        width: 63px;
+    }
+    .indicator.workers {
+        width: 120px;
+    }
+
+    .indicator.assign {
+        width: 40px;
+    }
+
+    .indicator.extrasmall {
+        width: 35px;
+    }
+
+    .indicator.ec {
+        width: 105px;
+    }
+
+    .indicator.manage {
+        width: 45px;
+    }
+
+    
+    .bgEc-info li {
+        font-size: var(--size-sm);
+    }
+    
+}
+
+@media screen and (max-width: 640px) {
+    .ecNavbar {
+        padding: 1em .5em;
+    }
+
+    .navList li {
+        font-size: var(--size-xs);
+    }
+
+    /* .navList .indicator {
+        width: 37px;
+    }
+
+    .indicator.long {
+        width: 90px;
+    }
+    .indicator.mid {
+        width: 42px;
+    } */
+}
+
+@media screen and (max-width: 580px) {
+    .ecNavbar {
+        padding: 1em 0;
+    }
+
+    .navList li {
+        font-size: var(--size-xxs);
+    }
+
+    .navList .indicator {
+        width: 37px;
+    }
+
+    .indicator.long {
+        width: 90px;
+    }
+    .indicator.mid {
+        width: 40px;
+    }
+
+    .indicator.workers {
+        width: 80px;
+    }
+    .indicator.assign {
+        width: 25px;
+    }
+    .indicator.extrasmall {
+        width: 22px;
+    }
+    .indicator.ec {
+        width: 70px;
+    }
+
+    .indicator.manage {
+        width: 30px;
+    }
+}
+
+
+@media screen and (max-width: 480px) {
+    .navList li {
+        font-size: 0.4rem;
+    }
+
+    .navList .indicator {
+        width: 30px;
+    }
+
+    .indicator.long {
+        width: 70px;
+    }
+    .indicator.mid {
+        width: 33px;
+    }
+    .indicator.workers {
+        width: 63px;
+    }
+    .indicator.assign {
+        width: 20px;
+    }
+    .indicator.extrasmall {
+        width: 18px;
+    }
+    .indicator.ec {
+        width: 55px;
+    }
+
+    .indicator.manage {
+        width: 25px;
+    }
+
+}
+
+@media screen and (max-width: 375px) {
+    .chart {
+        max-width: 300px;
+    }
+}

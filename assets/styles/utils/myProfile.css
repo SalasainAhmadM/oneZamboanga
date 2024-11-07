@@ -1,0 +1,276 @@
+.main-container {
+    box-shadow: none;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1em;
+    overflow: auto;
+}
+
+.proof {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: var(--box-shadow);
+    display: none;
+
+    i {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 2;
+        cursor: pointer;
+    }
+}
+
+/* left */
+.profile-left {
+    /* background-color: red; */
+}
+.left-wrapper {
+    /* background-color: grey; */
+    /* margin-top: 2em; */
+    display: grid;
+    gap: 2em;
+    /* padding: .5em; */
+}
+
+.profileOption {
+    /* border: 2px solid red; */
+    display: flex;
+    align-items: center;
+    gap: 2em;
+    padding: 1em;
+    cursor: pointer;
+
+    p {
+        font-size: var(--size-base);
+    }
+
+    i {
+        font-size: var(--size-xl);
+    }
+}
+
+.active {
+    background-color: var(--clr-slate600);
+    color: var(--clr-white);
+}
+
+
+/* right */
+.profile-right {
+    /* border: 2px solid red; */
+
+    h2 {
+        /* border: 2px solid blue; */
+        background-color: var(--clr-slate200);
+        padding: .5em;
+    }
+}
+
+.right-wrapper {
+    padding-inline: 1em;
+    margin-top: .5em;
+
+    img {
+        margin-bottom: 1em;
+        width: 100px;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    button {
+        margin-top: 1em;
+        border: none;
+        outline: none;
+        background-color: var(--clr-slate600);
+        color: var(--clr-white);
+        padding: .5em 1em;
+        border-radius: .5em;
+        cursor: pointer;
+        transform: .3s;
+
+        &:hover {
+            background-color: var(--clr-dark);
+        }
+    }
+}
+
+.profileDetails {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+
+    li p {
+        font-weight: 600;
+    }
+
+    li span {
+        font-weight: 400;
+    }
+}
+
+
+
+
+/* =====edit/change pass profile===== */
+#editProfile {
+    display: none;
+}
+
+#passProfile {
+    display: none;
+}
+
+.editProfile-container {
+
+}
+
+.inputProfile-wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: .5em;
+    margin-block: .5em;
+}
+
+.inputProfile {
+    /* border: 2px solid blue; */
+    display: flex;
+    flex-direction: column;
+
+    label {
+        font-size: var(--size-sm);
+    }
+
+    input, select {
+        height: 30px;
+        border-radius: .5em;
+        border: 1px solid;
+        padding-inline: .5em;
+    }
+}
+
+
+
+
+
+@media screen and (max-width: 992px) {
+    .profileOption {
+    
+        p {
+            font-size: var(--size-base);
+        }
+    
+        i {
+            font-size: var(--size-xl);
+        }
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .profileOption {
+    
+        p {
+            font-size: var(--size-sm);
+        }
+    
+        i {
+            font-size: var(--size-lg);
+        }
+    }
+}
+
+@media screen and (max-width: 690px) {
+
+    .left-wrapper {
+        justify-content: space-between;
+    }
+
+    .profileOption {
+    
+        p {
+            font-size: var(--size-xs);
+        }
+    
+        i {
+            font-size: var(--size-xs);
+        }
+    }
+
+    .main-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2em;
+    }
+
+    .left-wrapper {
+        /* background-color: grey; */
+        margin-top: 1em;
+        display: flex;
+        gap: 2em;
+        /* padding: .5em; */
+    }
+
+    .profile-right {    
+        h2 {
+            /* display: flex;
+            align-items: center;
+            justify-content: center; */
+            display: grid;
+            place-items: center;
+            font-size: var(--size-xl);
+        }
+    }
+
+    .right-wrapper {
+        display: grid;
+        place-items: center;
+    }
+
+    .profileDetails {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        margin-block: 1em;
+
+        li {
+            font-size: var(--size-sm);
+        }
+
+    }
+
+    .mainBtn {
+        width: 100%;
+        margin-top: .5em;
+    }
+
+
+}
+
+@media screen and (max-width: 584px) {
+    .profileOption {
+        gap: 1em;
+    }
+
+    .profileDetails {
+        grid-template-columns: repeat(2, 1fr);
+
+        li {
+            font-size: var(--size-sm);
+        }
+
+    }
+
+    .inputProfile-wrapper {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media screen and (max-width: 375px) {
+    .main-wrapper {
+        height: 100vh;
+    }
+}

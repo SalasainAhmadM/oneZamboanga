@@ -1,0 +1,123 @@
+@media screen and (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+        padding-top: 80px;
+    }
+
+    .container .right-section > .top {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        padding: 20px;
+        /* z-index: -100; */
+    }
+
+    /* main header {
+        position: sticky;
+        top: 5px;
+
+    } */
+
+    .container .left-section {
+        z-index: 999;
+    }
+
+    .container .right-section .stats {
+        margin-bottom: 20px;
+    }
+
+    .container .right-section .stats .item .top p {
+        height: 80px;
+    }
+
+
+    
+    /* ==== GRAPHS ==== */
+    .chartShow {
+        display: none;
+    }
+
+    .ecGraphs-container {
+        display: block;
+    }
+    
+    .ecGraph {
+        width: 500px;
+        height: 500px;
+        margin-inline: auto;
+    }
+    
+    .profileHeader {
+        background-color: transparent;
+    }
+    
+    .sideProfile {
+        display: none;
+    }
+    
+    .sideProfile i {
+        font-size: var(--size-xl);
+        color: var(--clr-slate600);
+    
+        &:hover {
+            color: var(--clr-dark);
+            cursor: pointer;
+        }
+    }
+    
+    .sideProfile img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        object-position: top;
+        cursor: pointer;
+    }
+    
+    .side-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        /* background-color: red; */
+        gap: 1em;
+    }
+
+    .profileHeader {
+        margin-bottom: 2em;
+        justify-content: center;
+    }
+
+
+
+    /* notif */
+    .notifHeader h4 {
+        display: block;
+    }
+    .actFeed.notif {
+        display: block;
+    }
+    
+}
+
+@media screen and (max-width: 375px) {
+
+    .ecGraph {
+        max-width: 300px;
+        height: 300px;
+        margin-inline: auto;
+    }
+
+    main header h5 {
+        font-size: var(--size-sm);
+    }
+
+    main .separator .info h3,
+    .container .right-section .separator h4 {
+        font-size: var(--size-base);
+    }
+
+    .profileHeader h2 {
+        font-size: var(--size-base);
+    }
+}

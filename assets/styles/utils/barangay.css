@@ -1,0 +1,366 @@
+.btn-barangay {
+    background-color: var(--clr-light);
+    padding: 3px 10px;
+    border-radius: 2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+    position: relative;
+
+    /* &:hover {
+        box-shadow: 0 .1rem .4rem var(--clr-dark);
+        padding: 3px 20px;
+    } */
+}
+
+
+
+.btn-barangay i {
+    font-size: var(--size-lg);
+    color: var(--clr-dark);
+}
+
+.barangay_filter .barangay_filter-btn {
+    background: var(--clr-light) url(../../img/zambo.png) center / 80% no-repeat;
+}
+
+.createBtn-barangay {
+    color: var(--clr-dark);
+    font-weight: 800;
+    outline: none;
+    border: none;
+    padding: 3px 10px;
+    font-size: var(--size-sm);
+    letter-spacing: -0.5px;
+    cursor: pointer;
+    transition: 0.2s;
+    background-color: var(--clr-light);
+
+    /* &:hover {
+        letter-spacing: 2px;
+    } */
+}
+
+.tblbody {
+    background: none;
+    box-shadow: none;
+}
+
+
+
+
+
+/* Style for lvlhigh when the label has 'active' class */
+/* input[type="radio"]#lvlhigh + label.active {
+    text-decoration: underline;
+    color: var(--clr-red);
+} */
+
+/* Style for lvlmoderate when the label has 'active' class */
+/* input[type="radio"]#lvlmoderate + label.active {
+    text-decoration: underline;
+    color: var(--clr-yellow);
+} */
+
+/* Style for lvllow when the label has 'active' class */
+/* input[type="radio"]#lvllow + label.active {
+    text-decoration: underline;
+    color: var(--clr-blue);
+} */
+
+
+.critical-levels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 10px;
+    /* position: sticky;
+    top: 0;
+    left: 0; */
+    z-index: 1;
+    /* background-color: var(--clr-light); */
+    background-color: transparent;
+}
+
+.critical-levels h2 {
+    font-size: var(--size-xl);
+}
+
+.crit-levels {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 5px 10px;
+    /* justify-content: space-between; */
+}
+
+.lvl {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.dots {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    position: relative;
+}
+
+.tooltip {
+    position: absolute;
+    background-color: var(--clr-light);
+    box-shadow: 0 .1rem .4rem var(--clr-dark);
+    right: 18px;
+    top: 10px;
+    width: 200px;
+    height: 180px;
+    max-height: 180px;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: var(--size-xs);
+    font-weight: 600;
+    visibility: hidden;
+    z-index: 2;
+}
+
+
+
+.dots:hover .tooltip {
+    visibility: visible;
+}
+
+
+
+.dots.high {
+    background-color: var(--clr-red);
+}
+.dots.moderate {
+    background-color: var(--clr-yellow);
+}
+.dots.low {
+    background-color: var(--clr-green);
+}
+
+.lvl label {
+    font-weight: 800;
+    font-size: var(--size-base);
+}
+
+/* width: calc(100% / 3 - 15px); */
+.list-barangay {
+    /* display: flex;
+    flex-wrap: wrap;
+    gap: 10px; */
+    display: grid;
+    grid-template-columns: repeat(4, 250px);
+    gap: 10px;
+    margin: 10px 10px 0;
+}
+
+.box {
+    position: relative;
+    background-color: var(--clr-slate200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    /* cursor: pointer; */
+    transition: 0.2s;
+
+    &:hover {
+        box-shadow: 0 .1rem .4rem var(--clr-dark);
+    }
+
+    /* width: 220px; */
+}
+
+
+.barangay-box {
+    /* border: 1px solid red; */
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    padding: 15px;
+
+    img {
+        width: 80px;
+        height: 80px;
+    }
+
+    a h3 {
+        color: var(--clr-dark);
+        font-size: var(--size-base);
+        font-weight: 600;
+
+        &:hover {
+            color: var(--clr-blue);
+            text-decoration: underline;
+        }
+    }
+}
+
+.total-ec {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+
+    p, span {
+        font-size: var(--size-sm);
+        font-weight: 400;
+        color: var(--clr-slate700);
+    }
+}
+
+.critical-dot {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    position: absolute;
+    top: 7px;
+    left: 7px;
+}
+.critical-dot.high {
+    background-color: var(--clr-red);
+}
+.critical-dot.moderate {
+    background-color: var(--clr-yellow);
+}
+.critical-dot.low {
+    background-color: var(--clr-blue);
+}
+
+.box .option {
+    position: absolute;
+    top: 7px;
+    right: 10px;
+
+    button {
+        outline: none;
+        border: none;
+        background-color: transparent;
+    }
+}
+.box .option i {
+    cursor: pointer;
+    color: var(--clr-dark);
+
+    &:hover {
+        color: var(--clr-blue);
+    }
+}
+.box .option .optionBtn {
+    position: relative;
+}
+.box .option .crud {
+    position: absolute;
+    z-index: 1;
+    right: 5px;
+    background-color: var(--clr-light);
+    width: 60px;
+    text-align: center;
+    padding: 10px;
+    border-radius: 6px;
+    display: none;
+
+    li {
+        list-style: none;
+    }
+
+    a {
+        color: var(--clr-dark);
+        font-size: var(--size-sm);
+
+        &:hover {
+            color: var(--clr-blue);
+        }
+    }
+}
+
+/* .barangay-box img {
+    width: 80px;
+} */
+
+
+/*=== ADD BARANGAY ==*/
+.tblbody.addbg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 100px;
+}
+.tblbody.addec {
+    margin-top: 50px;
+}
+
+.login-container {
+    background: rgba(255, 255, 255, 0.8);
+    background: var(--clr-blue2);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    width: 260px;
+    text-align: center;
+    /* margin: 0 auto; */
+}
+.login-container.ecenterr {
+    width: 300px;
+}
+
+.login-container h2 {
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--clr-blue);
+}
+
+.login-container input, .suptype {
+    width: 90%;
+    padding: 5px;
+    margin-bottom: 15px;
+    border: 1px solid var(--clr-blue);
+    border-radius: 5px;
+}
+
+
+.login-container button {
+    background-color: var(--clr-blue);
+    color: var(--clr-light);
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    outline: none;
+    border: none;
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        letter-spacing: 3px;
+    }
+}
+
+.table-container .tblheader .filter select {
+    border-radius: 2rem;
+    height: 25px;
+    padding: 0 5px;
+    outline: none;
+    text-align: center;
+    font-size: var(--size-sm);
+    font-weight: 500;
+    
+}
+.table-container .tblheader .filter select option {
+    text-align: center;
+}
+
+
+
+@media screen and (max-width: 1232px) {
+    .list-barangay {
+        grid-template-columns: repeat(4, 220px);
+    }
+}

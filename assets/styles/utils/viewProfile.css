@@ -1,0 +1,409 @@
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2em;
+    position: relative;
+    overflow: auto;
+    box-shadow: none;
+}
+
+
+.profile-right {
+    overflow: auto;
+}
+
+
+/* update profile or change admin modal */
+.profile-cta {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    z-index: 999;
+}
+
+.cta-toggle {
+    display: none;
+}
+
+
+.cta-modal {
+    position: absolute;
+    z-index: 999;
+    box-shadow: var(--box-shadow);
+    background-color: var(--clr-white);
+    right: 20px;
+    top: 3px;
+    width: 150px;
+    padding: 1em;
+    border-radius: .5em;
+    display: none;
+}
+
+.cta-options {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    a {
+        color: var(--clr-slate600);
+        transition: .3s;
+
+        &:hover {
+            color: var(--clr-dark);
+            font-weight: 600;
+        }
+    }
+}
+
+.cta-toggle:checked + .cta-modal {
+    display: block;
+}
+
+
+/* ====== left content start ==== */
+
+/* profile starts */
+.profile-left {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: .5em;
+}
+
+
+.profileInfo {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: .5em;
+}
+
+/* .profileInfo-left,
+.profileInfo-right {
+    box-shadow: var(--box-shadow);
+} */
+
+.profileInfo-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.profileImg {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.cPhoto {
+    display: block;
+    font-size: var(--size-xs);
+    outline: none;
+    border: none;
+    background-color: var(--clr-slate600);
+    color: var(--clr-white);
+    padding: .3em .5em;
+    border-radius: .5em;
+    transition: .3s;
+
+    &:hover {
+        background-color: var(--clr-dark);
+    }
+}   
+
+
+.profileInfo-right {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: space-around;
+
+    h3 {
+        font-size: var(--size-base);
+    }
+}
+
+/* .profile-details {
+
+} */
+
+
+.profile-details p {
+    font-size: var(--size-sm);
+    /* font-style: italic; */
+    color: var(--clr-slate600);
+}
+
+
+.proof-button {
+    font-size: var(--size-xs);
+    outline: none;
+    border: none;
+    background-color: var(--clr-slate600);
+    color: var(--clr-white);
+    padding: .3em .5em;
+    border-radius: .5em;
+    transition: .3s;
+    margin-bottom: .5em;
+
+    &:hover {
+        background-color: var(--clr-dark);
+    }
+}
+
+.proof-modal {
+    display: none;
+}
+
+.proof-attachPhoto {
+    box-shadow: var(--box-shadow);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    label {
+        position: absolute;
+        top: 3px;
+        right: 1px;
+        z-index: 99;
+    }
+}
+
+
+.proof-photo {
+    object-fit: cover;
+    max-width: 450px;
+    max-height: 450px;
+}
+
+
+.proof-toggle {
+    display: none;
+}
+.proof-toggle:checked + .proof-modal {
+    display: block;
+}
+
+
+
+
+
+.proof-modal {
+    z-index: 999;
+}
+/* profile end */
+
+
+
+/* barangay Ecenter starts */
+.barangayEcenter {
+    overflow: auto;
+    max-height: 461px;
+}
+
+.ecHeader-title {
+    padding: .5em;
+    border-bottom: 1px solid var(--clr-dark);
+    position: sticky;
+    top: 0;
+    background-color: var(--clr-white);
+}
+
+.ecBarangay-container {
+    max-height: 195px;
+}
+
+.ecBarangay-list {
+    padding: 1em 1.5em 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: .5em;
+}
+
+.ecBarangay-name {
+    font-weight: 500;
+    font-size: var(--size-base);
+}
+
+.ecBarangay-status {
+    font-size: var(--size-sm);
+    border-radius: 1em;
+    padding: .2em .5em;
+    width: 66px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.ecBarangay-status.statActive {
+    background-color: var(--clr-green2);
+}
+
+.ecBarangay-status.statInactive {
+    background-color: var(--clr-red);
+}
+/* barangay Ecenter ends */
+
+/* ====== left content ends ==== */
+
+
+
+/* ====== right content start ==== */
+.right-header {
+    border-bottom: 1px solid var(--clr-dark);
+    padding: 1em;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    position: relative;
+    position: sticky;
+    top: 0;
+    background-color: var(--clr-white);
+}
+
+.personel-header,
+.activityLog-header {
+    font-size: var(--size-lg);
+    color: var(--clr-dark);
+    cursor: pointer;
+}
+
+.personel-header.active,
+.activityLog-header.active {
+    color: var(--clr-slate600);
+}
+
+
+.activeLine {
+    background-color: var(--clr-slate600);
+    width: 106px;
+    height: 2px;
+    position: absolute;
+    bottom: -1px;
+    display: none;
+}
+.activeLine.fam {
+    width: 130px;
+}
+
+.personel-content {
+    padding: 2em 1.5em 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    display: none;
+}
+
+.personal-name {
+    font-size: var(--size-base);
+}
+
+.personel-role {
+    font-size: var(--size-sm);
+    background-color: var(--clr-slate200);
+    padding: .2em 1em;
+    border-radius: 1em;
+}
+
+.activityLog-content {
+    padding: 2em 1.5em 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    display: none;
+}
+
+.log-container {
+    display: flex;
+    gap: 2em;
+}
+
+.logDivider {
+    background-color: var(--clr-dark);
+    height: 20px;
+    width: 2px;
+}
+
+/* ====== right content start ==== */
+
+
+
+
+
+/* responsive */
+@media screen and (max-width: 1232px) {
+    .proof-button {
+        margin-bottom: .3em;
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    .ecBarangay-name {
+        font-size: var(--size-sm);
+    }
+    
+    .ecBarangay-status {
+        font-size: var(--size-xs);
+    }
+}
+
+
+@media screen and (max-width: 992px) {
+    .profile-details p {
+        font-size: var(--size-xs);
+    }
+
+}
+
+@media screen and (max-width: 768px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+    .profile-details p {
+        font-size: var(--size-sm);
+    }
+
+    .profile-right {
+        overflow: visible;
+    }
+
+    .right-header {
+        position: unset;
+        position: relative;
+    }
+
+}
+
+@media screen and (max-width: 480px) {
+    .profileInfo {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        gap: .5em;
+    }
+
+    .profileInfo-left {
+        gap: .5em;
+    }
+
+    .profileInfo-right {
+        align-items: center;
+        justify-content: center;
+        gap: .5em;
+    }
+
+    .profile-details {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .ecBarangay-name {
+        font-size: var(--size-xs);
+    }
+    
+    .ecBarangay-status {
+        font-size: var(--size-xs);
+    }
+}

@@ -1,0 +1,295 @@
+main {
+    padding: 20px 20px 0 20px;
+}
+
+
+
+.evacuation-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: var(--size-xs);
+}
+
+.evacuees-add {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px;
+    /* width: 13%; */
+    width: 12rem;
+    border-radius: 5px;
+    background-color: var(--clr-grey);
+}
+
+.evacuees-add.click {
+    background-color: var(--clr-blue);
+}
+
+.evacuees-add:hover {
+    background-color: var(--clr-blue);
+}
+
+.evacuees-add .addi {
+    color: var(--clr-light);
+    font-size: var(--size-sm);
+}
+
+
+
+/*======= evacuation overview======== */
+.evacuation-column {
+    display: flex;
+    justify-content: space-between;
+    /* border: 1px solid red; */
+    /* background-color: var(--clr-blue); */
+    /* margin: 5px 0 10px; */
+    margin: 10px 0;
+    border-radius: 8px;
+
+    a {
+        color: var(--clr-light);
+        background-color: var(--clr-grey);
+        border-right: 1px solid var(--clr-light);
+        border-bottom: 1px solid var(--clr-light);
+        border-left: 1px solid var(--clr-light);
+        /* border-bottom-left-radius: 1rem;
+        border-bottom-right-radius: 1rem; */
+        border-radius: 20px;
+        padding: 5px 25px;
+        /* margin: 0 15px; */
+        transition: 0.1s ease-in;
+
+        &:hover {
+            background-color: var(--clr-blue);
+        }
+    }
+
+    a.click {
+        background-color: var(--clr-blue);
+    }
+}
+
+.evacuation-data {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* display: flex;
+    align-items: center;
+    justify-content: space-between; */
+    margin-top: 30px;
+    box-shadow: 0 .4rem .8rem #0005;
+    border-radius: 15px;
+}
+
+.evacuation-tiles {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 15px;
+    width: 75%;
+    padding: 10px;
+    border-radius: 15px;
+    /* width: 400px; */
+}
+
+.data-text {
+    background-color: var(--clr-slate400);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* padding: 7px 25px; */
+    padding: 12px 25px;
+    border-radius: 15px;
+}
+
+.data-text.totalevac {
+    background-color: var(--clr-blue);
+
+    h3, span {
+        color: var(--clr-light);
+    }
+}
+
+.data-text h3 { 
+    font-size: var(--size-base);
+    color: var(--clr-dark);
+    font-weight: 700;
+}
+
+.data-text span {
+    font-size: var(--size-base);
+    font-weight: 800;
+    color: var(--clr-dark);
+}
+
+.data-text:hover {
+    background-color: var(--clr-blue);
+}
+
+.data-text:hover h3,
+.data-text:hover span {
+    color: var(--clr-light); 
+}
+
+
+.evacuation-charts {
+    width: 85%;
+    /* width: 400px; */
+}
+
+
+/* evacuation evacuees landing page start */
+.evacuees-container {
+    background-color: white;
+    width: 60%;
+    height: 50vh;
+    margin: 0 auto;
+    margin-top: 50px;
+    /* display: flex;
+    justify-content: space-between;
+    align-items: center; */
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: center;
+    justify-content: center;
+    gap: 50px;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+
+.evacuees-box {
+    text-align: center;
+    background-color: var(--clr-blue2);
+    padding: 13px;
+    /* width: 200px; */
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+
+    a {
+        color: var(--clr-dark);
+        font-weight: 600;
+        letter-spacing: 1px;
+        font-size: var(--size-xl);
+    }
+}
+.evacuees-box:hover {
+    background-color: var(--clr-blue);
+    cursor: pointer;
+
+    a {
+        color: var(--clr-light);
+    }
+}
+
+/* =========resource management ====== */
+.evacuees-container.resources {
+    width: 90%;
+    height: 60vh;    
+    display: grid;
+    grid-template-columns: repeat(4, 152px);
+    /* padding: 20px; */
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+.evacuees-box.add {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    height: 40px;
+}
+
+
+
+
+
+/* =========evacuation evacuees list all ====== */
+.table-container {
+    height: 68vh;
+}
+
+.table-container .tblheader .filter select {
+    border-radius: 2rem;
+    height: 25px;
+    padding: 0 5px;
+    outline: none;
+    text-align: center;
+    font-size: var(--size-sm);
+    font-weight: 500;
+    
+}
+.table-container .tblheader .filter select option {
+    text-align: center;
+}
+.tblheader .firsthead {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+.tblheader .firsthead i {
+    font-size: var(--size-lg);
+    color: var(--clr-light);
+    cursor: pointer;
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+}
+
+
+.tblbody {
+    width: 98%;
+    max-height: calc(89% - 1.6rem);
+    /* height: calc(89% - 1.6rem); */
+    background-color: var(--clr-slate200);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    margin: 1.1rem auto;
+    overflow: auto;
+    border-radius: 0.9rem;
+}
+tbody td {
+    font-size: var(--size-sm);
+}
+/* table, th, td {
+    border-collapse: collapse;
+    padding: 0.8rem;
+    text-align: left;
+} */
+/* .tblbody::-webkit-scrollbar {
+    background: var(--clr-grey);
+    width: 5px;
+    height: 10px;
+}
+.tblbody::-webkit-scrollbar-thumb {
+    background-color: var(--clr-blue2);
+} */
+
+
+
+
+
+@media screen and (max-width: 1232px) {
+    .evacuation-tiles {
+        width: 75%;
+        /* width: 400px; */
+    }
+    .evacuation-charts {
+        width: 85%;
+        /* width: 400px; */
+    }
+
+    .data-text {
+        padding: 7px 25px;
+    }
+}
+
+
+

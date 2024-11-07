@@ -1,0 +1,59 @@
+.addEc {
+    box-shadow: none;
+    display: grid;
+    /* place-items: center; */
+}
+
+.addEC-container,
+.editEC-container {
+    display: grid;
+    place-items: center;
+}
+
+.addEC-form,
+.editEC-form {
+    box-shadow: var(--box-shadow);
+    display: grid;
+    place-items: center;
+    padding: 1em;
+    gap: 2em;
+}
+
+form {
+    display: grid;
+    place-items: center;
+    gap: .5em;
+    padding: 1em;
+}
+
+.addEC-input,
+.editEC-input {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    input, select {
+        width: 350px;
+        height: 30px;
+        border: none;
+        outline: none;
+        border-bottom: 1px solid;
+    }
+
+    #create {
+        margin-top: 1em;
+    }
+
+    .noBorder {
+        border: none;
+    }
+
+    .mainBtn {
+        width: 350px;
+    }
+}
+
+
+
+
+

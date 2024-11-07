@@ -1,0 +1,288 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+
+@import url('https://fonts.googleapis.com/css2?family=Rowdies:wght@300;400;700&display=swap');
+
+
+:root {
+    /* colors */
+    --clr-dark: #050914;
+    --clr-light: #f1f5f9;
+    --clr-white: #fff;
+    --clr-grey: #4b5563;
+    --clr-green: #16a34a;
+    --clr-green2: #bbf7d0;
+    --clr-ltgreen: #f0fdf4;
+    --clr-yellow: #fef08a;
+    --clr-yellow2: #fde047;
+    --clr-yellow3: #facc15;
+    --clr-yellow4: #eab308;
+    --clr-yellow5: #FFD043;
+    --clr-red: #ef4444;
+    --clr-orange: #FF993A;
+    --clr-orange2: #fed7aa;
+    --clr-blue: #1e40af;
+    --clr-blue2: #bfdbfe;
+    --clr-slate100: #f1f5f9;
+    --clr-slate200: #e2e8f0;
+    --clr-slate400: #94a3b8;
+    --clr-slate500: #aaa;
+    --clr-slate600: #475569;
+    --clr-slate800: #1e293b;
+
+    --box-shadow: 0 .4rem .8rem #0005;
+    /* --box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px; */
+    /* --box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px; */
+    --box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+    --box-shadow-hover: 0 .4rem .8rem #0005;
+    --box-shadow2: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+    --box-shadow3: var(--clr-slate400) 1.95px 1.95px 2.6px;
+    /* sizes */
+    --size-xxs: 0.5rem;  /*10px*/
+    --size-xs: 0.75rem; /*12px*/
+    --size-sm: 0.875rem; /*14px*/
+    --size-base: 1rem;  /*16px*/
+    --size-lg: 1.125rem; /* 18px*/
+    --size-xl: 1.25rem;  /*20px*/
+    --size-2xl: 1.5rem; /*24px*/
+    --size-3xl: 1.875rem; /*30px*/
+    --size-4xl: 2.5rem;  /*40px*/
+    --size-5xl: 3rem; 
+    --size-6xl: 3.75rem; 
+    --size-7xl: 5rem;  /*80px*/
+    --size-8xl: 6rem; 
+    --size-9xl: 8rem; 
+    --size-10xl: 10rem; 
+
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    line-height: calc(1em + 0.5em); /*makes the line height correctly relative to the font size*/
+    /* font-family: 'Manrope', sans-serif; */
+    font-family: "Inter", sans-serif;
+}
+
+html {
+    scroll-behavior: smooth; 
+}
+
+a {
+    text-decoration: none;
+    /* color: var(--clr-light); */
+}
+
+i {
+    font-size: 24px;
+}
+
+/* Default label styling */
+label {
+    cursor: pointer;
+    padding: 5px;
+}
+
+
+::-webkit-scrollbar {
+    width: 0;
+    height: 8px;
+}
+
+
+/* design for button */
+.mainBtn {
+    outline: none;
+    border: none;
+    background-color: var(--clr-slate600);
+    padding: .5em 1em;
+    border-radius: .5em;
+    color: var(--clr-white);
+    font-weight: 600;
+    transition: .3s;
+
+    &:hover {
+        background-color: var(--clr-dark);
+        cursor: pointer;
+    }
+}
+
+
+/* btn for adding */
+button.addBg-admin {
+    outline: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: .5em;
+    padding: .5em 1em;
+    border-radius: .5em;
+    background-color: var(--clr-slate600);
+    font-size: var(--size-base);
+    color: var(--clr-white);
+    font-weight: 600;
+    cursor: pointer;
+    transition: .3s ease;
+
+    &:hover {
+        background-color: var(--clr-dark);
+    }
+
+    
+}
+
+button.addBg-admin i {
+    color: var(--clr-white);
+    font-size: var(--size-base);
+}
+
+
+/* popup modal using checkbox*/
+.filter-popup i{
+    color: var(--clr-slate600);
+    font-size: var(--size-xl);
+    transition: .3s;
+    position: relative;
+
+    &:hover {
+        color: var(--clr-dark);
+        cursor: pointer;
+    }
+}
+.modal-toggle {
+    display: none;  
+    /* to hide the checkbox */
+}
+
+
+/* Hide the radio buttons */
+/* input[type="radio"] {
+    display: none;
+} */
+.modal {
+    position: absolute;
+    background-color: var(--clr-white);
+    top: 20px;
+    left: 50px;
+    max-width: 150px;
+    max-height: 150px;
+    /* height: 150px; */
+    border-radius: .5rem;
+    box-shadow: var(--box-shadow);
+    overflow: auto;
+    z-index: 99;
+    display: none;
+}
+
+.modal .modal-content {
+    padding: .5em;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal .modal-content .close {
+    /* float: right; */
+    text-align: right;
+}
+
+/* to open the filter modal */
+.modal-toggle:checked + .modal {
+    display: block;
+}
+
+/* filter options */
+.filter-option {
+    text-align: center;
+}
+
+.option-content:hover {
+    background-color: var(--clr-dark);
+    color: var(--clr-white);
+}
+.option-content input:checked + label {
+    color: white;
+    /* background-color: var(--clr-dark); */
+}
+.option-content:has(input:checked) {
+    background-color: var(--clr-slate600);
+}
+
+
+.option-content input[type="checkbox"] {
+    display: none;
+}
+
+
+
+/* the html */
+/* <div class="filter-popup">
+    <label for="modal-toggle" class="modal-button">
+        <i class="fa-solid fa-filter"></i>
+    </label>
+    <input type="checkbox" name="" id="modal-toggle" class="modal-toggle">
+
+    <div class="modal">
+        <div class="modal-content">
+            
+            <div class="filter-option">
+                <div class="option-content">
+                    <input type="checkbox" name="barangay" id="tetuan">
+                    <label for="tetuan">Tetuan</label>
+                </div>
+                <div class="option-content">
+                    <input type="checkbox" name="barangay" id="tugbungan">
+                    <label for="tugbungan">Tugbungan</label>
+                </div>
+                
+
+            </div>
+            
+        </div>
+    </div>
+</div>*/
+
+
+
+
+
+/* responsive */
+@media screen and (max-width: 1232px) {
+    
+}
+
+@media screen and (max-width: 1200px) {
+    
+}
+
+
+@media screen and (max-width: 992px) {
+    
+
+
+}
+
+@media screen and (max-width: 768px) {
+    button.addBg-admin {
+        /* padding: .3em .5em; */
+        font-size: var(--size-xs);
+    
+        i {
+            font-size: var(--size-xs);
+        }
+    } 
+    
+}
+
+@media screen and (max-width: 480px) {
+    button.addBg-admin {
+        padding: .3em .5em;
+        font-size: var(--size-xxs);
+    
+        i {
+            font-size: var(--size-xxs);
+        }
+    }  
+}

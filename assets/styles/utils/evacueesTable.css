@@ -1,0 +1,345 @@
+/* .table__container {
+    background-color: var(--clr-slate200);
+}
+
+.filter-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1em;
+
+    i {
+        font-size: var(--size-lg);
+    }
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    border: 1px solid;
+    padding: .2em 1em;
+    border-radius: 1em;
+
+    input {
+        border: none;
+        outline: none;
+        background-color: transparent;
+    }
+} */
+
+
+
+.table-container {
+    /* max-height: 500px;
+    max-width: 100%; */
+    /* padding: 20px; */
+    /* border-radius: 6px; */
+    /* overflow: auto; */
+    margin-top: 10px;
+    margin-inline: auto;
+    width: 78vw;
+    height: 82vh;
+    background-color: var(--clr-white);
+    border: 2px solid var(--clr-white);
+    backdrop-filter: blur(7px);
+    box-shadow: 0 .4rem .8rem #0005;
+    
+    /* box-shadow: none; */
+
+    border-radius: 0.9rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.tblheader {
+    width: 100%;
+    height: 10%;
+    background-color: var(--clr-white);
+    padding: .8rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 5;
+    /* border-bottom: 2px solid var(--clr-slate200); */
+
+}
+
+
+
+.filter-popup i{
+    color: var(--clr-slate600);
+    font-size: var(--size-xl);
+    transition: .3s;
+    position: relative;
+
+    &:hover {
+        color: var(--clr-dark);
+        cursor: pointer;
+    }
+}
+
+
+
+
+.input_group {
+    /* width: 35%; */
+    height: 100%;
+    border: 2px solid var(--clr-slate200);
+    color: var(--clr-dark);
+    padding: 0.8rem;
+    border-radius: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.2s;
+}
+
+.input_group:focus-within {
+    border: 2px solid var(--clr-dark);
+}
+
+
+.input_group input {
+    width: 100%;
+    padding: 0 .5rem 0 .3rem;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    color: var(--clr-dark);
+    font-size: var(--size-base);
+}
+
+
+.input_group i {
+    font-size: var(--size-lg);
+}
+
+
+
+.tblheader::before {
+    content: "";
+    width: 42px;
+    height: 42px;
+    background: transparent;
+    border-radius: 50%;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    /* box-shadow: -20px -20px 0 var(--clr-slate800); */
+}
+.tblheader::after {
+    content: "";
+    width: 42px;
+    height: 42px;
+    background: transparent;
+    border-radius: 50%;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    /* box-shadow: 20px -20px 0 var(--clr-slate800); */
+}
+
+/* table header end */
+
+
+/* table body start */
+.tblbody {
+    /* width: 98%; */
+    width: 100%;
+    /* max-height: calc(89% - 1.6rem); */
+    height: calc(89% - 1.6rem);
+    background-color: var(--clr-white);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: none;
+    /* margin: 1.1rem auto; */
+    margin-bottom: 1.1rem;
+    margin-inline: auto;
+    overflow: auto;
+    border-radius: 0.9rem;
+}
+
+.relative {
+    position: relative;
+}
+
+
+
+.tblbody::-webkit-scrollbar {
+    width: 0;
+    height: 8px;
+}
+.tblbody::-webkit-scrollbar-thumb {
+    background-color: var(--clr-dark);
+    border-radius: .5rem;
+}
+.tblbody::-webkit-scrollbar-track {
+    background-color: var(--clr-slate200);
+}
+
+
+
+table {
+    width: 100%;
+}
+
+table thead th {
+    position: sticky;
+    top: 0;
+    left: 0;
+    /* background-color: var(--clr-light); */
+    background-color: var(--clr-white);
+    border-bottom: 2px solid var(--clr-slate200);
+    color: var(--clr-dark);
+    cursor: default;
+    text-transform: none;
+    font-size: var(--size-sm);
+    z-index: 1;
+}
+
+table, th, td {
+    border-collapse: collapse;
+    padding: .5rem 1rem;
+    /* padding: 0 1rem; */
+    text-align: left;
+}
+
+
+
+thead th:hover {
+    color: var(--clr-slate800);
+}
+
+
+tbody tr:nth-child(even) {
+    background-color: var(--clr-light);
+}
+
+tbody tr:hover td {
+    background-color: var(--clr-slate200);
+    /* color: var(--clr-light); */
+}
+
+/* adjusting the size of a specific column */
+tbody tr td:nth-child(5) {
+    /* width: 300px; */
+    width: 200px;
+}
+
+tbody tr .view-action {
+    color: var(--clr-light);
+    background-color: var(--clr-grey);
+    padding: 4px;
+    border-radius: 5px;
+    
+    &:hover {
+        background-color: var(--clr-dark);
+    }
+}
+
+tbody tr td {
+    font-size: var(--size-sm);
+}
+
+
+
+
+
+
+/* filtering */
+tbody tr.hide {
+    opacity: 0;
+    transform: translateX(-100%);
+}
+
+tbody tr.hide td,
+tbody tr.hide td p {
+    padding: 0;
+    transition: .2s ease-in-out .5s;
+}
+
+tbody tr.hide td img {
+    width: 0;
+    height: 0;
+    transition: .2s ease-in-out .5s;
+}
+
+
+.ecMembers {
+    position: relative;
+}
+
+.viewMembers {
+    position: absolute;
+    right: 55%;
+    top: 50%;
+    /* border: 2px solid red; */
+    box-shadow: var(--box-shadow);
+    list-style: none;
+    padding: .5em 1em;
+    border-radius: .5em;
+    background-color: var(--clr-white);
+    visibility: hidden;
+    z-index: 1;
+}
+
+/* .ecMembers:hover > .viewMembers {
+    visibility: visible;
+} */
+
+tr:hover .ecMembers > .viewMembers {
+    visibility: visible;
+}
+
+.no-match-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 350px;
+    text-align: center;
+    background-color: var(--clr-slate200);
+    padding: 25px;
+    font-size: var(--size-xl);
+    border-radius: 1rem;
+    display: none;
+}
+
+
+@media screen and (max-width: 768px) {
+    .input_group input {
+        font-size: var(--size-sm);
+    }
+    
+    
+    .input_group i {
+        font-size: var(--size-sm);
+    }
+
+    table thead th {
+        font-size: var(--size-xs);
+    }
+    
+    tbody tr td {
+        font-size: var(--size-sm);
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .input_group input {
+        font-size: var(--size-xs);
+    }
+    
+    
+    .input_group i {
+        font-size: var(--size-xs);
+    }
+
+    table thead th {
+        font-size: var(--size-xxs);
+    }
+    
+    tbody tr td {
+        font-size: var(--size-xs);
+    }
+}

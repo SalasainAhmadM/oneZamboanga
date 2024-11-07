@@ -1,0 +1,412 @@
+.main-container {
+    overflow: auto;
+}
+
+.statusHeader {
+    /* background-color: blue; */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 .5em .5em;
+    font-size: var(--size-lg);
+}
+
+.statusCard-container {
+    /* background-color: red; */
+    /* margin-top: 1em; */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2em;
+    padding: 1em;
+    /* display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 2em; */
+}
+
+.statusCard {
+    /* border: 1px solid blue; */
+    background-color: var(--clr-slate200);
+    /* box-shadow: var(--box-shadow); */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .5em;
+    justify-content: space-around;
+    border-radius: 1em;
+    padding: .5em 1em;
+    transition: .3s;
+
+    &:hover {
+        box-shadow: var(--box-shadow);
+    }
+}
+
+.statusCard .barangayLogo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: #fff;
+}
+
+.statusBgname {
+    color: var(--clr-dark);
+    transform: .3s;
+
+    &:hover {
+        cursor: pointer;
+        text-decoration: underline;
+    }
+}
+
+.totalEc {
+    font-size: var(--size-base);
+    color: var(--clr-slate600);
+    transition: .3s;
+
+    &:hover {
+        color: var(--clr-dark);
+        text-decoration: underline;
+    }
+}
+
+.bgAdmin {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    h4 {
+        /* background-color: white; */
+        border-bottom: 1px solid var(--clr-dark);
+        font-size: var(--size-xs);
+    }
+
+    p {
+        font-size: var(--size-xs);
+    }
+}
+
+.modal-ecContainer {
+    position: relative;
+}
+
+.ecList-modal {
+    position: absolute;
+    background-color: var(--clr-white);
+    box-shadow: var(--box-shadow);
+    /* top: 0; */
+    /* left: 150px; */
+    /* left: 50px; */
+    left: 50%;
+    top: 35px;
+    transform: translateX(-50%);
+    width: 180px;
+    border-radius: .5em;
+    padding: .5em;
+    z-index: 1;
+    /* display: none; */
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.ecList-modal::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%);
+    border: 15px solid;
+    border-color: #0000 #0000 var(--clr-white) #0000;
+}
+
+
+.ecList {
+    display: flex;
+    align-items: center;
+    gap: .5em;
+}
+
+.ecList .ecName {
+    /* font-size: var(--size-sm); */
+    font-size: var(--size-xs);
+}
+
+.ecList .ecDot {
+    width: 10px;
+    height: 10px;
+    /* background-color: var(--clr-green2); */
+    border-radius: 50%;
+}
+
+.ecList .ecDot.green {
+    background-color: var(--clr-green); 
+}
+.ecList .ecDot.yellow {
+    background-color: var(--clr-yellow); 
+}
+.ecList .ecDot.red {
+    background-color: var(--clr-red); 
+}
+
+.ecTitle:hover + .ecList-modal {
+    /* display: block; */
+    visibility: visible;
+    opacity: 1;
+}
+
+
+
+
+
+/* view barangay evacuation centers */
+.bgEcList {
+    /* background-color: red; */
+    box-shadow: none;
+}
+
+.bgEc-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    /* grid-template-rows: 300px; */
+    /* gap: 1em; */
+    gap: 2em;
+
+    /* margin-top: .5em; */
+}
+
+.bgEc-cards {
+    display: flex;
+    flex-direction: column;
+    /* align-items: center; */
+    gap: 1.5em;
+    padding: 1.5em;
+    box-shadow: var(--box-shadow);
+    border-radius: .5em;
+    position: relative;
+    cursor: pointer;
+    transition: .3s;
+
+    &:hover {
+        box-shadow: var(--box-shadow-hover);
+    }
+}
+
+
+
+.bgEc-status {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    right: 10px;
+    top: 5px;
+}
+
+
+.bgEc-status.red {
+    background-color: var(--clr-red);
+}
+
+
+.bgEc-status.green {
+    background-color: var(--clr-green);
+}
+
+.bgEc-status.yellow {
+    background-color: var(--clr-yellow);
+}
+
+.bgEc-img {
+    width: 250px;
+    height: 150px;
+    /* background-color: red; */
+    object-fit: contain; 
+    margin: 0 auto;
+}
+
+.bgEc-info {
+    list-style: none;
+
+    padding-left: .5em;
+
+    li {
+        color: var(--clr-dark);
+        font-size: var(--size-base);
+    }
+}
+
+
+.bgEcList {
+    position: relative;
+}
+
+.addEC-container {
+    position: fixed;
+    top: 15%;
+    /* left: 60%; */
+    left: 50%;
+    
+    transform: translateX(-50%);
+    background-color: var(--clr-white);
+    z-index: 10;
+    display: none;
+    border-radius: .5em;
+}
+/* .editEC-container {
+    display: block;
+} */
+
+.addEC-form {
+    position: relative;
+}
+
+.addBg-admin {
+    z-index: 10;
+}
+
+.closeForm {
+    outline: none;
+    border: none;
+    background-color: transparent;
+    color: var(--clr-slate600);
+    transform: .3s;
+    cursor: pointer;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+
+    &:hover {
+        color: var(--clr-dark);
+    }
+
+    i {
+        font-size: var(--size-lg);
+        font-weight: 600;
+    }
+}
+
+.body-overlay::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); 
+    z-index: 9;
+}
+
+
+
+
+
+
+/* responsive */
+@media screen and (max-width: 1232px) {
+    .totalEc {
+        font-size: var(--size-sm);
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    .statusCard-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .addEC-container {
+        left: 50%;
+    }
+}
+
+
+@media screen and (max-width: 992px) {
+    .statusCard-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .bgEcWrapper {
+        height: 100vh;
+    }
+
+
+}
+
+@media screen and (max-width: 768px) {
+    .bgEc-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+}
+
+@media screen and (max-width: 620px) {
+    .statusCard-container {
+        /* grid-template-columns: 1fr; */
+        grid-template-columns: repeat(2, 214px);
+        justify-content: center;
+    }
+
+    
+}
+
+@media screen and (max-width: 570px) {
+    .statusCard-container {
+        grid-template-columns: 1fr;
+    }
+
+    .bgEc-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .statusHeader h3 {
+        font-size: var(--size-base);
+    }   
+
+    /* .totalEc {
+        font-size: var(--size-sm);
+    } */
+
+    .addEC-container {
+        width: 350px;
+    }
+    
+    .addEC-form {
+        gap: .5em;
+        box-shadow: none;
+    }
+    
+    form {
+        display: grid;
+        place-items: center;
+        gap: .5em;
+        padding: 1em;
+    }
+    
+    .addEC-input {
+    
+        input {
+            width: 300px;
+        }
+    
+        .mainBtn {
+            width: 300px;
+        }
+    }
+
+    .closeForm {
+        right: 20px;
+    
+        i {
+            font-size: var(--size-base);
+        }
+    }
+}
+
+@media screen and (max-width: 320px) {
+    .statusHeader h3 {
+        font-size: var(--size-sm);
+    }   
+}

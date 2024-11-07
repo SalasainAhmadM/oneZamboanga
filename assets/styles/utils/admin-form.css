@@ -1,0 +1,151 @@
+
+
+form {
+    display: flex;
+    flex-direction: column;
+    /* gap: .2em; */
+    padding: 1rem;
+}
+
+.main-container {
+    overflow: auto;
+    /* position: relative; */
+}
+
+
+
+
+.admin-reg {
+    padding: .5em .5em 0;
+}
+
+.admin-input_container {
+    /* margin-top: 6rem; */
+    overflow: auto;
+    padding: 1rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0 1em;
+    /* background-color: red; */
+}
+
+.admin-input {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.admin-photo {
+    /* background-color: red; */
+    /* width: 200px; */
+    
+    input {
+        font-size: var(--size-sm);
+    }
+
+    label {
+        font-size: var(--size-xs);
+    }
+}
+
+.admin-input label {
+    font-size: var(--size-sm);
+}
+
+.admin-input input,
+.admin-input select {
+    outline: none;
+    border: 1px solid var(--clr-dark);
+    background-color: transparent;
+    border-radius: .5rem;
+    padding: .5rem;
+    color: var(--clr-dark);
+    font-weight: 600;
+}
+
+.admin-input input::placeholder {
+    color: var(--clr-slate600);
+}
+
+.admin-input input:focus,
+.admin-input select:focus {
+    border: 2px solid var(--clr-dark);
+}
+
+.admin-cta_container {
+    padding: 1rem;
+}
+
+.admin-cta {
+    /* margin-left: 5px; */
+    display: flex;
+    justify-content: center;
+    /* margin-top: 2rem; */
+}
+
+.mainBtn.adminCreate {
+    font-size: var(--size-base);
+
+    width: 100%;
+}
+
+
+
+
+
+
+/* responsive */
+@media screen and (max-width: 1232px) {
+    
+}
+
+@media screen and (max-width: 1200px) {
+    
+}
+
+
+@media screen and (max-width: 992px) {
+    /* .mainBtn.adminCreate {
+        width: 100%;
+    } */
+
+    .admin-input_container {
+        grid-template-columns: repeat(2, 1fr);
+        
+    }
+
+}
+
+@media screen and (max-width: 768px) {
+    .admin-input_container {
+        grid-template-columns: repeat(2, 1fr);
+        
+    }
+    .mainBtn.adminCreate {
+        font-size: var(--size-base);
+        width: 100%;
+    }
+
+    .main-wrapper {
+        height: 90vh;
+    }
+}
+
+@media screen and (max-width: 545px) {
+    .admin-input_container {
+        grid-template-columns: 1fr;
+        gap: .5rem;
+    }
+
+    .admin-input label {
+        font-size: var(--size-xs);
+    }
+    
+    
+
+    form {
+        gap: 0;
+    }
+
+    
+} 

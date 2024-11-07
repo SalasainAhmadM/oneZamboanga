@@ -1,0 +1,156 @@
+.table-container {
+    /* max-height: 500px;
+    max-width: 100%; */
+    /* padding: 20px; */
+    /* border-radius: 6px; */
+    /* overflow: auto; */
+    margin-top: 20px;
+    width: 78vw;
+    max-height: 82vh;
+    background-color: var(--clr-white);
+    border: 2px solid var(--clr-slate200);
+    backdrop-filter: blur(7px);
+    box-shadow: 0 .4rem .8rem #0005;
+    border-radius: 0.9rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.profile-wrapper {
+    padding: 20px;
+    margin-top: 1rem;
+    position: relative;
+}
+.goback {
+    position: absolute;
+    top: 0;
+    cursor: pointer;
+
+    i:hover {
+        color: var(--clr-blue);
+    }
+}
+
+.evacuee-profile {
+    display: flex;
+    align-items: center;
+    /* justify-content: center; */
+    /* background-color: var(--clr-blue2); */
+    gap: 30px;
+    padding: 10px;
+    border-radius: 20px;
+}
+
+.img-profile img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: top;
+}
+
+.info-profile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 760px;
+    /* gap: 10px; */
+
+    h2 {
+        font-size: var(--size-3xl);
+    }
+}
+.info h3 {
+    font-size: var(--size-xl);
+}
+
+.nav-profile ul {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1rem;
+
+    li {
+        list-style: none;
+        background-color: var(--clr-blue2);
+        width: 100px;
+        height: 40px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        &:hover {
+            background-color: var(--clr-blue);
+        }
+
+        a {
+            color: var(--clr-dark);
+            font-size: var(--size-base);
+            font-weight: 500;
+        }
+
+        
+    }
+}
+
+.nav-profile ul li:hover a {
+    background-color: var(--clr-blue);
+    color: var(--clr-white);
+}
+
+
+.nav-profile ul li.active {
+    background-color: var(--clr-blue);
+    
+    a {
+        color: var(--clr-white);
+    }
+}
+
+.home-profile {
+    margin-top: .5rem;
+    height: 190px;
+    max-height: 190px;
+    border-radius: 10px;
+    padding: 5px;
+    background-color: var(--clr-light);
+    box-shadow: 0 .4rem .8rem rgba(156, 154, 154, 0.333);
+    overflow: auto;
+}
+.home-profile::-webkit-scrollbar {
+    width: 0;
+}
+
+table, th, td {
+    border: 1px solid var(--clr-slate200);
+    border-collapse: collapse;
+}
+
+.personal {
+    display: flex;
+    gap: 10px;
+}
+
+.btnAction {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.btnAction button {
+    outline: none;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.btnAction button.admit {
+    background-color: var(--clr-blue);
+    color: var(--clr-white);
+}
+.btnAction button.redirect {
+    background-color: var(--clr-red);
+    color: var(--clr-white);
+}

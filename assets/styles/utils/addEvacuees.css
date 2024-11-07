@@ -1,0 +1,640 @@
+.evacuees {
+    /* box-shadow: none; */
+}
+
+select, input {
+    background-color: transparent;
+}
+
+label {
+    font-size: var(--size-sm);
+}
+
+.eform-wrapper {
+    /* background-color: var(--clr-slate200);
+    padding-block: 1em;
+    border-radius: .5em; */
+
+    /* ==== */
+    height: 100%;
+    overflow: auto;
+
+}
+
+.eform-header {
+    display: grid;
+    place-items: center;
+    /* display: flex;
+    flex-direction: column;
+    align-items: center; */
+
+    img {
+        width: 50px;
+        margin-bottom: .5em;
+    }
+
+    p {
+        font-size: var(--size-xs);
+    }
+
+    h4 {
+        margin-top: .2em;
+        font-size: var(--size-xs);
+    }
+
+    h3 {
+        font-size: var(--size-sm);
+        margin-top: .2em;
+    }
+}
+
+form {
+    margin-top: 2em;
+    padding-inline: 3em;
+}
+
+.ecInfo {
+    display: flex;
+    align-items: center;
+    gap: .5em;
+
+    label {
+        width: 160px;
+        font-size: var(--size-sm);
+    }
+
+    input, select {
+        outline: none;
+        border: none;
+        border-bottom: 1px solid;
+        /* width: 40%; */
+        width: 300px;
+        font-size: var(--size-sm);
+    }
+
+}
+
+.headFam {
+    margin-top: 1em;
+}
+
+.details-container {
+    display: flex;
+    align-items: center;
+}
+
+label.details {
+    font-size: var(--size-xs);
+}
+
+.headFam-details {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    margin-right: 1em;
+
+    input {
+        border: none;
+        outline: none;
+        border-bottom: 1px solid;
+        width: 250px;
+    }
+
+    input.age {
+        width: 40px;
+        text-align: right;
+    }
+}
+
+.occupation-container {
+    margin-top: 1em;
+    display: flex;
+    align-items: center;
+    gap: 1em;
+
+    input {
+        border: none;
+        outline: none;
+        border-bottom: 1px solid;
+    }
+}
+
+.occupation input {
+    width: 300px;
+}
+.income input {
+    width: 250px;
+}
+
+
+.houseStatus {
+    margin-top: 1em;
+    display: flex;
+    /* align-items: center; */
+    gap: 4em;
+
+    p {
+        font-size: var(--size-sm);
+    }
+    
+}
+
+.checkbox-info {
+    display: flex;
+    align-items: center;
+    margin-left: .5em;
+}
+.checkbox-info input[type=number] {
+    border: none;
+    outline: none;
+    border-bottom: 1px solid;
+}
+
+.owner {
+    margin-top: .5em;
+
+    input {
+        border: none;
+        outline: none;
+        border-bottom: 1px solid;
+        width: 300px;
+    }
+}
+
+.addMembers-container {
+    margin-top: 1em;
+}
+
+.memberTitle {
+    font-size: var(--size-sm);
+}
+
+.member-details {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: center;
+    margin-bottom: 1em;
+    gap: .5em;
+}
+
+.member-input {
+    display: flex;
+    align-items: center;
+
+    label {
+        width: 100px;
+    }
+
+    input, select {
+        border: none;
+        outline: none;
+        border-bottom: 1px solid;
+        width: 180px;
+    }
+}
+
+
+.addEvacuees {
+    margin-top: 2em;
+
+    button {
+        width: 100%;
+    }
+}
+
+/* responsive */
+@media screen and (max-width: 1232px) {
+    
+}
+
+@media screen and (max-width: 1200px) {
+    .headFam {
+        margin-top: 1em;
+
+        label {
+            font-size: var(--size-sm);
+        }
+    }
+    
+    .details-container {
+        justify-content: space-between;
+    }
+    
+    label.details {
+        font-size: var(--size-xs);
+    }
+    
+    .headFam-details {
+    
+        input {
+            width: 200px;
+        }
+    
+    }
+    
+    .occupation-container {
+        margin-top: 1em;
+        display: flex;
+        align-items: center;
+        gap: 1em;
+    
+        input {
+            border: none;
+            outline: none;
+            border-bottom: 1px solid;
+        }
+    }
+    
+    .occupation input {
+        width: 300px;
+    }
+    .income input {
+        width: 250px;
+    }
+    
+    
+    .houseStatus {
+        margin-top: 1em;
+        display: flex;
+        /* align-items: center; */
+        gap: 4em;
+    
+        p {
+            font-size: var(--size-sm);
+        }
+        
+    }
+    
+    .checkbox-info {
+        display: flex;
+        align-items: center;
+        margin-left: .5em;
+    }
+    .checkbox-info input[type=number] {
+        border: none;
+        outline: none;
+        border-bottom: 1px solid;
+    }
+    
+    .owner {
+        margin-top: .5em;
+    
+        input {
+            border: none;
+            outline: none;
+            border-bottom: 1px solid;
+            width: 300px;
+        }
+    }
+
+
+    .member-details {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .member-input {
+        display: flex;
+        align-items: center;
+    
+        label {
+            width: 100px;
+            font-size: var(--size-xs);
+        }
+    
+        input, select {
+            border: none;
+            outline: none;
+            border-bottom: 1px solid;
+            width: 160px;
+            font-size: var(--size-xs);
+        }
+    }
+}
+
+@media screen and (max-width: 1080px) {
+    .member-details {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .member-input {
+        input, select {
+            width: 200px;
+        }
+    }
+    
+}
+
+
+@media screen and (max-width: 992px) {
+    .headFam-details {
+    
+        input {
+            width: 160px;
+        }
+    
+    }
+}
+
+@media screen and (max-width: 768px) {
+
+    .eform-header {
+
+        img {
+            width: 40px;
+        }
+
+        p {
+            font-size: var(--size-xs);
+        }
+
+        h4 {
+            font-size: var(--size-xs);
+        }
+
+        h3 {
+            font-size: var(--size-xs);
+            margin-top: .5em;
+        }
+    }
+
+    .ecInfo {
+    
+        label {
+            width: 120px;
+            font-size: var(--size-xs);
+        }
+    
+        input, select {
+            width: 300px;
+            font-size: var(--size-xs);
+        }
+    
+    }
+
+    .headFam-details {
+    
+        input {
+            width: 120px;
+        }
+    
+    }
+
+    .headFam {
+        margin-top: 1em;
+
+        label {
+            font-size: var(--size-xs);
+        }
+    }
+
+    .occupation input {
+        width: 220px;
+    }
+    .income input {
+        width: 220px;
+    }
+    
+
+    .titleStat p {
+        font-size: var(--size-xs);
+    }
+
+
+    .memberTitle {
+        font-size: var(--size-xs);
+    }
+
+    .member-details {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .member-input {
+    
+        input, select {
+            width: 140px;
+        }
+    }
+
+    .mainBtn {
+        font-size: var(--size-xs);
+        padding: .3em 1em;
+    }
+}
+
+@media screen and (max-width: 640px) {
+    .ecInfo {
+    
+        label {
+            width: 120px;
+        }
+    
+        input, select {
+            width: 250px;
+            font-size: var(--size-xs);
+        }
+    
+    }
+
+    .headFam-details {
+    
+        input {
+            width: 90px;
+            font-size: var(--size-xxs);
+        }
+    
+    }
+
+    label.details {
+        font-size: var(--size-xxs);
+    }
+
+    .occupation input {
+        width: 180px;
+    }
+    .income input {
+        width: 180px;
+    }
+
+    .owner {
+    
+        input {
+            width: 220px;
+            font-size: var(--size-xs);
+        }
+    }
+
+    .member-details {
+        grid-template-columns: 1fr;
+    }
+
+    .member-input {
+    
+        label {
+            width: 250px;
+            font-size: var(--size-xs);
+        }
+    
+        input, select {
+            font-size: var(--size-xs);
+            width: 100%;
+        }
+    }
+}
+
+@media screen and (max-width: 560px) {
+    .ecInfo {
+    
+        label {
+            width: 100px;
+            font-size: var(--size-xxs);
+        }
+    
+        input, select {
+            width: 200px;
+            font-size: var(--size-xxs);
+        }
+    
+    }
+
+    .headFam {
+        label {
+            font-size: var(--size-xxs);
+        }
+    }
+
+    .headFam-details {
+    
+        input {
+            width: 60px;
+            font-size: var(--size-xxs);
+        }
+    
+    }
+
+    label.details {
+        font-size: var(--size-xxs);
+    }
+
+    .occupation input {
+        width: 120px;
+    }
+    .income input {
+        width: 120px;
+    }
+
+    .damaged input {
+        font-size: var(--size-xxs);
+    }
+
+    .checkbox-info input[type=number] {
+        width: 50px;
+    }
+
+    .titleStat p {
+        font-size: var(--size-xxs);
+    }
+
+    .owner {
+    
+        input {
+            width: 220px;
+            font-size: var(--size-xxs);
+        }
+    }
+
+    .member-input {
+    
+        label {
+            width: 160px;
+            font-size: var(--size-xxs);
+        }
+    
+        input, select {
+            font-size: var(--size-xxs);
+            width: 100%;
+        }
+    }
+}
+
+
+@media screen and (max-width: 490px) {
+    .eform-header {
+
+        img {
+            width: 40px;
+        }
+
+        p {
+            font-size: var(--size-xxs);
+        }
+
+        h4 {
+
+            font-size: var(--size-xxs);
+        }
+
+        h3 {
+            font-size: var(--size-xxs);
+            margin-top: .5em;
+        }
+    }
+
+    .ecInfo {
+    
+        label {
+            width: 90px;
+            font-size: var(--size-xxs);
+        }
+    
+        input, select {
+            width: 150px;
+            font-size: var(--size-xxs);
+        }
+    
+    }
+
+    .headFam-details {
+    
+        input {
+            width: 50px;
+            font-size: 0.4em;
+        }
+    
+    }
+
+    .owner {    
+        input {
+            width: 160px;
+        }
+    }
+
+    
+}
+
+@media screen and (max-width: 430px) {
+    form {
+        padding-inline: .5em;
+    }
+    .ecInfo {
+        label {
+            width: 90px;
+            font-size: var(--size-xxs);
+        }
+    
+        input, select {
+            width: 150px;
+            font-size: var(--size-xxs);
+        }
+    
+    }
+
+    .checkbox-info input[type=number] {
+        width: 30px;
+    }
+
+    .owner {    
+        input {
+            width: 100px;
+        }
+    }
+}
