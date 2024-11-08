@@ -263,12 +263,11 @@ $proof_image = !empty($worker['proof_image']) ? $worker['proof_image'] : "../../
 
                                 <div class="inputProfile">
                                     <label for="barangay">Barangay</label>
-                                    <select name="barangay" id="barangay" class="barangay">
-                                        <option value="Tetuan" <?php echo ($worker['barangay'] === 'Tetuan') ? 'selected' : ''; ?>>Tetuan</option>
-                                        <option value="Tugbungan" <?php echo ($worker['barangay'] === 'Tugbungan') ? 'selected' : ''; ?>>Tugbungan</option>
-                                        <option value="Guiwan" <?php echo ($worker['barangay'] === 'Guiwan') ? 'selected' : ''; ?>>Guiwan</option>
-                                    </select>
+                                    <input type="text" name="barangay" id="barangay" class="barangay"
+                                        value="<?php echo htmlspecialchars($worker['barangay']); ?>"
+                                        placeholder="Enter Barangay" required>
                                 </div>
+
 
                                 <div class="inputProfile">
                                     <label for="contact">Contact Information</label>

@@ -124,13 +124,10 @@
                             </div>
 
                             <div class="admin-input">
-                                <label for="">Barangay</label>
-                                <select name="barangay" id="" required>
-                                    <option value="">Select</option>
-                                    <option value="tetuan">Tetuan</option>
-                                    <option value="tugbungan">Tugbungan</option>
-                                </select>
+                                <label for="barangay">Barangay</label>
+                                <input type="text" name="barangay" id="barangay" required placeholder="Enter Barangay">
                             </div>
+
 
                             <div class="admin-input">
                                 <label for="">Contact Information</label>
@@ -203,37 +200,6 @@
     <script src="../../assets/src/utils/menu-btn.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        $('#create').on('click', function () {
-            Swal.fire({
-                title: "Create Admin?",
-                text: "",
-                icon: "info",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Yes",
-                customClass: {
-                    popup: 'custom-swal-popup' //to customize the style
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: "Success!",
-                        text: "Your username and password have been sent to your email.",
-                        icon: "success",
-                        customClass: {
-                            popup: 'custom-swal-popup'
-                        }
-                    });
-                }
-            });
-
-        })
-    </script>
-
-
-
 
 
 </body>

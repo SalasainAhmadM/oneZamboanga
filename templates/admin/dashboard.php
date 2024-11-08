@@ -30,6 +30,12 @@ if (isset($_SESSION['user_id'])) {
     exit;
 }
 $admin_image = !empty($admin_image) ? $admin_image : "../../assets/img/admin.png";
+
+// Query to get the total number of admins, excluding those with a verification code
+$count_sql = "SELECT COUNT(*) AS total_admins FROM admin WHERE role = 'admin' AND verification_code IS NULL";
+$count_result = $conn->query($count_sql);
+$total_admins = ($count_result->num_rows > 0) ? $count_result->fetch_assoc()['total_admins'] : 0;
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -122,7 +128,7 @@ $admin_image = !empty($admin_image) ? $admin_image : "../../assets/img/admin.png
                     <div class="progress">
                         <div class="info">
                             <h5>Admin Accounts</h5>
-                            <p>Total: 20</p>
+                            <p>Total: <?php echo $total_admins; ?></p>
                         </div>
                     </div>
                     <i class="fa-solid fa-users"></i>

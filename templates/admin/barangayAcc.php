@@ -1,3 +1,40 @@
+<?php
+session_start();
+include("../../connection/conn.php");
+
+if (isset($_SESSION['user_id'])) {
+    $admin_id = $_SESSION['user_id'];
+
+    $sql = "SELECT first_name, middle_name, last_name, extension_name, email, image FROM admin WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $admin_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $admin = $result->fetch_assoc();
+        $first_name = $admin['first_name'];
+        $middle_name = $admin['middle_name'];
+        $last_name = $admin['last_name'];
+        $extension_name = $admin['extension_name'];
+        $email = $admin['email'];
+        $admin_image = $admin['image'];
+
+        $admin_name = trim($first_name . ' ' . $middle_name . ' ' . $last_name . ' ' . $extension_name);
+    } else {
+        $first_name = $middle_name = $last_name = $extension_name = $email = '';
+    }
+} else {
+    header("Location: ../../login.php");
+    exit;
+}
+
+// Fetch all admins with role 'admin'
+$admin_query = "SELECT id, first_name, middle_name, last_name, extension_name, email, image, barangay, contact, role, status FROM admin WHERE role = 'admin'";
+$admin_stmt = $conn->prepare($admin_query);
+$admin_stmt->execute();
+$admin_result = $admin_stmt->get_result();
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -143,97 +180,34 @@
                                     <th>Action</th>
                                 </tr>
                             </thead>
-
                             <tbody>
-
-                                <tr onclick="window.location.href='viewProfile.php'">
-                                    <!-- <td>1</td> -->
-                                    <td>
-                                        <!-- <div class="relative">
-                                            <img src="../../assets/img/zambo.png" alt="myImg">Tetuan
-                                            <div class="dotss high"></div>
-                                        </div> -->
-                                        Tetuan
-                                    </td>
-                                    <td>
-                                        <div class="relative">
-                                            <img src="../../assets/img/hero.jpg" alt="myImg">
-                                            Soo Tang Hoon
-                                        </div>
-                                        <!-- Soo Tang Hoon -->
-                                    </td>
-                                    <td>09356234162</td>
-                                    <td>sutanghon@gmail.com</td>
-                                    <td>
-                                        <p class="status role">Admin</p>
-                                    </td>
-                                    <td>
-                                        <p class="status role active">Active</p>
-                                    </td>
-                                    <td><a href="viewProfile.php" class="view-action">View</a></td>
-                                    <!-- <td><a href="#" class="view-action">Edit</a></td> -->
-                                </tr>
-
-                                <tr onclick="window.location.href='viewProfile.php'">
-                                    <!-- <td>1</td> -->
-                                    <td>
-                                        <!-- <div class="relative">
-                                            <img src="../../assets/img/zambo.png" alt="myImg">Tetuan
-                                            <div class="dotss high"></div>
-                                        </div> -->
-                                        Tugbungan
-                                    </td>
-                                    <td>
-                                        <div class="relative">
-                                            <img src="../../assets/img/undraw_male_avatar_g98d.svg" alt="myImg">
-                                            Juan Carlos Yulo
-                                        </div>
-                                    </td>
-                                    <td>09356234162</td>
-                                    <td>sutanghon@gmail.com</td>
-                                    <td>
-                                        <p class="status role">Admin</p>
-                                    </td>
-                                    <td>
-                                        <p class="status role active">Active</p>
-                                    </td>
-                                    <td><a href="viewProfile.php" class="view-action">View</a></td>
-                                    <!-- <td><a href="#" class="view-action">Edit</a></td> -->
-                                </tr>
-
-                                <tr onclick="window.location.href='viewProfile.php'">
-                                    <!-- <td>1</td> -->
-                                    <td>
-                                        <!-- <div class="relative">
-                                            <img src="../../assets/img/zambo.png" alt="myImg">Tetuan
-                                            <div class="dotss high"></div>
-                                        </div> -->
-                                        Guiwan
-                                    </td>
-                                    <td>
-                                        <div class="relative">
-                                            <img src="../../assets/img/undraw_male_avatar_g98d.svg" alt="myImg">
-                                            Jedeh Arpy
-                                        </div>
-                                    </td>
-                                    <td>09356234162</td>
-                                    <td>sutanghon@gmail.com</td>
-                                    <td>
-                                        <p class="status role">Admin</p>
-                                    </td>
-                                    <td>
-                                        <p class="status role inactive">Inactive</p>
-                                    </td>
-                                    <td><a href="viewProfile.php" class="view-action">View</a></td>
-                                    <!-- <td><a href="#" class="view-action">Edit</a></td> -->
-                                </tr>
-
-
-
-
-
-
-
+                                <?php while ($admin = $admin_result->fetch_assoc()): ?>
+                                    <tr
+                                        onclick="window.location.href='viewProfile.php?id=<?php echo urlencode($admin['id']); ?>'">
+                                        <td><?php echo htmlspecialchars($admin['barangay']); ?></td>
+                                        <td>
+                                            <div class="relative">
+                                                <img src="<?php echo htmlspecialchars($admin['image'] ?: '../../assets/img/default-avatar.png'); ?>"
+                                                    alt="Profile Image">
+                                                <?php echo htmlspecialchars($admin['first_name'] . ' ' . $admin['last_name']); ?>
+                                            </div>
+                                        </td>
+                                        <td><?php echo htmlspecialchars($admin['contact']); ?></td>
+                                        <td><?php echo htmlspecialchars($admin['email']); ?></td>
+                                        <td>
+                                            <p class="status role"><?php echo ucfirst(htmlspecialchars($admin['role'])); ?>
+                                            </p>
+                                        </td>
+                                        <td>
+                                            <p
+                                                class="status role <?php echo $admin['status'] == 'active' ? 'active' : 'inactive'; ?>">
+                                                <?php echo ucfirst(htmlspecialchars($admin['status'])); ?>
+                                            </p>
+                                        </td>
+                                        <td><a href="viewProfile.php?id=<?php echo urlencode($admin['id']); ?>"
+                                                class="view-action">View</a></td>
+                                    </tr>
+                                <?php endwhile; ?>
                             </tbody>
                         </table>
                     </section>

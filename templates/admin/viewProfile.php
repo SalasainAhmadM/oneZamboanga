@@ -1,3 +1,30 @@
+<?php
+session_start();
+require_once '../../connection/conn.php';
+
+// Check if the 'id' parameter is set in the URL
+if (isset($_GET['id'])) {
+    $admin_id = $_GET['id'];
+
+    // Prepare and execute the query to fetch the admin details
+    $query = "SELECT first_name, middle_name, last_name, barangay, city, gender, position, role, image, proof_image FROM admin WHERE id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $admin_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Check if the admin exists
+    if ($result->num_rows === 1) {
+        $admin = $result->fetch_assoc();
+    } else {
+        echo "Admin not found.";
+        exit();
+    }
+} else {
+    echo "No admin selected.";
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -95,7 +122,9 @@
                         <div class="profileInfo">
 
                             <div class="profileInfo-left">
-                                <img class="profileImg" src="../../assets/img/undraw_male_avatar_g98d.svg" alt="">
+                                <img class="profileImg"
+                                    src="<?php echo htmlspecialchars($admin['image'] ?: '../../assets/img/default-avatar.png'); ?>"
+                                    alt="">
 
                                 <input id="fileInput" type="file" style="display:none;" />
                                 <input class="cPhoto" type="button" value="Change Photo"
@@ -103,14 +132,25 @@
                             </div>
 
                             <div class="profileInfo-right">
-                                <h3 profile-name>Mark Larenz Tabotabo</h3>
+                                <h3 profile-name>
+                                    <?php echo htmlspecialchars($admin['first_name'] . ' ' . $admin['last_name']); ?>
+                                </h3>
 
                                 <div class="profile-details">
-                                    <p class="details-profile">Barangay: Tetuan</p>
-                                    <p class="details-profile">Address: Tetuan Alvarez Drive</p>
-                                    <!-- <p class="details-profile">Gender: Male</p> -->
-                                    <p class="details-profile">Position: Barangay Captain</p>
-                                    <p class="details-profile">Role: Admin</p>
+                                    <p class="details-profile">Barangay:
+                                        <?php echo htmlspecialchars($admin['barangay']); ?>
+                                    </p>
+                                    <p class="details-profile">Address:
+                                        <?php echo htmlspecialchars($admin['city']); ?>
+                                    </p>
+                                    <p class="details-profile">Gender: <?php echo htmlspecialchars($admin['gender']); ?>
+                                    </p>
+                                    <p class="details-profile">Position:
+                                        <?php echo htmlspecialchars($admin['position']); ?>
+                                    </p>
+                                    <p class="details-profile">Role:
+                                        <?php echo ucfirst(htmlspecialchars($admin['role'])); ?>
+                                    </p>
                                 </div>
 
                                 <label for="proof-toggle" class="proof-button">
@@ -123,7 +163,9 @@
                                         <label for="proof-toggle">
                                             <i class="fa-solid fa-xmark"></i>
                                         </label>
-                                        <img class="proof-photo" src="../../assets/img/captain.webp" alt="">
+                                        <img class="proof-photo"
+                                            src="<?php echo htmlspecialchars($admin['proof_image'] ?: '../../assets/img/default-avatar.png'); ?>"
+                                            alt="Proof of Appointment">
                                     </div>
                                 </div>
                             </div>

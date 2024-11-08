@@ -262,12 +262,11 @@ $proof_image = !empty($admin['proof_image']) ? $admin['proof_image'] : "../../as
 
                                 <div class="inputProfile">
                                     <label for="barangay">Barangay</label>
-                                    <select name="barangay" id="barangay" class="barangay">
-                                        <option value="Tetuan" <?php echo ($admin['barangay'] === 'Tetuan') ? 'selected' : ''; ?>>Tetuan</option>
-                                        <option value="Tugbungan" <?php echo ($admin['barangay'] === 'Tugbungan') ? 'selected' : ''; ?>>Tugbungan</option>
-                                        <option value="Guiwan" <?php echo ($admin['barangay'] === 'Guiwan') ? 'selected' : ''; ?>>Guiwan</option>
-                                    </select>
+                                    <input type="text" name="barangay" id="barangay" class="barangay"
+                                        value="<?php echo htmlspecialchars($admin['barangay']); ?>"
+                                        placeholder="Enter Barangay" required>
                                 </div>
+
 
                                 <div class="inputProfile">
                                     <label for="contact">Contact Information</label>

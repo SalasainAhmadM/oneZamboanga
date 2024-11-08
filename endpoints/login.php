@@ -28,11 +28,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_role'] = $user['role'];
             $_SESSION['login_success'] = true;
 
-            // Update last_login and set status to 'active'
+            // Update last_login and set status to 'active' for the current user
             $updateQuery = "UPDATE admin SET last_login = NOW(), status = 'active' WHERE id = ?";
             $updateStmt = $conn->prepare($updateQuery);
             $updateStmt->bind_param("i", $user['id']);
             $updateStmt->execute();
+
+            // Set other users as 'inactive' if they haven't logged in for over a week
+            $updateInactiveQuery = "UPDATE admin SET status = 'inactive' WHERE last_login < DATE_SUB(NOW(), INTERVAL 7 DAY) AND id != ?";
+            $updateInactiveStmt = $conn->prepare($updateInactiveQuery);
+            $updateInactiveStmt->bind_param("i", $user['id']);
+            $updateInactiveStmt->execute();
 
             // Redirect based on the user role
             if ($user['role'] === 'admin') {
@@ -62,11 +68,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_role'] = 'worker';
                 $_SESSION['login_success'] = true;
 
-                // Update last_login and set status to 'active'
+                // Update last_login and set status to 'active' for the current worker
                 $updateQuery = "UPDATE worker SET last_login = NOW(), status = 'active' WHERE id = ?";
                 $updateStmt = $conn->prepare($updateQuery);
                 $updateStmt->bind_param("i", $worker['id']);
                 $updateStmt->execute();
+
+                // Set other workers as 'inactive' if they haven't logged in for over a week
+                $updateInactiveQuery = "UPDATE worker SET status = 'inactive' WHERE last_login < DATE_SUB(NOW(), INTERVAL 7 DAY) AND id != ?";
+                $updateInactiveStmt = $conn->prepare($updateInactiveQuery);
+                $updateInactiveStmt->bind_param("i", $worker['id']);
+                $updateInactiveStmt->execute();
 
                 header("Location: ../templates/communityWorker/dashboard_communityWorker.php");
                 exit();
@@ -81,7 +93,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
     }
-
 } else {
     $_SESSION['error_message'] = 'Please submit the form using the POST method.';
     header("Location: ../login.php");
