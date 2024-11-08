@@ -37,7 +37,7 @@
 
                 <form action="./endpoints/login.php" method="POST">
                     <div class="loginInput">
-                        <input type="email" name="email" class="email" placeholder="Email" required>
+                        <input type="text" name="username" class="username" placeholder="Username" required>
                     </div>
 
                     <div class="loginInput">
@@ -54,7 +54,21 @@
     </div>
 
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <?php
+    session_start();
+    if (isset($_SESSION['error_message'])) {
+        echo "<script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: '{$_SESSION['error_message']}'
+            });
+          </script>";
+        unset($_SESSION['error_message']);
+    }
+    ?>
 
 </body>
 

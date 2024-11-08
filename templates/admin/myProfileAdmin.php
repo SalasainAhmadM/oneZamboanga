@@ -1,3 +1,37 @@
+<?php
+session_start();
+include("../../connection/conn.php");
+
+if (isset($_SESSION['user_id'])) {
+    $admin_id = $_SESSION['user_id'];
+
+    // Fetch the admin's details from the database
+    $sql = "SELECT first_name, middle_name, last_name, extension_name, username, email, image FROM admin WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $admin_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $admin = $result->fetch_assoc();
+        $first_name = $admin['first_name'];
+        $middle_name = $admin['middle_name'];
+        $last_name = $admin['last_name'];
+        $extension_name = $admin['extension_name'];
+        $email = $admin['email'];
+        $admin_image = $admin['image'];
+
+        $admin_name = trim($first_name . ' ' . $middle_name . ' ' . $last_name . ' ' . $extension_name);
+    } else {
+        $first_name = $middle_name = $last_name = $extension_name = $email = '';
+    }
+} else {
+    header("Location: ../../login.php");
+    exit;
+}
+$admin_image = !empty($admin_image) ? $admin_image : "../../assets/img/admin.png";
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -106,13 +140,13 @@
 
                     <!-- ======myProfile====== -->
                     <div class="profile-right" id="myProfile">
-                        <h2>Monkey D. Luffy</h2>
+                        <h2><?php echo htmlspecialchars($admin_name); ?></h2>
 
                         <div class="right-wrapper">
-                            <img src="../../assets/img/undraw_male_avatar_g98d.svg" alt="">
+                            <img src="<?php echo htmlspecialchars($admin_image); ?>" alt="Admin Image">
 
                             <ul class="profileDetails">
-                                <li>
+                                <!-- <li>
                                     <p>Address: <span>Tetuan chuchu chu</span></p>
                                 </li>
                                 <li>
@@ -123,16 +157,19 @@
                                 </li>
                                 <li>
                                     <p>Contact Information: <span>09090909</span></p>
+                                </li> -->
+                                <li>
+                                    <p>Email: <span><?php echo htmlspecialchars($admin['email']); ?></span></p>
                                 </li>
                                 <li>
-                                    <p>Email: <span>youremail@gmail.com</span></p>
+                                    <p>Username: <span><?php echo htmlspecialchars($admin['username']); ?></span></p>
                                 </li>
-                                <li>
+                                <!-- <li>
                                     <p>Position: <span>Barangay Captain</span></p>
-                                </li>
+                                </li> -->
                             </ul>
 
-                            <button id="openProof">Proof of appointment</button>
+                            <!-- <button id="openProof">Proof of appointment</button> -->
                         </div>
 
                         <div class="proof">
@@ -148,30 +185,50 @@
                     <div class="profile-right" id="editProfile">
                         <h2>Edit Profile</h2>
 
-                        <form action="" class="editProfile-container">
+                        <form action="" class="editProfile-container" enctype="multipart/form-data">
                             <div class="inputProfile-wrapper">
+
 
                                 <div class="inputProfile">
                                     <label for="">Last Name</label>
-                                    <input type="text">
+                                    <input type="text" class="last_name" id="last_name"
+                                        value="<?php echo htmlspecialchars($last_name); ?>">
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="">First Name</label>
-                                    <input type="text">
+                                    <input type="text" class="first_name" id="first_name"
+                                        value="<?php echo htmlspecialchars($first_name); ?>">
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="">Middle Name</label>
-                                    <input type="text">
+                                    <input type="text" class="middle_name" id="middle_name"
+                                        value="<?php echo htmlspecialchars($middle_name); ?>">
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="">Extension Name</label>
-                                    <input type="text">
+                                    <select class="extension_name" id="extension_name">
+                                        <option value="" <?php echo ($extension_name === '') ? 'selected' : ''; ?>>None
+                                        </option>
+                                        <option value="Jr." <?php echo ($extension_name === 'Jr.') ? 'selected' : ''; ?>>
+                                            Jr.</option>
+                                        <option value="Sr." <?php echo ($extension_name === 'Sr.') ? 'selected' : ''; ?>>
+                                            Sr.</option>
+                                        <option value="II" <?php echo ($extension_name === 'II') ? 'selected' : ''; ?>>II
+                                        </option>
+                                        <option value="III" <?php echo ($extension_name === 'III') ? 'selected' : ''; ?>>
+                                            III</option>
+                                        <option value="IV" <?php echo ($extension_name === 'IV') ? 'selected' : ''; ?>>IV
+                                        </option>
+                                        <option value="V" <?php echo ($extension_name === 'V') ? 'selected' : ''; ?>>V
+                                        </option>
+                                    </select>
                                 </div>
 
-                                <div class="inputProfile">
+
+                                <!-- <div class="inputProfile">
                                     <label for="">Gender</label>
                                     <select name="" id="">
                                         <option value="">Select</option>
@@ -197,27 +254,29 @@
                                 <div class="inputProfile">
                                     <label for="">Contact Information</label>
                                     <input type="number">
-                                </div>
+                                </div> -->
 
                                 <div class="inputProfile">
                                     <label for="">Email</label>
-                                    <input type="email">
+                                    <input type="email" class="email" id="email"
+                                        value="<?php echo htmlspecialchars($admin['email']); ?>">
                                 </div>
 
-                                <div class="inputProfile">
+                                <!-- <div class="inputProfile">
                                     <label for="">Position</label>
                                     <input type="text">
-                                </div>
+                                </div> -->
 
                                 <div class="inputProfile">
-                                    <label for="">Change Photo</label>
-                                    <input type="file">
+                                    <label for="image">Change Photo</label>
+                                    <input class="image" id="image" name="image" type="file">
                                 </div>
 
-                                <div class="inputProfile">
+
+                                <!-- <div class="inputProfile">
                                     <label for="">Proof of appointment</label>
                                     <input type="file" />
-                                </div>
+                                </div> -->
                             </div>
 
                             <button class="mainBtn" id="save">Save</button>
@@ -235,28 +294,26 @@
 
                         <form action="" class="passProfile-container">
                             <div class="inputProfile-wrapper">
-
                                 <div class="inputProfile">
-                                    <label for="">New Password</label>
-                                    <input type="password">
+                                    <label for="new_password">New Password</label>
+                                    <input type="password" id="new_password">
                                 </div>
 
                                 <div class="inputProfile">
-                                    <label for="">Confirm Password</label>
-                                    <input type="text">
+                                    <label for="confirm_password">Confirm Password</label>
+                                    <input type="password" id="confirm_password">
                                 </div>
 
                                 <div class="inputProfile">
-                                    <label for="">Change username</label>
-                                    <input type="text">
+                                    <label for="username">Change username</label>
+                                    <input type="text" id="username"
+                                        value="<?php echo htmlspecialchars($admin['username']); ?>">
                                 </div>
-
-
                             </div>
 
-                            <button class="mainBtn" id="save" style="margin-top: 1em;">Save</button>
-
+                            <button class="mainBtn" id="save_settings" style="margin-top: 1em;">Save</button>
                         </form>
+
 
                     </div>
 
@@ -266,8 +323,108 @@
         </main>
 
     </div>
+    <script>
+        document.getElementById('save').addEventListener('click', function (event) {
+            event.preventDefault();
 
+            Swal.fire({
+                title: 'Save Changes?',
+                text: "Are you sure you want to save your changes?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Confirm',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Collect form data
+                    const formData = new FormData();
+                    formData.append('first_name', document.getElementById('first_name').value);
+                    formData.append('middle_name', document.getElementById('middle_name').value);
+                    formData.append('last_name', document.getElementById('last_name').value);
+                    formData.append('extension_name', document.getElementById('extension_name').value);
+                    formData.append('email', document.getElementById('email').value);
 
+                    // Add the image file to formData
+                    const imageFile = document.getElementById('image').files[0];
+                    if (imageFile) {
+                        formData.append('image', imageFile);
+                    }
+
+                    // Send AJAX request
+                    fetch('../endpoints/update_superadmin_profile.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire('Saved!', 'Your changes have been saved.', 'success');
+                            } else {
+                                Swal.fire('Error!', data.message || 'Something went wrong.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire('Error!', 'Failed to update profile.', 'error');
+                            console.error('Error:', error);
+                        });
+                }
+            });
+        });
+
+        document.getElementById('save_settings').addEventListener('click', function (event) {
+            event.preventDefault();
+
+            // Get the input values
+            const newPassword = document.getElementById('new_password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            const username = document.getElementById('username').value;
+
+            // Validate password match
+            if (newPassword !== confirmPassword) {
+                Swal.fire('Error!', 'Passwords do not match!', 'error');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Save Changes?',
+                text: "Are you sure you want to save your changes?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Confirm',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Collect form data
+                    const formData = new FormData();
+                    formData.append('username', username);
+                    formData.append('new_password', newPassword);
+
+                    // Send AJAX request
+                    fetch('../endpoints/update_settings.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire('Saved!', 'Your changes have been saved.', 'success');
+                            } else {
+                                Swal.fire('Error!', data.message || 'Something went wrong.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire('Error!', 'Failed to update settings.', 'error');
+                            console.error('Error:', error);
+                        });
+                }
+            });
+        });
+
+    </script>
 
     <!-- sidebar import js -->
     <script src="../../includes/sidebar.js"></script>
@@ -355,43 +512,7 @@
     </script>
 
 
-
-    <!-- sweetalert popup messagebox add form-->
-    <script>
-        $('#save').on('click', function () {
-            Swal.fire({
-                title: "Save Changes?",
-                text: "",
-                icon: "question",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Yes",
-                customClass: {
-                    popup: 'custom-swal-popup' //to customize the style
-                }
-
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: "Success!",
-                        text: "Evacuation center created.",
-                        icon: "success",
-                        customClass: {
-                            popup: 'custom-swal-popup'
-                        }
-                    });
-                }
-            });
-
-        })
-    </script>
-
-
-
-
-
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </body>
 

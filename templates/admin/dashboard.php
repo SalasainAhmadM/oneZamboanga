@@ -1,5 +1,35 @@
 <?php
 session_start();
+include("../../connection/conn.php");
+
+if (isset($_SESSION['user_id'])) {
+    $admin_id = $_SESSION['user_id'];
+
+    // Fetch the admin's details from the database
+    $sql = "SELECT first_name, middle_name, last_name, extension_name, email, image FROM admin WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $admin_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $admin = $result->fetch_assoc();
+        $first_name = $admin['first_name'];
+        $middle_name = $admin['middle_name'];
+        $last_name = $admin['last_name'];
+        $extension_name = $admin['extension_name'];
+        $email = $admin['email'];
+        $admin_image = $admin['image'];
+
+        $admin_name = trim($first_name . ' ' . $middle_name . ' ' . $last_name . ' ' . $extension_name);
+    } else {
+        $first_name = $middle_name = $last_name = $extension_name = $email = '';
+    }
+} else {
+    header("Location: ../../login.php");
+    exit;
+}
+$admin_image = !empty($admin_image) ? $admin_image : "../../assets/img/admin.png";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -198,9 +228,9 @@ session_start();
 
                 <div class="profile">
                     <div class="left">
-                        <img src="../../assets/img/admin.png">
+                        <img src="<?php echo htmlspecialchars($admin_image); ?>" alt="Profile Image">
                         <div class="user">
-                            <h5> Super Admin</h5>
+                            <h5><?php echo htmlspecialchars($admin_name); ?></h5>
                             <a href="myProfileAdmin.php" style="text-decoration: underline;">View</a>
                         </div>
                     </div>

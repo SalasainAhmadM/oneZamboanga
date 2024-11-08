@@ -61,7 +61,7 @@
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="barangayAcc.php">Accounts</a>
+                            <a href="barangayAcc.php">Reports</a>
 
                             <!-- next page -->
                             <!-- <i class="fa-solid fa-chevron-right"></i>

@@ -1,5 +1,39 @@
+<?php
+session_start();
+include("../../connection/conn.php");
+
+if (isset($_SESSION['user_id'])) {
+    $worker_id = $_SESSION['user_id'];
+
+    // Fetch the worker's details from the database
+    $sql = "SELECT first_name, middle_name, last_name, extension_name, email, image FROM worker WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $worker_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $worker = $result->fetch_assoc();
+        $first_name = $worker['first_name'];
+        $middle_name = $worker['middle_name'];
+        $last_name = $worker['last_name'];
+        $extension_name = $worker['extension_name'];
+        $email = $worker['email'];
+        $worker_image = $worker['image'];
+
+        $worker_name = trim($first_name . ' ' . $middle_name . ' ' . $last_name . ' ' . $extension_name);
+    } else {
+        $first_name = $middle_name = $last_name = $extension_name = $email = '';
+    }
+} else {
+    header("Location: ../../login.php");
+    exit;
+}
+$worker_image = !empty($worker['image']) ? $worker['image'] : "../../assets/img/undraw_male_avatar_g98d.svg";
+?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,10 +51,11 @@
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+
 <body>
 
     <div class="container">
-        
+
         <aside class="left-section">
             <special-logo></special-logo>
 
@@ -31,7 +66,7 @@
                 <img src="../../assets/img/logo5.png" alt="">
                 <a href="dahsboard_barangay.php">One Zamboanga</a>
             </div> -->
-            
+
 
             <special-sidebar></special-sidebar>
 
@@ -89,7 +124,7 @@
                     </div>
                     <i class="fa-solid fa-children"></i>
                 </div>
-                
+
                 <div class="item spanning"> <!--spanning-->
                     <div class="progress">
                         <div class="info">
@@ -176,20 +211,20 @@
         </main>
 
         <div class="ecGraphs-container">
-            
+
             <div class="ecGraph-content">
                 <div class="profileHeader">
 
-                    
+
                     <h2>Demographics</h2>
                     <div class="sideProfile">
                         <i class="fa-solid fa-bars feedShow"></i>
                         <!-- <img src="../../assets/img/hero.jpg" alt="">  -->
 
-                
-                
+
+
                     </div>
-                    
+
                     <!-- <div class="sideProfile">
                         <i class="fa-solid fa-bars feedShow"></i>
                         <h2>Demographics</h2>
@@ -198,13 +233,13 @@
                         <img src="../../assets/img/hero.jpg" alt=""> 
                     </div> -->
                 </div>
-                
 
-                <div class="ecGraph">    
+
+                <div class="ecGraph">
                     <canvas id="myChart"></canvas>
                 </div>
             </div>
-            
+
             <!-- <div class="sideProfile">
                 <i class="fa-solid fa-bars feedShow"></i>
 
@@ -218,7 +253,7 @@
             <div class="top">
                 <div class="icons">
                     <i class="fa-regular fa-bell margin" id="bell-icon"></i>
-                    
+
                     <i class="fa-solid fa-chart-pie chartShow"></i>
                 </div>
 
@@ -244,9 +279,9 @@
                 </div> -->
                 <div class="profile">
                     <div class="left">
-                        <img src="/assets/img/hero.jpg">
+                        <img src="<?php echo htmlspecialchars($worker_image); ?>" alt="Profile Image">
                         <div class="user">
-                            <h5 style="font-size: var(--size-xs);">Mikasa Akerman</h5>
+                            <h5><?php echo htmlspecialchars($worker_name); ?></h5>
                             <a href="myProfile.php" style="text-decoration: underline;">View</a>
                         </div>
                     </div>
@@ -269,7 +304,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distributed</p>
                     </div>
 
@@ -279,7 +314,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distributed to the family</p>
                     </div>
 
@@ -289,7 +324,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distribsdf dfad dsadd dsasdf dfdfduted to the familsfdy</p>
                     </div>
 
@@ -299,7 +334,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distributed</p>
                     </div>
 
@@ -309,7 +344,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distributed to the family</p>
                     </div>
 
@@ -319,7 +354,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distribsdf dfad dsadd dsasdf dfdfduted to the familsfdy</p>
                     </div>
 
@@ -329,7 +364,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distributed</p>
                     </div>
 
@@ -339,7 +374,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distributed to the family</p>
                     </div>
 
@@ -349,7 +384,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distribsdf dfad dsadd dsasdf dfdfduted to the familsfdy</p>
                     </div>
 
@@ -359,7 +394,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distributed</p>
                     </div>
 
@@ -369,7 +404,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distributed to the family</p>
                     </div>
 
@@ -379,7 +414,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distribsdf dfad dsadd dsasdf dfdfduted to the familsfdy</p>
                     </div>
 
@@ -389,7 +424,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distributed to the family</p>
                     </div>
 
@@ -399,7 +434,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distribsdf dfad dsadd dsasdf dfdfduted to the familsfdy</p>
                     </div>
 
@@ -409,7 +444,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distributed to the family</p>
                     </div>
 
@@ -419,10 +454,10 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">50pcs food distribsdf dfad dsadd dsasdf dfdfduted to the familsfdy</p>
                     </div>
-                    
+
                 </div>
             </div>
 
@@ -439,7 +474,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">Notification info here</p>
 
                     </div>
@@ -450,7 +485,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">Notification info here</p>
 
                     </div>
@@ -461,7 +496,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">Notification info here</p>
 
                     </div>
@@ -472,7 +507,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">Notification info here</p>
 
                     </div>
@@ -483,7 +518,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">Notification info here</p>
 
                     </div>
@@ -494,7 +529,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">Notification info here</p>
 
                     </div>
@@ -505,7 +540,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">Notification info here</p>
 
                     </div>
@@ -516,7 +551,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">Notification info here</p>
 
                     </div>
@@ -527,7 +562,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">Notification info here</p>
 
                     </div>
@@ -538,7 +573,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">Notification info here</p>
 
                     </div>
@@ -549,7 +584,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">Notification info here</p>
 
                     </div>
@@ -560,7 +595,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">Notification info here</p>
 
                     </div>
@@ -571,7 +606,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">Notification info here</p>
 
                     </div>
@@ -582,7 +617,7 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">Notification info here</p>
 
                     </div>
@@ -593,20 +628,20 @@
                             <p>11-15-2024</p>
                             <div class="linee"></div>
                         </div>
-                        
+
                         <p class="feed">Notification info here</p>
 
                     </div>
                     <span class="clearNotif">Clear All</span>
 
-                    
-                    
+
+
                 </div>
             </div>
 
-            
 
-            
+
+
         </aside>
 
 
@@ -636,25 +671,25 @@
 
     <script>
         const ctx = document.getElementById('myChart');
-      
+
         new Chart(ctx, {
-          type: 'doughnut',
-          data: {
-            labels: ['Barangay Hall', 'City High Covered Court', 'Tetuan Central School', 'Children', 'ICAS'],
-            datasets: [{
-              label: 'Total Evacuees',
-              data: [8, 46, 31, 10, 4],
-              
-              borderWidth: 1
-            }]
-          },
-          options: {
-            scales: {
-              y: {
-                beginAtZero: true
-              }
+            type: 'doughnut',
+            data: {
+                labels: ['Barangay Hall', 'City High Covered Court', 'Tetuan Central School', 'Children', 'ICAS'],
+                datasets: [{
+                    label: 'Total Evacuees',
+                    data: [8, 46, 31, 10, 4],
+
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
             }
-          }
         });
     </script>
 
@@ -664,24 +699,40 @@
         const rightSection = document.querySelector('.right-section');
         const ecGraphsContainer = document.querySelector('.ecGraphs-container');
         const feedShow = document.querySelector('.sideProfile .feedShow');
-        
+
 
         // Add event listener to the chartShow icon
-        chartShowIcon.addEventListener('click', function() {
+        chartShowIcon.addEventListener('click', function () {
             // Hide the right-section
             rightSection.style.display = 'none';
-            
+
             // Show the ecGraphs-container
             ecGraphsContainer.style.display = 'block';
         });
-        
-        feedShow.addEventListener('click', function() {
+
+        feedShow.addEventListener('click', function () {
             ecGraphsContainer.style.display = 'none';
-            
+
             rightSection.style.display = 'block';
         });
-        
-    </script>
 
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <?php
+    if (isset($_SESSION['login_success'])) {
+        unset($_SESSION['login_success']);
+        ?>
+        <script>
+            Swal.fire({
+                title: 'Login Successful!',
+                text: 'Welcome to the dashboard.',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+        </script>
+        <?php
+    }
+    ?>
 </body>
+
 </html>

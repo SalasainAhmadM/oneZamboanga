@@ -38,7 +38,7 @@ class SpecialLogout extends HTMLElement {
         }).then((result) => {
             if (result.isConfirmed) {
                 // Redirect to logout.php to handle the session destruction
-                window.location.href = './endpoints/logout.php';
+                window.location.href = '../../endpoints/logout.php';
             }
         });
     }

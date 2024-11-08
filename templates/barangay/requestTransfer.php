@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
     <link rel="stylesheet" href="../../assets/fontawesome/all.css">
     <link rel="stylesheet" href="../../assets/fontawesome/fontawesome.min.css">
     <!--styles-->
-    
+
     <link rel="stylesheet" href="../../assets/styles/style.css">
     <link rel="stylesheet" href="../../assets/styles/utils/dashboard.css">
     <link rel="stylesheet" href="../../assets/styles/utils/ecenter.css">
@@ -21,10 +22,11 @@
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+
 <body>
 
     <div class="container">
-        
+
         <aside class="left-section">
             <special-logo></special-logo>
             <!-- <div class="logo">
@@ -47,7 +49,7 @@
 
         <main>
             <header>
-                <button class="menu-btn" id="menu-open"> 
+                <button class="menu-btn" id="menu-open">
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <!-- <h5>Hello <b>Mark</b>, welcome back!</h5> -->
@@ -61,7 +63,7 @@
                             <a href="#">Evacuees</a> -->
                         </div>
 
-                        
+
 
 
                         <!-- <a class="addBg-admin" href="addEvacuees.php">
@@ -78,25 +80,25 @@
             <div class="main-wrapper">
                 <div class="main-container overview">
                     <!-- <special-navbar></special-navbar> -->
-                    
 
-                    
+
+
                     <div class="table-container">
                         <section class="tblheader">
-                            
-                            
-                            
-    
+
+
+
+
                             <!-- <div class="filter-popup">
                                 <i class="fa-solid fa-filter"></i>
                             </div> -->
-    
+
                             <div class="filter-popup">
                                 <label for="modal-toggle" class="modal-button">
                                     <i class="fa-solid fa-filter"></i>
                                 </label>
                                 <input type="checkbox" name="" id="modal-toggle" class="modal-toggle">
-    
+
                                 <!-- the modal or filter popup-->
                                 <div class="modal">
                                     <div class="modal-content">
@@ -112,27 +114,27 @@
                                                 <input type="checkbox" name="evacuees" id="tugbungan">
                                                 <label for="tugbungan">Tugbungan</label>
                                             </div>
-                                            
-                                            
-    
+
+
+
                                         </div>
-                                        
+
                                     </div>
                                 </div>
                             </div>
-    
-    
+
+
                             <div class="input_group">
                                 <input type="search" placeholder="Search...">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                             </div>
-    
+
                         </section>
-    
+
                         <section class="tblbody">
                             <table id="mainTable">
                                 <thead>
-                                    
+
                                     <tr>
                                         <th>Family Head</th>
                                         <th>Contact #</th>
@@ -147,9 +149,9 @@
                                         <th style="text-align: center;">Action</th>
                                     </tr>
                                 </thead>
-                                
+
                                 <tbody>
-                                    
+
                                     <!-- <tr onclick="window.location.href='viewEvacuees.php'">
                                         <td>
                                             Mark Larenz Tabotabo
@@ -169,7 +171,7 @@
 
                                         <td class="ecMembers" style="text-align: center;">
                                             4
-                                            
+
                                             <ul class="viewMembers" style="text-align: left;">
                                                 <li>Lebron James</li>
                                                 <li>Bronny James</li>
@@ -181,7 +183,8 @@
                                         <td style="text-align: center;">Tetuan</td>
                                         <td style="text-align: center;">11-15-2024</td>
                                         <td>Flood</td>
-                                        <td style="text-align: center;"><a href="viewEvacueesDetails.php" class="view-action">View</a></td>
+                                        <td style="text-align: center;"><a href="viewEvacueesDetails.php"
+                                                class="view-action">View</a></td>
                                     </tr>
 
 
@@ -193,7 +196,7 @@
 
                                         <td class="ecMembers" style="text-align: center;">
                                             3
-                                            
+
                                             <ul class="viewMembers" style="text-align: left;">
                                                 <li>Lebron James</li>
                                                 <li>Bronny James</li>
@@ -204,7 +207,8 @@
                                         <td style="text-align: center;">Tugbungan</td>
                                         <td style="text-align: center;">11-15-2024</td>
                                         <td>Flood</td>
-                                        <td style="text-align: center;"><a href="viewEvacueesDetails.php" class="view-action">View</a></td>
+                                        <td style="text-align: center;"><a href="viewEvacueesDetails.php"
+                                                class="view-action">View</a></td>
                                     </tr>
 
                                     <tr onclick="window.location.href='viewEvacueesDetails.php'">
@@ -215,7 +219,7 @@
 
                                         <td class="ecMembers" style="text-align: center;">
                                             3
-                                            
+
                                             <ul class="viewMembers" style="text-align: left;">
                                                 <li>Lebron James</li>
                                                 <li>Bronny James</li>
@@ -226,26 +230,27 @@
                                         <td style="text-align: center;">Guiwan</td>
                                         <td style="text-align: center;">11-15-2024</td>
                                         <td>Flood</td>
-                                        <td style="text-align: center;"><a href="viewEvacueesDetails.php" class="view-action">View</a></td>
+                                        <td style="text-align: center;"><a href="viewEvacueesDetails.php"
+                                                class="view-action">View</a></td>
                                     </tr>
-                                    
 
-                                    
-                                                                        
+
+
+
                                 </tbody>
                             </table>
                         </section>
-        
+
                         <div class="no-match-message">No matching data found</div>
                     </div>
-                    
+
                 </div>
             </div>
         </main>
 
     </div>
 
-    
+
     <!-- sidebar import js -->
     <script src="../../includes/bgSidebar.js"></script>
 
@@ -259,8 +264,9 @@
     <!-- sidebar menu -->
     <script src="../../assets/src/utils/menu-btn.js"></script>
 
-    
-    
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </body>
+
 </html>
