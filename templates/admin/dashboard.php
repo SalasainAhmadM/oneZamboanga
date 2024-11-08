@@ -45,14 +45,14 @@ session_start();
 
             <!-- <div class="logout">
                 <div class="link">
-                    <a href="../../login.html">
+                    <a href="../../login.php">
                         <p>Click to <b>Logout</b></p>
                         <i class="fa-solid fa-right-from-bracket"></i>
                     </a>
                 </div>
                 
             </div>
-            <a class="logout logout-icon" href="../../login.html">
+            <a class="logout logout-icon" href="../../login.php">
                 <i class="fa-solid fa-right-from-bracket"></i>
             </a> -->
 
@@ -123,7 +123,7 @@ session_start();
             <div class="separator">
                 <div class="info">
                     <h3>Barangay Status Overview</h3>
-                    <a href="barangayStatus.html" style="text-decoration: underline;">View All</a>
+                    <a href="barangayStatus.php" style="text-decoration: underline;">View All</a>
                 </div>
                 <!-- <input type="date" value="2024-11-09"> -->
             </div>
@@ -140,7 +140,7 @@ session_start();
                         </div>
                     </div>
                     <!-- <i class="fa-solid fa-ellipsis-vertical"></i> -->
-                    <a href="barangayEC.html"><i class="fa-solid fa-chevron-right"></i></a>
+                    <a href="barangayEC.php"><i class="fa-solid fa-chevron-right"></i></a>
                 </div>
                 <div class="item">
                     <div class="left">
@@ -153,7 +153,7 @@ session_start();
                         </div>
                     </div>
                     <!-- <i class="fa-solid fa-ellipsis-vertical"></i> -->
-                    <a href="barangayEC.html"><i class="fa-solid fa-chevron-right"></i></a>
+                    <a href="barangayEC.php"><i class="fa-solid fa-chevron-right"></i></a>
                 </div>
                 <div class="item">
                     <div class="left">
@@ -166,7 +166,7 @@ session_start();
                         </div>
                     </div>
                     <!-- <i class="fa-solid fa-ellipsis-vertical"></i> -->
-                    <a href="barangayEC.html"><i class="fa-solid fa-chevron-right"></i></a>
+                    <a href="barangayEC.php"><i class="fa-solid fa-chevron-right"></i></a>
                 </div>
                 <div class="item">
                     <div class="left">
@@ -178,7 +178,7 @@ session_start();
                             <p>8 Evacuation Centers</p>
                         </div>
                     </div>
-                    <a href="barangayEC.html"><i class="fa-solid fa-chevron-right"></i></a>
+                    <a href="barangayEC.php"><i class="fa-solid fa-chevron-right"></i></a>
                 </div>
             </div>
         </main>
@@ -198,13 +198,13 @@ session_start();
 
                 <div class="profile">
                     <div class="left">
-                        <img src="/assets/img/hero.jpg">
+                        <img src="../../assets/img/admin.png">
                         <div class="user">
                             <h5> Super Admin</h5>
-                            <a href="myProfileAdmin.html" style="text-decoration: underline;">View</a>
+                            <a href="myProfileAdmin.php" style="text-decoration: underline;">View</a>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-right" onclick="window.location.href='myProfileAdmin.html'"></i>
+                    <i class="fa-solid fa-chevron-right" onclick="window.location.href='myProfileAdmin.php'"></i>
                 </div>
             </div>
 

@@ -5,17 +5,17 @@ class SpecialSidebar extends HTMLElement {
             
             <div class="sidebar">
                 <div class="item">
-                    <a href="dashboard_communityWorker.html">
+                    <a href="dashboard_communityWorker.php">
                         <i class="fa-solid fa-house"></i>
                     </a>
-                    <a href="dashboard_communityWorker.html" class="dot">Dashboard</a>
+                    <a href="dashboard_communityWorker.php" class="dot">Dashboard</a>
                 </div>
 
                 <div class="item">
-                    <a href="evacuationCenter.html">
+                    <a href="evacuationCenter.php">
                         <i class="fa-solid fa-person-shelter"></i>
                     </a>
-                    <a href="evacuationCenter.html" class="dot">Evacuation Center</a>
+                    <a href="evacuationCenter.php" class="dot">Evacuation Center</a>
                 </div>
 
                 
@@ -36,11 +36,11 @@ class SpecialSidebar extends HTMLElement {
                 </div>
                 
                 <div class="item">
-                    <a href="myProfile.html">
+                    <a href="myProfile.php">
                         <!-- <i class="fa-solid fa-gear"></i> -->
                         <i class="fa-regular fa-id-card"></i>
                     </a>
-                    <a href="myProfile.html" class="dot">My Profile</a>
+                    <a href="myProfile.php" class="dot">My Profile</a>
                 </div>
 
             </div>

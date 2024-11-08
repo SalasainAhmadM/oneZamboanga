@@ -4,11 +4,11 @@ class SpecialPersonnel extends HTMLElement {
             <div class="ecNavbar">
                 <ul>
                     <div class="navList">
-                        <li><a href="personnelPage.html">Community Workers</a></li>
+                        <li><a href="personnelPage.php">Community Workers</a></li>
                         <div class="indicator workers"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="personnelAssign.html">Assign</a></li>
+                        <li><a href="personnelAssign.php">Assign</a></li>
                         <div class="indicator assign"></div>
                     </div>
                     

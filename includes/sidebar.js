@@ -3,24 +3,24 @@ class SpecialSidebar extends HTMLElement {
         this.innerHTML = `
             <div class="sidebar">
                 <div class="item">
-                    <a href="dashboard.html">
+                    <a href="dashboard.php">
                         <i class="fa-solid fa-house"></i>
                     </a>
-                    <a href="dashboard.html" class="dot">Dashboard</a>
+                    <a href="dashboard.php" class="dot">Dashboard</a>
                 </div>
 
                 <div class="item">
-                    <a href="barangayAcc.html">
+                    <a href="barangayAcc.php">
                         <i class="fa-solid fa-users"></i>
                     </a>
-                    <a href="barangayAcc.html" class="dot">Barangay Accounts</a>
+                    <a href="barangayAcc.php" class="dot">Barangay Accounts</a>
                 </div>
 
                 <div class="item">
-                    <a href="barangayStatus.html">
+                    <a href="barangayStatus.php">
                         <i class="fa-solid fa-landmark"></i>
                     </a>
-                    <a href="barangayStatus.html" class="dot">Barangay</a>
+                    <a href="barangayStatus.php" class="dot">Barangay</a>
                 </div>
                 
                 
@@ -32,11 +32,11 @@ class SpecialSidebar extends HTMLElement {
                 </div>
 
                 <div class="item">
-                <a href="myProfileAdmin.html">
+                <a href="myProfileAdmin.php">
                 <!-- <i class="fa-solid fa-gear"></i> -->
                 <i class="fa-regular fa-id-card"></i>
                 </a>
-                <a href="myProfileAdmin.html" class="dot">My Profile</a>
+                <a href="myProfileAdmin.php" class="dot">My Profile</a>
                 </div>
                 
                 

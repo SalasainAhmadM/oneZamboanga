@@ -6,8 +6,8 @@ class SpecialLogo extends HTMLElement {
                     <i class="fa-regular fa-circle-left"></i>
                 </button>
                 <!-- <img src="../../assets/img/logo5.png" alt=""> -->
-                <!-- <a href="dahsboard_barangay.html">One Zamboanga</a> -->
-                <a href="dahsboard_barangay.html" class="logoWord" style="color: #eab308;">ONE ZAMBOANGA</a>
+                <!-- <a href="dahsboard_barangay.php">One Zamboanga</a> -->
+                <a href="dahsboard_barangay.php" class="logoWord" style="color: #eab308;">ONE ZAMBOANGA</a>
             </div>
         `
 

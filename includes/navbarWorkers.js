@@ -4,11 +4,11 @@ class SpecialNavbar extends HTMLElement {
             <div class="ecNavbar">
                 <ul>
                     <div class="navList">
-                        <li><a href="evacuationCenter.html">Evacuation Center</a></li>
+                        <li><a href="evacuationCenter.php">Evacuation Center</a></li>
                         <div class="indicator ec"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="assignedEC.html">Manage</a></li>
+                        <li><a href="assignedEC.php">Manage</a></li>
                         <div class="indicator manage"></div>
                     </div>
                     

@@ -4,25 +4,25 @@ class SpecialNavbar extends HTMLElement {
             <div class="ecNavbar">
                 <ul>
                     <div class="navList">
-                        <li><a href="viewAssignedEC.html">Overview</a></li>
+                        <li><a href="viewAssignedEC.php">Overview</a></li>
                         <div class="indicator"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="evacueesPage.html">Evacuees</a></li>
+                        <li><a href="evacueesPage.php">Evacuees</a></li>
                         <div class="indicator"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="resources.html">Resource Management</a></li>
+                        <li><a href="resources.php">Resource Management</a></li>
                         <div class="indicator long"></div>
                     </div>
 
                     <div class="navList">
-                        <li><a href="personnel.html">Team</a></li>
+                        <li><a href="personnel.php">Team</a></li>
                         <div class="indicator extrasmall"></div>
                     </div>
 
                     <div class="navList">
-                        <li><a href="nearEC.html">Transfer</a></li>
+                        <li><a href="nearEC.php">Transfer</a></li>
                         <div class="indicator small"></div> 
                     </div>
                 </ul>

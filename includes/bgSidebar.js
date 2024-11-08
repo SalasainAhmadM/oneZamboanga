@@ -5,32 +5,32 @@ class SpecialSidebar extends HTMLElement {
             
             <div class="sidebar">
                 <div class="item">
-                    <a href="dashboard_barangay.html">
+                    <a href="dashboard_barangay.php">
                         <i class="fa-solid fa-house"></i>
                     </a>
-                    <a href="dashboard_barangay.html" class="dot">Dashboard</a>
+                    <a href="dashboard_barangay.php" class="dot">Dashboard</a>
                 </div>
 
 
                 <div class="item">
-                    <a href="personnelPage.html">
+                    <a href="personnelPage.php">
                         <i class="fa-solid fa-users"></i>
                     </a>
-                    <a href="personnelPage.html" class="dot">Accounts</a>
+                    <a href="personnelPage.php" class="dot">Accounts</a>
                 </div>
 
                 <div class="item">
-                    <a href="evacuation.html">
+                    <a href="evacuation.php">
                         <i class="fa-solid fa-person-shelter"></i>
                     </a>
-                    <a href="evacuation.html" class="dot">Evacuation Center</a>
+                    <a href="evacuation.php" class="dot">Evacuation Center</a>
                 </div>
 
                 <div class="item">
-                    <a href="requestTransfer.html">
+                    <a href="requestTransfer.php">
                         <i class="fa-regular fa-paper-plane"></i>
                     </a>
-                    <a href="requestTransfer.html" class="dot">Request</a>
+                    <a href="requestTransfer.php" class="dot">Request</a>
                 </div>
 
 
@@ -49,11 +49,11 @@ class SpecialSidebar extends HTMLElement {
                 </div>
                 
                 <div class="item">
-                    <a href="myProfile.html">
+                    <a href="myProfile.php">
                         <!-- <i class="fa-solid fa-gear"></i> -->
                         <i class="fa-regular fa-id-card"></i>
                     </a>
-                    <a href="myProfile.html" class="dot">My Profile</a>
+                    <a href="myProfile.php" class="dot">My Profile</a>
                 </div>
 
             </div>
