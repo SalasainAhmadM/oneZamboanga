@@ -24,6 +24,12 @@ if (isset($_GET['id'])) {
     echo "No admin selected.";
     exit();
 }
+// Fetch all workers under this admin
+$worker_query = "SELECT first_name, middle_name, last_name, position FROM worker WHERE admin_id = ? AND status = 'active'";
+$worker_stmt = $conn->prepare($worker_query);
+$worker_stmt->bind_param("i", $admin_id);
+$worker_stmt->execute();
+$worker_result = $worker_stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -123,7 +129,7 @@ if (isset($_GET['id'])) {
 
                             <div class="profileInfo-left">
                                 <img class="profileImg"
-                                    src="<?php echo htmlspecialchars($admin['image'] ?: '../../assets/img/default-avatar.png'); ?>"
+                                    src="<?php echo htmlspecialchars($admin['image'] ?: '../../assets/img/undraw_male_avatar_g98d.svg'); ?>"
                                     alt="">
 
                                 <input id="fileInput" type="file" style="display:none;" />
@@ -267,22 +273,22 @@ if (isset($_GET['id'])) {
                                 </div>
                             </div>
 
-                            <!-- personel content -->
-                            <div class="personel-content">
-                                <p class="personal-name">Jose Manalo</p>
-                                <p class="personel-role">SK</p>
+                            <div class="personnel-content">
+                                <?php if ($worker_result->num_rows > 0): ?>
+                                    <?php while ($worker = $worker_result->fetch_assoc()): ?>
+                                        <div class="personel-content">
+                                            <p class="personal-name">
+                                                <?php echo htmlspecialchars($worker['first_name'] . ' ' . $worker['middle_name'] . ' ' . $worker['last_name']); ?>
+                                            </p>
+                                            <p class="personel-role">
+                                                <?php echo htmlspecialchars($worker['position']); ?>
+                                            </p>
+                                        </div>
+                                    <?php endwhile; ?>
+                                <?php else: ?>
+                                    <p>No personnel found under this admin.</p>
+                                <?php endif; ?>
                             </div>
-
-                            <div class="personel-content">
-                                <p class="personal-name">Jose Manalo</p>
-                                <p class="personel-role">Kagawad</p>
-                            </div>
-
-                            <div class="personel-content">
-                                <p class="personal-name">Jose Manalo</p>
-                                <p class="personel-role">Volunteer</p>
-                            </div>
-
 
 
                             <!-- activity logs content -->

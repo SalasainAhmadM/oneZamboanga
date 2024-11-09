@@ -292,7 +292,7 @@ $worker_image = !empty($worker['image']) ? $worker['image'] : "../../assets/img/
             <!--level of criticality-->
             <div class="separator" id="first">
                 <!-- <h4>Level of Criticality</h4> -->
-                <h4 class="actHeader">Acvity Feed</h4>
+                <h4 class="actHeader">Activity Feed</h4>
                 <!-- <h4 class="notifHeader" style="display: none;">Notifications</h4> -->
             </div>
 

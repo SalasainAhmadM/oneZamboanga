@@ -13,7 +13,7 @@
  * @copyright 2012 - 2020 Marcus Bointon
  * @copyright 2010 - 2012 Jim Jagielski
  * @copyright 2004 - 2009 Andy Prevost
- * @license   https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html GNU Lesser General Public License
+ * @license   http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License
  * @note      This program is distributed in the hope that it will be useful - WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
@@ -152,8 +152,8 @@ class SMTP
     /**
      * Whether to use VERP.
      *
-     * @see https://en.wikipedia.org/wiki/Variable_envelope_return_path
-     * @see https://www.postfix.org/VERP_README.html Info on VERP
+     * @see http://en.wikipedia.org/wiki/Variable_envelope_return_path
+     * @see http://www.postfix.org/VERP_README.html Info on VERP
      *
      * @var bool
      */
@@ -164,7 +164,7 @@ class SMTP
      * Default of 5 minutes (300sec) is from RFC2821 section 4.5.3.2.
      * This needs to be quite high to function correctly with hosts using greetdelay as an anti-spam measure.
      *
-     * @see https://www.rfc-editor.org/rfc/rfc2821#section-4.5.3.2
+     * @see http://tools.ietf.org/html/rfc2821#section-4.5.3.2
      *
      * @var int
      */
@@ -280,8 +280,7 @@ class SMTP
         }
         //Is this a PSR-3 logger?
         if ($this->Debugoutput instanceof \Psr\Log\LoggerInterface) {
-            //Remove trailing line breaks potentially added by calls to SMTP::client_send()
-            $this->Debugoutput->debug(rtrim($str, "\r\n"));
+            $this->Debugoutput->debug($str);
 
             return;
         }
@@ -294,7 +293,6 @@ class SMTP
         switch ($this->Debugoutput) {
             case 'error_log':
                 //Don't output, just log
-                /** @noinspection ForgottenDebugOutputInspection */
                 error_log($str);
                 break;
             case 'html':
@@ -650,7 +648,7 @@ class SMTP
         }
 
         //The following borrowed from
-        //https://www.php.net/manual/en/function.mhash.php#27225
+        //http://php.net/manual/en/function.mhash.php#27225
 
         //RFC 2104 HMAC implementation for php.
         //Creates an md5 HMAC.

@@ -1,3 +1,10 @@
+<?php
+session_start();
+include("../../connection/conn.php");
+
+$query = "SELECT * FROM admin WHERE role = 'admin'";
+$result = $conn->query($query);
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -80,6 +87,66 @@
                     </div>
 
                     <div class="statusCard-container">
+                        <?php while ($admin = $result->fetch_assoc()): ?>
+                            <div class="statusCard"
+                                onclick="window.location.href='barangayEC.php?barangay=<?php echo urlencode($admin['barangay']); ?>'">
+                                <img class="barangayLogo"
+                                    src="<?php echo htmlspecialchars($admin['barangay_logo'] ?: '../../assets/img/zambo.png'); ?>"
+                                    alt="Barangay Logo">
+
+                                <a href="#">
+                                    <h4 class="statusBgname"><?php echo htmlspecialchars($admin['barangay']); ?></h4>
+                                </a>
+
+                                <div class="modal-ecContainer">
+                                    <a href="barangayEC.php?barangay=<?php echo urlencode($admin['barangay']); ?>"
+                                        class="ecTitle">
+                                        <h5 class="totalEc">5 Evacuation Centers</h5>
+                                        <!-- Example placeholder for total centers -->
+                                    </a>
+
+                                    <div class="ecList-modal">
+                                        <div class="ecList">
+                                            <div class="ecDot red"></div>
+                                            <p class="ecName">Barangay Hall</p>
+                                        </div>
+                                        <div class="ecList">
+                                            <div class="ecDot green"></div>
+                                            <p class="ecName">Tetuan Central School</p>
+                                        </div>
+
+                                        <div class="ecList">
+                                            <div class="ecDot green"></div>
+                                            <p class="ecName">Tetuan Central School</p>
+                                        </div>
+
+                                        <div class="ecList">
+                                            <div class="ecDot yellow"></div>
+                                            <p class="ecName">Tetuan Central School</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bgAdmin">
+                                    <h4><?php echo htmlspecialchars($admin['first_name'] . ' ' . $admin['middle_name'] . ' ' . $admin['last_name']); ?>
+                                    </h4>
+                                    <p>Admin</p>
+                                </div>
+                            </div>
+                        <?php endwhile; ?>
+                    </div>
+
+
+
+                </div>
+            </div>
+            <!-- <div class="main-wrapper">
+                <div class="main-container">
+                    <div class="statusHeader">
+                        <h3>Barangay in Zamboanga City</h3>
+                    </div>
+
+                    <div class="statusCard-container">
 
                         <div class="statusCard" onclick="window.location.href='barangayEC.php'">
                             <img class="barangayLogo" src="../../assets/img/zambo.png" alt="">
@@ -124,153 +191,6 @@
                             </div>
                         </div>
 
-                        <div class="statusCard">
-                            <img class="barangayLogo" src="../../assets/img/zambo.png" alt="">
-
-                            <a href="#">
-                                <h4 class="statusBgname">Tetuan</h4>
-                            </a>
-
-
-                            <div class="modal-ecContainer">
-                                <a href="#" class="ecTitle">
-                                    <h5 class="totalEc">5 Evacuation Centers</h5>
-                                </a>
-
-                                <div class="ecList-modal">
-                                    <div class="ecList">
-                                        <div class="ecDot green"></div>
-                                        <p class="ecName">Barangay Hall</p>
-                                    </div>
-
-                                    <div class="ecList">
-                                        <div class="ecDot red"></div>
-                                        <p class="ecName">Tetuan Central School</p>
-                                    </div>
-
-                                    <div class="ecList">
-                                        <div class="ecDot yellow"></div>
-                                        <p class="ecName">Tetuan Central School</p>
-                                    </div>
-
-                                    <div class="ecList">
-                                        <div class="ecDot green"></div>
-                                        <p class="ecName">Tetuan Central School</p>
-                                    </div>
-                                </div>
-                            </div>
-
-
-                            <div class="bgAdmin">
-                                <h4>Mark Larenz Tabotabo</h5>
-                                    <p>Admin</p>
-                            </div>
-                        </div>
-
-                        <div class="statusCard">
-                            <img class="barangayLogo" src="../../assets/img/zambo.png" alt="">
-
-                            <a href="#">
-                                <h4 class="statusBgname">Tetuan</h4>
-                            </a>
-
-
-                            <div class="modal-ecContainer">
-                                <a href="#" class="ecTitle">
-                                    <h5 class="totalEc">5 Evacuation Centers</h5>
-                                </a>
-
-                                <div class="ecList-modal">
-                                    <div class="ecList">
-                                        <div class="ecDot green"></div>
-                                        <p class="ecName">Barangay Hall</p>
-                                    </div>
-
-                                    <div class="ecList">
-                                        <div class="ecDot green"></div>
-                                        <p class="ecName">Tetuan Central School</p>
-                                    </div>
-
-                                    <div class="ecList">
-                                        <div class="ecDot red"></div>
-                                        <p class="ecName">Tetuan Central School</p>
-                                    </div>
-
-                                    <div class="ecList">
-                                        <div class="ecDot red"></div>
-                                        <p class="ecName">Tetuan Central School</p>
-                                    </div>
-                                </div>
-                            </div>
-
-
-                            <div class="bgAdmin">
-                                <h4>Mark Larenz Tabotabo</h5>
-                                    <p>Admin</p>
-                            </div>
-                        </div>
-
-                        <div class="statusCard">
-                            <img class="barangayLogo" src="../../assets/img/zambo.png" alt="">
-
-                            <a href="#">
-                                <h4 class="statusBgname">Tetuan</h4>
-                            </a>
-
-
-                            <div class="modal-ecContainer">
-                                <a href="#" class="ecTitle">
-                                    <h5 class="totalEc">5 Evacuation Centers</h5>
-                                </a>
-
-                                <div class="ecList-modal">
-                                    <div class="ecList">
-                                        <div class="ecDot green"></div>
-                                        <p class="ecName">Barangay Hall</p>
-                                    </div>
-
-                                    <div class="ecList">
-                                        <div class="ecDot yellow"></div>
-                                        <p class="ecName">Tetuan Central School</p>
-                                    </div>
-
-                                    <div class="ecList">
-                                        <div class="ecDot red"></div>
-                                        <p class="ecName">Tetuan Central School</p>
-                                    </div>
-
-                                    <div class="ecList">
-                                        <div class="ecDot yellow"></div>
-                                        <p class="ecName">Tetuan Central School</p>
-                                    </div>
-                                </div>
-                            </div>
-
-
-                            <div class="bgAdmin">
-                                <h4>Mark Larenz Tabotabo</h5>
-                                    <p>Admin</p>
-                            </div>
-                        </div>
-
-                        <!-- <div class="statusCard">
-                            <img class="barangayLogo" src="../../assets/img/zambo.png" alt="">
-
-                            <a href="#">
-                                <h4 class="statusBgname">Tugbugan</h4>
-                            </a>
-
-                            <a href="">
-                                <h5 class="totalEc">315 Evacuation Centers</h5>
-                            </a>
-
-                            <div class="bgAdmin">
-                                <h4>Jose Manalo</h5>
-                                <p>Admin</p>
-                            </div>
-                        </div> -->
-
-
 
 
 
@@ -280,7 +200,7 @@
 
 
                 </div>
-            </div>
+            </div> -->
         </main>
 
     </div>

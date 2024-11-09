@@ -30,7 +30,9 @@ if (isset($_SESSION['user_id'])) {
 }
 
 // Fetch all admins with role 'admin'
-$admin_query = "SELECT id, first_name, middle_name, last_name, extension_name, email, image, barangay, contact, role, status FROM admin WHERE role = 'admin'";
+$admin_query = "SELECT id, first_name, middle_name, last_name, extension_name, email, image, barangay, contact, role, status 
+                FROM admin 
+                WHERE role = 'admin' AND (verification_code IS NULL OR verification_code = '')";
 $admin_stmt = $conn->prepare($admin_query);
 $admin_stmt->execute();
 $admin_result = $admin_stmt->get_result();
@@ -137,29 +139,27 @@ $admin_result = $admin_stmt->get_result();
                             <!-- the modal or filter popup-->
                             <div class="modal">
                                 <div class="modal-content">
-                                    <!-- <label for="modal-toggle" class="close">
-                                        <i class="fa-solid fa-xmark"></i>
-                                    </label> -->
                                     <div class="filter-option">
                                         <div class="option-content">
-                                            <input type="checkbox" name="barangay" id="active">
-                                            <label for="active">Active</label>
+                                            <input type="checkbox" id="filterAll" checked>
+                                            <label for="filterAll">All</label>
                                         </div>
                                         <div class="option-content">
-                                            <input type="checkbox" name="barangay" id="inactive">
-                                            <label for="inactive">Inactive</label>
+                                            <input type="checkbox" id="filterActive">
+                                            <label for="filterActive">Active</label>
                                         </div>
-
-
+                                        <div class="option-content">
+                                            <input type="checkbox" id="filterInactive">
+                                            <label for="filterInactive">Inactive</label>
+                                        </div>
                                     </div>
-
                                 </div>
                             </div>
                         </div>
 
 
                         <div class="input_group">
-                            <input type="search" placeholder="Search...">
+                            <input type="search" id="searchInput" placeholder="Search...">
                             <i class="fa-solid fa-magnifying-glass"></i>
                         </div>
 
@@ -182,12 +182,15 @@ $admin_result = $admin_stmt->get_result();
                             </thead>
                             <tbody>
                                 <?php while ($admin = $admin_result->fetch_assoc()): ?>
-                                    <tr
+                                    <tr data-status="<?php echo htmlspecialchars($admin['status']); ?>"
+                                        data-barangay="<?php echo htmlspecialchars($admin['barangay']); ?>"
+                                        data-name="<?php echo htmlspecialchars($admin['first_name'] . ' ' . $admin['last_name']); ?>"
+                                        data-email="<?php echo htmlspecialchars($admin['email']); ?>"
                                         onclick="window.location.href='viewProfile.php?id=<?php echo urlencode($admin['id']); ?>'">
                                         <td><?php echo htmlspecialchars($admin['barangay']); ?></td>
                                         <td>
                                             <div class="relative">
-                                                <img src="<?php echo htmlspecialchars($admin['image'] ?: '../../assets/img/default-avatar.png'); ?>"
+                                                <img src="<?php echo htmlspecialchars($admin['image'] ?: '../../assets/img/undraw_male_avatar_g98d.svg'); ?>"
                                                     alt="Profile Image">
                                                 <?php echo htmlspecialchars($admin['first_name'] . ' ' . $admin['last_name']); ?>
                                             </div>
@@ -307,7 +310,68 @@ $admin_result = $admin_stmt->get_result();
 
 
     </div>
+    <script>
+        document.getElementById('filterAll').addEventListener('change', () => {
+            if (document.getElementById('filterAll').checked) {
+                resetFilters();
+            }
+        });
+        document.getElementById('filterActive').addEventListener('change', updateFilters);
+        document.getElementById('filterInactive').addEventListener('change', updateFilters);
 
+        function resetFilters() {
+            document.getElementById('filterActive').checked = false;
+            document.getElementById('filterInactive').checked = false;
+
+            const rows = document.querySelectorAll('#mainTable tbody tr');
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+        }
+
+        function updateFilters() {
+            if (document.getElementById('filterActive').checked || document.getElementById('filterInactive').checked) {
+                document.getElementById('filterAll').checked = false;
+            }
+
+            const showActive = document.getElementById('filterActive').checked;
+            const showInactive = document.getElementById('filterInactive').checked;
+
+            if (!showActive && !showInactive) {
+                document.getElementById('filterAll').checked = true;
+                resetFilters();
+                return;
+            }
+
+            const rows = document.querySelectorAll('#mainTable tbody tr');
+            rows.forEach(row => {
+                const status = row.getAttribute('data-status').toLowerCase();
+                if ((status === 'active' && showActive) || (status === 'inactive' && showInactive)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Search function
+        document.getElementById('searchInput').addEventListener('input', function () {
+            const filter = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#mainTable tbody tr');
+
+            rows.forEach(row => {
+                const barangay = row.getAttribute('data-barangay').toLowerCase();
+                const name = row.getAttribute('data-name').toLowerCase();
+                const email = row.getAttribute('data-email').toLowerCase();
+
+                if (barangay.includes(filter) || name.includes(filter) || email.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
 
     <!-- import sidebar -->
     <script src="../../includes/sidebar.js"></script>

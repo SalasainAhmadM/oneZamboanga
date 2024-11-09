@@ -22,6 +22,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($result->num_rows === 1) {
         $user = $result->fetch_assoc();
 
+        // Check if the account needs verification
+        if (!empty($user['verification_code'])) {
+            $_SESSION['error_message'] = 'Confirm your Account on Email First.';
+            header("Location: ../login.php");
+            exit();
+        }
+
         if (password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_name'] = $user['name'];
@@ -62,6 +69,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($result->num_rows === 1) {
             $worker = $result->fetch_assoc();
+
+            // Check if the account needs verification
+            if (!empty($worker['verification_code'])) {
+                $_SESSION['error_message'] = 'Confirm your account on your email first.';
+                header("Location: ../login.php");
+                exit();
+            }
 
             if (password_verify($password, $worker['password'])) {
                 $_SESSION['user_id'] = $worker['id'];

@@ -68,6 +68,19 @@
           </script>";
         unset($_SESSION['error_message']);
     }
+    if (isset($_SESSION['message'])) {
+        $message = $_SESSION['message'];
+        $messageType = $_SESSION['message_type'];
+        echo "<script>
+            Swal.fire({
+                icon: '$messageType',
+                title: '" . ($messageType == "success" ? "Success" : "Oops...") . "',
+                text: '$message'
+            });
+        </script>";
+        unset($_SESSION['message']);
+        unset($_SESSION['message_type']);
+    }
     ?>
 
 </body>

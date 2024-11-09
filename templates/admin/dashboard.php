@@ -32,7 +32,7 @@ if (isset($_SESSION['user_id'])) {
 $admin_image = !empty($admin_image) ? $admin_image : "../../assets/img/admin.png";
 
 // Query to get the total number of admins, excluding those with a verification code
-$count_sql = "SELECT COUNT(*) AS total_admins FROM admin WHERE role = 'admin' AND verification_code IS NULL";
+$count_sql = "SELECT COUNT(*) AS total_admins FROM admin WHERE role = 'admin' AND verification_code IS NULL OR verification_code = '' ";
 $count_result = $conn->query($count_sql);
 $total_admins = ($count_result->num_rows > 0) ? $count_result->fetch_assoc()['total_admins'] : 0;
 

@@ -1,3 +1,6 @@
+<?php
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -33,7 +36,18 @@
 </head>
 
 <body>
-
+    <?php
+    if (isset($_SESSION['message'])) {
+        echo "<script>
+            Swal.fire({
+                icon: '{$_SESSION['message_type']}',
+                title: '{$_SESSION['message']}'
+            });
+          </script>";
+        unset($_SESSION['message']);
+        unset($_SESSION['message_type']);
+    }
+    ?>
     <div class="container">
 
         <aside class="left-section">
@@ -86,106 +100,132 @@
                 <div class="main-container">
                     <h2 class="admin-reg">Admin Registration</h2>
 
-                    <form action="" method="">
+                    <form id="adminForm" action="../endpoints/create_admin.php" method="POST"
+                        enctype="multipart/form-data">
                         <div class="admin-input_container">
-
                             <div class="admin-input">
-                                <label for="">Last Name</label>
-                                <input type="text" name="" placeholder="Input Last Name" required>
+                                <label for="lastName">Last Name</label>
+                                <input type="text" id="lastName" name="lastName" class="input-lastName"
+                                    placeholder="Input Last Name" required>
                             </div>
 
                             <div class="admin-input">
-                                <label for="">First Name</label>
-                                <input type="text" name="" placeholder="Input First Name" required>
+                                <label for="firstName">First Name</label>
+                                <input type="text" id="firstName" name="firstName" class="input-firstName"
+                                    placeholder="Input First Name" required>
                             </div>
 
                             <div class="admin-input">
-                                <label for="">Middle Name</label>
-                                <input type="text" name="" placeholder="Input Middle Initial">
+                                <label for="middleName">Middle Name</label>
+                                <input type="text" id="middleName" name="middleName" class="input-middleName"
+                                    placeholder="Input Middle Initial">
                             </div>
 
                             <div class="admin-input">
-                                <label for="">Extension Name</label>
-                                <input type="text" name="" placeholder="e.g., Jr.">
+                                <label for="extensionName">Extension Name</label>
+                                <input type="text" id="extensionName" name="extensionName" class="input-extensionName"
+                                    placeholder="e.g., Jr.">
                             </div>
 
                             <div class="admin-input">
-                                <label for="">Gender</label>
-                                <select name="sex" id="" required>
+                                <label for="gender">Gender</label>
+                                <select id="gender" name="gender" class="input-gender" required>
                                     <option value="">Select</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
                                 </select>
                             </div>
 
                             <div class="admin-input">
-                                <label for="">City/Province</label>
-                                <input type="text" name="" placeholder="" value="Zamboanga City" required>
+                                <label for="city">City/Province</label>
+                                <input type="text" id="city" name="city" class="input-city" placeholder=""
+                                    value="Zamboanga City" required>
                             </div>
 
                             <div class="admin-input">
                                 <label for="barangay">Barangay</label>
-                                <input type="text" name="barangay" id="barangay" required placeholder="Enter Barangay">
-                            </div>
-
-
-                            <div class="admin-input">
-                                <label for="">Contact Information</label>
-                                <input type="number" name="" placeholder="Input Contact Info" required>
+                                <input type="text" id="barangay" name="barangay" class="input-barangay" required
+                                    placeholder="Enter Barangay">
                             </div>
 
                             <div class="admin-input">
-                                <label for="">Email</label>
-                                <input type="email" name="" placeholder="Input Email" required>
+                                <label for="contactInfo">Contact Information</label>
+                                <input type="number" id="contactInfo" name="contactInfo" class="input-contactInfo"
+                                    placeholder="Input Contact Info" required>
                             </div>
 
                             <div class="admin-input">
-                                <label for="">Position</label>
-                                <input type="Text" name="" placeholder="e.g., Barangay Captain" required>
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" class="input-email"
+                                    placeholder="Input Email" required>
                             </div>
 
                             <div class="admin-input">
-                                <label for="">Proof of appointment</label>
-                                <input id="fileInput" type="file" required />
+                                <label for="position">Position</label>
+                                <input type="text" id="position" name="position" class="input-position"
+                                    placeholder="e.g., Barangay Captain" required>
                             </div>
 
                             <div class="admin-input">
-                                <label for="">Add barangay logo (optional) </label>
-                                <input id="fileInput" type="file" />
+                                <label for="proofOfAppointment">Proof of appointment</label>
+                                <input type="file" id="proofOfAppointment" name="proofOfAppointment"
+                                    class="input-proofOfAppointment" required>
                             </div>
 
+                            <div class="admin-input">
+                                <label for="barangay_logo">Add barangay logo (optional)</label>
+                                <input type="file" id="barangay_logo" name="barangay_logo" class="input-barangay_logo">
+                            </div>
 
-
+                            <div class="admin-input">
+                                <label for="photo">Add your photo</label>
+                                <input type="file" id="photo" name="photo" class="input-photo">
+                            </div>
                         </div>
 
-                        <div class="admin-photo">
-                            <label for="">Add your photo</label>
-                            <input id="fileInput" type="file" />
-                        </div>
+                        <!-- <div class="admin-photo">
+                            <label for="photo">Add your photo</label>
+                            <input type="file" id="photo" name="photo" class="input-photo">
+                        </div> -->
 
                         <div class="admin-cta_container">
                             <div class="admin-cta">
-                                <button class="mainBtn adminCreate" id="create">Create</button>
+                                <button type="button" class="mainBtn adminCreate" id="create">Create</button>
                             </div>
                         </div>
-
                     </form>
                 </div>
             </div>
 
-
-
-
-
-
-
         </main>
 
-
-
-
     </div>
+    <div class="loader"></div>
 
+    <script>
+        document.getElementById('create').addEventListener('click', function () {
+            const form = document.getElementById('adminForm');
+
+            // Check if form is valid
+            if (form.checkValidity()) {
+                // Trigger SweetAlert
+                Swal.fire({
+                    title: 'Confirm Registration',
+                    text: 'Please confirm that you would like to proceed',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Confirm',
+                    cancelButtonText: 'Cancel',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            } else {
+                form.reportValidity();
+            }
+        });
+    </script>
 
     <!-- import sidebar -->
     <script src="../../includes/sidebar.js"></script>

@@ -1,6 +1,6 @@
-.evacuees {
-    /* box-shadow: none; */
-}
+/* .evacuees {
+    box-shadow: none;
+} */
 
 select, input {
     background-color: transparent;
@@ -20,7 +20,42 @@ label {
     overflow: auto;
 
 }
+.addBtn {
+    outline: none;
+    border: none;
+    background-color: var(--clr-slate600);
+    padding: .5em 1em;
+    border-radius: .5em;
+    color: var(--clr-white);
+    font-weight: 600;
+    transition: .3s;
+}
 
+.addMembers-container {
+    display: none;
+}
+
+.member-wrapper {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.deleteBtn,
+.fa-xmark {
+    background-color: #475569;
+    color: white;
+    border: none;
+    font-size: 10px;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.deleteBtn i {
+    margin-right: 2px;
+}
 .eform-header {
     display: grid;
     place-items: center;

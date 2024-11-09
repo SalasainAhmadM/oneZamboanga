@@ -23,10 +23,15 @@
     }
 }
 
-/* left */
-.profile-left {
-    /* background-color: red; */
+.proof_image  {
+    object-fit: cover;
+    max-width: 450px;
+    max-height: 450px;
 }
+/* left */
+/* .profile-left {
+    background-color: red;
+} */
 .left-wrapper {
     /* background-color: grey; */
     /* margin-top: 2em; */
@@ -125,9 +130,9 @@
     display: none;
 }
 
-.editProfile-container {
+/* .editProfile-container {
 
-}
+} */
 
 .inputProfile-wrapper {
     display: grid;

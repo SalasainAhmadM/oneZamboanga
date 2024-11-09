@@ -192,7 +192,7 @@ $proof_image = !empty($worker['proof_image']) ? $worker['proof_image'] : "../../
 
                         <div class="proof">
                             <i class="fa-solid fa-xmark" id="closeProof"></i>
-                            <img src="<?php echo htmlspecialchars($proof_image); ?>" alt="">
+                            <img class="proof_image" src="<?php echo htmlspecialchars($proof_image); ?>" alt="">
                         </div>
 
                     </div>

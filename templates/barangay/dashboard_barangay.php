@@ -30,6 +30,12 @@ if (isset($_SESSION['user_id'])) {
     exit;
 }
 $admin_image = !empty($admin['image']) ? $admin['image'] : "../../assets/img/undraw_male_avatar_g98d.svg";
+
+// Query to get the total number of workers, excluding those with a verification code
+$count_sql = "SELECT COUNT(*) AS total_workers FROM worker WHERE verification_code IS NULL OR verification_code = ''";
+$count_result = $conn->query($count_sql);
+$total_workers = ($count_result->num_rows > 0) ? $count_result->fetch_assoc()['total_workers'] : 0;
+
 ?>
 
 <!DOCTYPE html>
@@ -111,7 +117,7 @@ $admin_image = !empty($admin['image']) ? $admin['image'] : "../../assets/img/und
                     <div class="progress">
                         <div class="info">
                             <h5>Community Wokers</h5>
-                            <p>Total: 22</p>
+                            <p>Total: <?php echo $total_workers; ?></p>
                         </div>
                     </div>
                     <i class="fa-solid fa-users"></i>
