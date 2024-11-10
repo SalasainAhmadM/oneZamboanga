@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 09, 2024 at 07:21 AM
+-- Generation Time: Nov 10, 2024 at 07:48 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -55,13 +55,27 @@ CREATE TABLE `admin` (
 --
 
 INSERT INTO `admin` (`id`, `first_name`, `middle_name`, `last_name`, `extension_name`, `email`, `username`, `password`, `image`, `gender`, `position`, `city`, `barangay`, `barangay_logo`, `contact`, `role`, `proof_image`, `status`, `last_login`, `verification_code`) VALUES
-(1, 'Mitsuyoshi', 'D.', 'Anzai', 'II', 'superadmin@gmail.com', 'superadmin12', '$2y$10$SvIjuJHT3AGOT6dvh2VG1uuxjsDtIiWoTQ/Lhjp0Ycgtecv.UHAiS', '../../assets/uploads/profiles/Mitsuyoshi Anzai.jpg', '', '', '', '', NULL, '0', 'superadmin', '', 'active', '2024-11-09 11:12:57', NULL),
-(2, 'Hanamichi', 'D.', 'Sakuragi', '', 'admin@gmail.com', 'admin123', '$2y$10$SvIjuJHT3AGOT6dvh2VG1uuxjsDtIiWoTQ/Lhjp0Ycgtecv.UHAiS', '../../assets/uploads/profiles/sakuragi.png', 'Male', 'Captain', 'Zamboanga', 'Guiwan', NULL, '2147483647', 'admin', '../../assets/uploads/appointments/journal format.png', 'active', '2024-11-09 13:21:33', ''),
+(1, 'Mitsuyoshi', 'D.', 'Anzai', 'II', 'superadmin@gmail.com', 'superadmin12', '$2y$10$SvIjuJHT3AGOT6dvh2VG1uuxjsDtIiWoTQ/Lhjp0Ycgtecv.UHAiS', '../../assets/uploads/profiles/Mitsuyoshi Anzai.jpg', '', '', '', '', NULL, '0', 'superadmin', '', 'active', '2024-11-10 14:24:34', NULL),
+(2, 'Hanamichi', 'D.', 'Sakuragi', '', 'admin@gmail.com', 'admin123', '$2y$10$SvIjuJHT3AGOT6dvh2VG1uuxjsDtIiWoTQ/Lhjp0Ycgtecv.UHAiS', '../../assets/uploads/profiles/sakuragi.png', 'Male', 'Captain', 'Zamboanga', 'Guiwan', NULL, '2147483647', 'admin', '../../assets/uploads/appointments/journal format.png', 'active', '2024-11-10 14:36:20', ''),
 (3, 'Kaede', 'D', 'Rukawa', '', 'binimaloi@gmail.com', 'RukawaAdmin', '$2y$10$RPj4ozHDoaXIgjSWtyIyAOConZm4SK0Edbtwtt15FQZVLT7C.qho.', '../../assets/uploads/profiles/rukawa.jpg', 'Male', 'Ace Player', 'Zamboanga City', 'Shohoku', NULL, '2147483647', 'admin', '../../assets/uploads/appointments/bini.jpg', 'inactive', '2024-10-31 21:42:40', ''),
 (4, 'Maloi', 'D', 'Ricalde', '', 'kaizoku@gmail.com', 'RicaldeAdmin', '$2y$10$.cQt6NadI2oLMwFn3Ne2T.gvb.fUGwA0A06ICcgeOpvmqvX2s4Obm', '../../assets/uploads/profiles/bini_maloi.png', 'Female', 'Main Vocalist', 'Zamboanga City', 'Kasanyangan', NULL, '09551078233', 'admin', '../../assets/uploads/appointments/69ce7c36886481c490338f7465e00bd9.png', 'active', '2024-11-08 23:02:03', NULL),
 (5, 'Aiah', 'D', 'Arceta', '', 'masterjho@gmail.com', 'ArcetaAdmin', '$2y$10$t8XryzbGRzJaEa6PW4Zz6e/fopHBGky8oTRhaN/sbgMI21EdM49q.', '', 'Female', 'Main Visual', 'Zamboanga City', 'Talon-talon', NULL, '123456789', 'admin', '../../assets/uploads/appointments/69ce7c36886481c490338f7465e00bd9.png', 'active', '2024-11-08 23:27:32', NULL),
 (6, 'Mikha', 'D', 'Lim', '', 'samcena@gmail.com', 'LimAdmin', '$2y$10$0K8XeBqdvMj0I.iaEF4hSOId39U7kYlZCTgF1LJHOyOUUdhJTAKda', '../../assets/uploads/profiles/bini_mikha.png', 'Female', 'Main Rapper', 'Zamboanga City', 'Sta.Maria', '', '09881078332', 'admin', '../../assets/uploads/appointments/1.png', 'active', '2024-11-08 23:36:17', NULL),
 (7, 'Colet', 'D', 'Vergara', '', 'binimaloi2@gmail.com', 'VergaraAdmin', '$2y$10$QcOe1IvngDYKv4TJB6EdQOqgLcYOvfG3C3FBGws.gowDxrdbZLGg.', '../../assets/uploads/profiles/bini_colet.png', 'Female', 'Lead Vocalist', 'Zamboanga City', 'San Roque', '../../assets/uploads/barangay/3.png', '0988106322', 'admin', '../../assets/uploads/appointments/bini.jpg', 'active', NULL, 'e84934e57b');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `assigned_worker`
+--
+
+CREATE TABLE `assigned_worker` (
+  `id` int(11) NOT NULL,
+  `assigned_date` datetime NOT NULL DEFAULT current_timestamp(),
+  `status` enum('assigned','unassigned') NOT NULL DEFAULT 'assigned',
+  `worker_id` int(11) NOT NULL,
+  `evacuation_center_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -74,8 +88,18 @@ CREATE TABLE `evacuation_center` (
   `name` varchar(255) NOT NULL,
   `location` varchar(255) NOT NULL,
   `capacity` varchar(255) NOT NULL,
-  `admin_id` int(11) NOT NULL
+  `admin_id` int(11) NOT NULL,
+  `image` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `evacuation_center`
+--
+
+INSERT INTO `evacuation_center` (`id`, `name`, `location`, `capacity`, `admin_id`, `image`) VALUES
+(1, 'Don Gems', 'Grandline', '122', 2, '../../assets/uploads/evacuation_centers/spirited_away_by_snatti89_ddj15iy.jpg'),
+(2, 'ZCHS', 'Grandline', '122', 2, ''),
+(3, 'Avengers Tower', 'New York', '12', 2, '../../assets/uploads/evacuation_centers/one_piece_scene_zoro_by_uoa7_d5hhg5y.jpg');
 
 -- --------------------------------------------------------
 
@@ -100,8 +124,18 @@ CREATE TABLE `evacuees` (
   `damage` enum('totally','partially') NOT NULL,
   `cost_damage` varchar(255) NOT NULL,
   `house_owner` varchar(255) NOT NULL,
-  `admin_id` int(11) NOT NULL
+  `admin_id` int(11) NOT NULL,
+  `evacuation_center_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `evacuees`
+--
+
+INSERT INTO `evacuees` (`id`, `first_name`, `middle_name`, `last_name`, `extension_name`, `gender`, `position`, `disaster_type`, `barangay`, `birthday`, `age`, `occupation`, `monthly_income`, `damage`, `cost_damage`, `house_owner`, `admin_id`, `evacuation_center_id`) VALUES
+(1, 'Sam', 'D.', 'Cena', '', 'female', 'Owner', 'Flood', 'Guiwan', '2024-11-13', 22, 'Idol', '12223', 'totally', '11111', 'Colet Vergara', 2, 1),
+(2, 'Sammy', 'D.', 'Dragon', '', 'Male', 'Owner', 'Flood', 'Guiwan', '2024-11-13', 22, 'Idol', '20000', 'totally', '10000', 'Colet Vergara', 2, 2),
+(3, 'Samkuragi', 'D.', 'Smile', '', 'Male', 'Sharer', 'Flood', 'Guiwan', '2024-11-21', 22, 'Idol', '11', 'totally', '111', 'Colet Vergara', 2, 3);
 
 -- --------------------------------------------------------
 
@@ -122,6 +156,14 @@ CREATE TABLE `members` (
   `occupation` varchar(255) NOT NULL,
   `evacuees_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `members`
+--
+
+INSERT INTO `members` (`id`, `first_name`, `middle_name`, `last_name`, `extension_name`, `relation`, `education`, `gender`, `age`, `occupation`, `evacuees_id`) VALUES
+(1, 'Mikha', 'Bini', 'Lim', '', 'Brother', 'College', 'Male', 23, 'Red Hair Badass', 1),
+(2, 'Aiah', 'Bini', 'Arceta', '', 'Sister', 'College', 'male', 23, 'Idol', 2);
 
 -- --------------------------------------------------------
 
@@ -157,7 +199,7 @@ CREATE TABLE `worker` (
 --
 
 INSERT INTO `worker` (`id`, `email`, `username`, `first_name`, `middle_name`, `last_name`, `extension_name`, `password`, `image`, `age`, `gender`, `position`, `city`, `barangay`, `contact`, `proof_image`, `status`, `last_login`, `verification_code`, `admin_id`) VALUES
-(1, 'worker@gmail.com', 'Worker123', 'Ryota', 'D.', 'Miyagi', '', '$2y$10$qgHnhQJT1K2D.hEfuCCb0.PNDlgsSwiZJTFzOq7LAthmftb1bHIMe', '../../assets/uploads/profiles/ryota.jpg', 30, 'Male', 'Technician', 'Zamboanga City', 'Guiwan', '1234567890', '../../assets/uploads/appointments/69ce7c36886481c490338f7465e00bd9.png', 'active', '2024-11-09 13:20:46', NULL, 2),
+(1, 'worker@gmail.com', 'Worker123', 'Ryota', 'D.', 'Miyagi', '', '$2y$10$qgHnhQJT1K2D.hEfuCCb0.PNDlgsSwiZJTFzOq7LAthmftb1bHIMe', '../../assets/uploads/profiles/ryota.jpg', 30, 'Male', 'Technician', 'Zamboanga City', 'Guiwan', '1234567890', '../../assets/uploads/appointments/69ce7c36886481c490338f7465e00bd9.png', 'active', '2024-11-10 14:33:37', NULL, 2),
 (2, 'binimaloi352@gmail.com', 'AkagiTeamCaptain', 'Takenori', 'D', 'Akagi', 'Sr.', '$2y$10$CgfDd5cttfwoMO9Zkb8G0.ubGZr7p5tWobA8YpLBwUTHEOm/xIC3i', '../../assets/uploads/profiles/akagi.jpg', 18, 'Male', 'Team Captain', 'Zamboanga City', 'Guiwan', '123456789', '../../assets/uploads/appointments/bini.jpg', 'active', '2024-11-09 11:09:13', NULL, 2);
 
 --
@@ -171,6 +213,14 @@ ALTER TABLE `admin`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `assigned_worker`
+--
+ALTER TABLE `assigned_worker`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_assigned_worker_worker` (`worker_id`),
+  ADD KEY `fk_assigned_worker_evacuation_center` (`evacuation_center_id`);
+
+--
 -- Indexes for table `evacuation_center`
 --
 ALTER TABLE `evacuation_center`
@@ -182,7 +232,8 @@ ALTER TABLE `evacuation_center`
 --
 ALTER TABLE `evacuees`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_evacuees_admin` (`admin_id`);
+  ADD KEY `fk_evacuees_admin` (`admin_id`),
+  ADD KEY `fk_evacuees_evacuation_center` (`evacuation_center_id`);
 
 --
 -- Indexes for table `members`
@@ -209,22 +260,28 @@ ALTER TABLE `admin`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
+-- AUTO_INCREMENT for table `assigned_worker`
+--
+ALTER TABLE `assigned_worker`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `evacuation_center`
 --
 ALTER TABLE `evacuation_center`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `evacuees`
 --
 ALTER TABLE `evacuees`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `members`
 --
 ALTER TABLE `members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `worker`
@@ -237,6 +294,13 @@ ALTER TABLE `worker`
 --
 
 --
+-- Constraints for table `assigned_worker`
+--
+ALTER TABLE `assigned_worker`
+  ADD CONSTRAINT `fk_assigned_worker_worker` FOREIGN KEY (`worker_id`) REFERENCES `worker` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_assigned_worker_evacuation_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_center` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Constraints for table `evacuation_center`
 --
 ALTER TABLE `evacuation_center`
@@ -246,7 +310,8 @@ ALTER TABLE `evacuation_center`
 -- Constraints for table `evacuees`
 --
 ALTER TABLE `evacuees`
-  ADD CONSTRAINT `fk_evacuees_admin` FOREIGN KEY (`admin_id`) REFERENCES `admin` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_evacuees_admin` FOREIGN KEY (`admin_id`) REFERENCES `admin` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_evacuees_evacuation_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_center` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `members`

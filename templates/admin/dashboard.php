@@ -36,6 +36,20 @@ $count_sql = "SELECT COUNT(*) AS total_admins FROM admin WHERE role = 'admin' AN
 $count_result = $conn->query($count_sql);
 $total_admins = ($count_result->num_rows > 0) ? $count_result->fetch_assoc()['total_admins'] : 0;
 
+// Query to get the total number of evacuation centers
+$evacuation_center_sql = "SELECT COUNT(*) AS total_centers FROM evacuation_center";
+$evacuation_center_result = $conn->query($evacuation_center_sql);
+$total_centers = ($evacuation_center_result->num_rows > 0) ? $evacuation_center_result->fetch_assoc()['total_centers'] : 0;
+
+// Query to get the total number of evacuees and their members
+$evacuees_and_members_sql = "
+    SELECT 
+        (SELECT COUNT(*) FROM evacuees) +
+        (SELECT COUNT(*) FROM members) AS total_evacuees_with_members
+";
+$evacuees_and_members_result = $conn->query($evacuees_and_members_sql);
+$total_evacuees_with_members = ($evacuees_and_members_result->num_rows > 0) ? $evacuees_and_members_result->fetch_assoc()['total_evacuees_with_members'] : 0;
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -138,7 +152,7 @@ $total_admins = ($count_result->num_rows > 0) ? $count_result->fetch_assoc()['to
                     <div class="progress">
                         <div class="info">
                             <h5>Evacuees</h5>
-                            <p>Total: 35</p>
+                            <p>Total: <?php echo $total_evacuees_with_members; ?></p>
                         </div>
                     </div>
                     <i class="fa-solid fa-children"></i>
@@ -147,12 +161,11 @@ $total_admins = ($count_result->num_rows > 0) ? $count_result->fetch_assoc()['to
                     <div class="progress">
                         <div class="info">
                             <h5>Evacuation Centers</h5>
-                            <p>Total: 4</p>
+                            <p>Total: <?php echo $total_centers; ?></p>
                         </div>
                     </div>
                     <i class="fa-solid fa-person-shelter"></i>
                 </div>
-
 
             </div>
 

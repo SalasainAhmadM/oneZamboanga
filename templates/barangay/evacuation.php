@@ -7,8 +7,8 @@ if (isset($_SESSION['user_id'])) {
 
     // Fetch the admin's details from the database
     $sql = "SELECT first_name, middle_name, last_name, extension_name, username, email, image, proof_image, gender, city, barangay, contact, position 
-    FROM admin 
-    WHERE id = ?";
+            FROM admin 
+            WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $admin_id);
     $stmt->execute();
@@ -16,29 +16,26 @@ if (isset($_SESSION['user_id'])) {
 
     if ($result->num_rows > 0) {
         $admin = $result->fetch_assoc();
-        $first_name = $admin['first_name'];
-        $middle_name = $admin['middle_name'];
-        $last_name = $admin['last_name'];
-        $extension_name = $admin['extension_name'];
-        $email = $admin['email'];
-        $admin_image = $admin['image'];
-        $gender = $admin['gender'];
-        $city = $admin['city'];
+        $admin_name = trim($admin['first_name'] . ' ' . $admin['middle_name'] . ' ' . $admin['last_name'] . ' ' . $admin['extension_name']);
         $barangay = $admin['barangay'];
-        $contact = $admin['contact'];
-        $position = $admin['position'];
-        $proof_image = $admin['proof_image'];
-
-        $admin_name = trim($first_name . ' ' . $middle_name . ' ' . $last_name . ' ' . $extension_name);
-
     } else {
-        $first_name = $middle_name = $last_name = $extension_name = $email = '';
+        header("Location: ../../login.php");
+        exit;
     }
 } else {
     header("Location: ../../login.php");
     exit;
 }
+// Fetch the evacuation centers associated with this admin
+$sql = "SELECT id, name, location, image, capacity 
+FROM evacuation_center 
+WHERE admin_id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $admin_id);
+$stmt->execute();
+$centers_result = $stmt->get_result();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -74,7 +71,18 @@ if (isset($_SESSION['user_id'])) {
 </head>
 
 <body>
-
+    <?php
+    if (isset($_SESSION['message'])) {
+        echo "<script>
+            Swal.fire({
+                icon: '{$_SESSION['message_type']}',
+                title: '{$_SESSION['message']}'
+            });
+          </script>";
+        unset($_SESSION['message']);
+        unset($_SESSION['message_type']);
+    }
+    ?>
     <div class="container">
 
         <aside class="left-section">
@@ -136,78 +144,31 @@ if (isset($_SESSION['user_id'])) {
                         <h3>Barangay Tetuan</h3>
                     </div> -->
 
-                    <div class="bgEc-container">
-                        <div class="bgEc-cards" onclick="window.location.href='viewEC.php'">
-                            <!-- status color -->
-                            <div class="bgEc-status red"></div>
-                            <img src="../../assets/img/evacuation-default.svg" alt="" class="bgEc-img">
-
-                            <ul class="bgEc-info">
-                                <li><strong>Tetuan Central School</strong></li>
-                                <li>Location: Tetuan</li>
-                                <li>Capacity: 100 Families</li>
-                                <li>Total Families: 50</li>
-                                <li>Total Evacuees: 70</li>
-                            </ul>
-
-                        </div>
-
-                        <div class="bgEc-cards" onclick="window.location.href='viewEC.php'">
-                            <!-- status color -->
-                            <div class="bgEc-status red"></div>
-                            <img src="../../assets/img/evacuation-default.svg" alt="" class="bgEc-img">
-
-                            <ul class="bgEc-info">
-                                <li><strong>Tetuan Central School</strong></li>
-                                <li>Location: Tetuan</li>
-                                <li>Capacity: 100 Families</li>
-                                <li>Total Families: 50</li>
-                                <li>Total Evacuees: 70</li>
-                            </ul>
-
-
-                        </div>
-
-                        <div class="bgEc-cards" onclick="window.location.href='viewEC.php'">
-                            <div class="bgEc-status green"></div>
-                            <img src="../../assets/img/ecDefault.svg" alt="" class="bgEc-img">
-
-                            <ul class="bgEc-info">
-                                <li><strong>Tetuan Central School</strong></li>
-                                <li>Location: Tetuan</li>
-                                <li>Capacity: 100 Families</li>
-                                <li>Total Families: 50</li>
-                                <li>Total Evacuees: 70</li>
-                            </ul>
-                        </div>
-
-                        <div class="bgEc-cards">
-                            <div class="bgEc-status green"></div>
-                            <img src="../../assets/img/ecDeaultPhoto.svg" alt="" class="bgEc-img">
-
-                            <ul class="bgEc-info">
-                                <li><strong>Tetuan Central School</strong></li>
-                                <li>Location: Tetuan</li>
-                                <li>Capacity: 100 Families</li>
-                                <li>Total Families: 50</li>
-                                <li>Total Evacuees: 70</li>
-                            </ul>
-                        </div>
-
-                        <div class="bgEc-cards">
-                            <div class="bgEc-status yellow"></div>
-                            <img src="../../assets/img/ecDeaultPhoto.svg" alt="" class="bgEc-img">
-
-                            <ul class="bgEc-info">
-                                <li><strong>Tetuan Central School</strong></li>
-                                <li>Location: Tetuan</li>
-                                <li>Capacity: 100 Families</li>
-                                <li>Total Families: 50</li>
-                                <li>Total Evacuees: 70</li>
-                            </ul>
+                    <div class="main-wrapper bgEcWrapper">
+                        <div class="main-container bgEcList">
+                            <div class="bgEc-container">
+                                <?php if ($centers_result->num_rows > 0): ?>
+                                    <?php while ($center = $centers_result->fetch_assoc()): ?>
+                                        <div class="bgEc-cards"
+                                            onclick="window.location.href='viewEC.php?id=<?php echo $center['id']; ?>'">
+                                            <div class="bgEc-status green"></div>
+                                            <img src="<?php echo !empty($center['image']) ? htmlspecialchars($center['image']) : '../../assets/img/evacuation-default.svg'; ?>"
+                                                alt="Evacuation Center Image" class="bgEc-img">
+                                            <ul class="bgEc-info">
+                                                <li><strong><?php echo htmlspecialchars($center['name']); ?></strong></li>
+                                                <li>Location: <?php echo htmlspecialchars($center['location']); ?></li>
+                                                <li>Capacity: <?php echo htmlspecialchars($center['capacity']); ?> Families</li>
+                                                <li>Total Families: 50</li>
+                                                <li>Total Evacuees: 70</li>
+                                            </ul>
+                                        </div>
+                                    <?php endwhile; ?>
+                                <?php else: ?>
+                                    <p>No evacuation centers found for this admin.</p>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
-
 
                     <!-- add evacuaton form -->
                     <div class="addEC-container">
@@ -217,31 +178,76 @@ if (isset($_SESSION['user_id'])) {
                             <h3 class="addEC-header">
                                 Create Evacuation Center
                             </h3>
-                            <form action="">
+                            <!-- Form -->
+                            <form id="createEvacuationForm" action="../endpoints/create_evacuation_center.php"
+                                method="POST" enctype="multipart/form-data">
+                                <input type="hidden" name="admin_id" value="<?php echo htmlspecialchars($admin_id); ?>">
+
                                 <div class="addEC-input">
-                                    <label for="">Name of Evacuation Center</label>
-                                    <input type="text" required>
+                                    <label for="evacuationCenterName">Name of Evacuation Center</label>
+                                    <input type="text" id="evacuationCenterName" class="evacuation-center-name"
+                                        name="evacuationCenterName" required>
                                 </div>
 
                                 <div class="addEC-input">
-                                    <label for="">Location</label>
-                                    <input type="text" required>
+                                    <label for="location">Location</label>
+                                    <input type="text" id="location" class="evacuation-center-location" name="location"
+                                        required>
                                 </div>
 
                                 <div class="addEC-input">
-                                    <label for="">Capacity (per family)</label>
-                                    <input type="number" required>
+                                    <label for="capacity">Capacity (per family)</label>
+                                    <input type="number" id="capacity" class="evacuation-center-capacity"
+                                        name="capacity" required>
                                 </div>
 
                                 <div class="addEC-input">
-                                    <label for="">Add photo</label>
-                                    <input id="fileInput" type="file" class="noBorder" />
+                                    <label for="fileInput">Add photo</label>
+                                    <input id="fileInput" type="file" class="evacuation-center-photo noBorder"
+                                        name="photo" required>
                                 </div>
 
                                 <div class="addEC-input">
-                                    <button class="mainBtn" id="create">Create</button>
+                                    <button type="button" class="mainBtn" id="create"
+                                        onclick="confirmSubmission()">Create</button>
                                 </div>
                             </form>
+
+                            <script>
+                                function confirmSubmission() {
+                                    // Check if all required fields are filled
+                                    const name = document.getElementById("evacuationCenterName").value;
+                                    const location = document.getElementById("location").value;
+                                    const capacity = document.getElementById("capacity").value;
+
+                                    if (name && location && capacity) {
+                                        // If all fields are filled, show the confirmation alert
+                                        Swal.fire({
+                                            title: 'Are you sure?',
+                                            text: "You are about to create a new evacuation center.",
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#3085d6',
+                                            cancelButtonColor: '#d33',
+                                            confirmButtonText: 'Yes, create it!'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                // Submit the form if confirmed
+                                                document.getElementById("createEvacuationForm").submit();
+                                            }
+                                        });
+                                    } else {
+                                        // Alert if any required fields are missing
+                                        Swal.fire({
+                                            title: 'Incomplete form',
+                                            text: "Please fill in all required fields.",
+                                            icon: 'error',
+                                            confirmButtonColor: '#3085d6',
+                                        });
+                                    }
+                                }
+                            </script>
+
                         </div>
                     </div>
 
@@ -279,35 +285,7 @@ if (isset($_SESSION['user_id'])) {
 
 
     <!-- sweetalert popup messagebox add form-->
-    <script>
-        $('#create').on('click', function () {
-            Swal.fire({
-                title: "Create Evacuation Center?",
-                text: "",
-                icon: "info",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Yes",
-                customClass: {
-                    popup: 'custom-swal-popup' //to customize the style
-                }
 
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: "Success!",
-                        text: "Evacuation center created.",
-                        icon: "success",
-                        customClass: {
-                            popup: 'custom-swal-popup'
-                        }
-                    });
-                }
-            });
-
-        })
-    </script>
 
 
 

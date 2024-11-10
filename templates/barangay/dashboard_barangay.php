@@ -36,6 +36,10 @@ $count_sql = "SELECT COUNT(*) AS total_workers FROM worker WHERE verification_co
 $count_result = $conn->query($count_sql);
 $total_workers = ($count_result->num_rows > 0) ? $count_result->fetch_assoc()['total_workers'] : 0;
 
+// Query to get the total number of evacuation centers for this admin
+$center_count_sql = "SELECT COUNT(*) AS total_centers FROM evacuation_center WHERE admin_id = $admin_id";
+$center_count_result = $conn->query($center_count_sql);
+$total_centers = ($center_count_result->num_rows > 0) ? $center_count_result->fetch_assoc()['total_centers'] : 0;
 ?>
 
 <!DOCTYPE html>
@@ -136,7 +140,7 @@ $total_workers = ($count_result->num_rows > 0) ? $count_result->fetch_assoc()['t
                     <div class="progress">
                         <div class="info">
                             <h5>Evacuation Centers</h5>
-                            <p>Total: 4</p>
+                            <p>Total: <?php echo $total_centers; ?></p>
                         </div>
                     </div>
                     <i class="fa-solid fa-person-shelter"></i>

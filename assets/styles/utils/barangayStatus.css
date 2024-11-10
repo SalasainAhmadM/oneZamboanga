@@ -217,6 +217,9 @@
 .bgEc-status.yellow {
     background-color: var(--clr-yellow);
 }
+.bgEc-status.grey {
+    background-color: var(--clr-grey);
+}
 
 .bgEc-img {
     width: 250px;

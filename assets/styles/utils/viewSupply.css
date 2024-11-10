@@ -216,7 +216,7 @@ tr:hover .ecMembers > .viewMembers {
     display: none;
 }
 
-.distributeBtn {
+.distributeBtn , .selectBtn {
     outline: none;
     border: none;
     background-color: var(--clr-slate600);
@@ -514,10 +514,10 @@ table {
         /* height: auto; */
         width: 78vw;
     }
-    .supplyTable-container.supplyDonate {
-        /* width: 78vw; */
-        /* height: 45vh; */
-    }
+    /* .supplyTable-container.supplyDonate {
+        width: 78vw;
+        height: 45vh;
+    } */
 
     .distributeBtn-container,
     .receiveBtn-container {

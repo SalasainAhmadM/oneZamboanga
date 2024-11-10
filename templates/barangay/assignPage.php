@@ -1,5 +1,49 @@
+<?php
+session_start();
+include("../../connection/conn.php");
+
+if (isset($_GET['id']) && isset($_SESSION['user_id'])) {
+    $center_id = $_GET['id'];
+    $admin_id = $_SESSION['user_id'];
+
+    // Fetch details of the selected evacuation center
+    $sql = "SELECT name, location, capacity, image FROM evacuation_center WHERE id = ? AND admin_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $center_id, $admin_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $center = $result->fetch_assoc();
+    } else {
+        echo "No details found for this evacuation center.";
+        exit;
+    }
+} else {
+    header("Location: ../../login.php");
+    exit;
+}
+
+// Query to fetch workers under the logged-in admin
+$worker_query = "SELECT id, first_name, middle_name, last_name, extension_name, email, contact, position, image, status 
+ FROM worker 
+ WHERE admin_id = ? AND (verification_code IS NULL OR verification_code = '')";
+$worker_stmt = $conn->prepare($worker_query);
+$worker_stmt->bind_param("i", $admin_id);
+$worker_stmt->execute();
+$worker_result = $worker_stmt->get_result();
+
+// Fetch unique positions for filter options
+$position_query = "SELECT DISTINCT position FROM worker WHERE admin_id = ? AND (verification_code IS NULL OR verification_code = '')";
+$position_stmt = $conn->prepare($position_query);
+$position_stmt->bind_param("i", $admin_id);
+$position_stmt->execute();
+$position_result = $position_stmt->get_result();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +54,7 @@
     <link rel="stylesheet" href="../../assets/fontawesome/all.css">
     <link rel="stylesheet" href="../../assets/fontawesome/fontawesome.min.css">
     <!--styles-->
-    
+
     <link rel="stylesheet" href="../../assets/styles/style.css">
     <link rel="stylesheet" href="../../assets/styles/utils/dashboard.css">
     <link rel="stylesheet" href="../../assets/styles/utils/ecenter.css">
@@ -21,7 +65,8 @@
     <link rel="stylesheet" href="../../assets/styles/utils/viewSupply.css">
 
     <!-- jquery cdn -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 
     <!-- sweetalert cdn -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -29,10 +74,12 @@
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+
 <body>
 
+
     <div class="container">
-        
+
         <aside class="left-section">
             <special-logo></special-logo>
             <!-- <div class="logo">
@@ -55,7 +102,7 @@
 
         <main>
             <header>
-                <button class="menu-btn" id="menu-open"> 
+                <button class="menu-btn" id="menu-open">
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <!-- <h5>Hello <b>Mark</b>, welcome back!</h5> -->
@@ -69,7 +116,7 @@
                             <a href="#">Assign</a>
                         </div>
 
-                        
+
 
 
                         <!-- <a class="addBg-admin" href="addEvacuees.php">
@@ -81,166 +128,145 @@
 
             <div class="main-wrapper">
                 <div class="main-container supply"> <!--overview-->
-                    
+
                     <special-personnel></special-personnel>
-                    
+
                     <div class="viewSupply-container" style="box-shadow: none;">
-                        
 
                         <div class="supplyTop itemDonate">
-                            <img src="../../assets/img/evacuation-default.svg" alt="">
+                            <img src="<?php echo !empty($center['image']) ? htmlspecialchars($center['image']) : '../../assets/img/evacuation-default.svg'; ?>"
+                                alt="Evacuation Center Image">
                             <ul class="supplyDetails">
-                                <li>Evacuation Center: Tetuan Central School</li>
-                                <li>Capacity: 100 Families</li>
+                                <li>Evacuation Center: <?php echo htmlspecialchars($center['name']); ?></li>
+                                <li>Location: <?php echo htmlspecialchars($center['location']); ?></li>
+                                <li>Capacity: <?php echo htmlspecialchars($center['capacity']); ?> Families</li>
                                 <li>Total Families: 30</li>
                                 <li>Total Evacuees: 120</li>
                             </ul>
                         </div>
 
-                        <div class="supplyBot">
-                            
 
+                        <div class="supplyBot">
                             <div class="supplyTable-container supplyDonate">
-                                
-                                <form action="">
+                                <form action="" method="post" id="assignWorkerForm">
+                                    <input type="hidden" name="evacuation_center_id" value="<?php echo $center_id; ?>">
                                     <table class="distributedTable donate">
                                         <thead>
-                                            <div class="distributeSearch" style="display: none;">
-                                                <input type="text" placeholder="Search...">
-                                                <label for="distributeSearch"><i class="fa-solid fa-magnifying-glass"></i></label>
-                                            </div>
-
-                                            <div class="filterStatus">
-                                                <div class="statusFilter">
-                                                    <label for="statusEC"><i class="fa-solid fa-filter"></i></label>
-                                                    <input type="checkbox" id="statusEC" class="statusEC">
-
-                                                    <div class="showStatus">
-                                                        <p>Kagawad</p>
-                                                        <p>SK</p>
-                                                    </div>
-                                                </div>
-
-                                                <div class="searchFilter">
-                                                    <input type="text" placeholder="Search...">
-                                                    <label for=""><i class="fa-solid fa-magnifying-glass"></i></label>
-                                                </div>
-                                            </div>
-
                                             <tr>
                                                 <th>Name</th>
                                                 <th>Email</th>
                                                 <th>Contact #</th>
                                                 <th style="text-align: center;">Position</th>
-                                                <!-- <th style="text-align: center;">Status</th> -->
+                                                <th style="text-align: center;">Status</th>
                                             </tr>
                                         </thead>
-        
                                         <tbody>
-                                            
+                                            <?php
+                                            // Query to fetch all workers with assignment status to the current evacuation center
+                                            $assigned_workers = []; // To store assigned worker IDs
+                                            $assigned_result = $conn->query("SELECT worker_id FROM assigned_worker WHERE evacuation_center_id = $center_id AND status = 'assigned'");
 
-                                            <tr onclick="toggleCheckbox(this)">
-                                                <td class="selectName" style="text-align: center;">
-                                                    <input type="checkbox" id="donate">
-                                                    Lebron James
-                                                </td>
-                                                <td>communityWorkers@gmail.com</td>
-                                                <td>0909090909</td>
-                                                <td style="text-align: center;">Kagawad</td>
-                                            </tr>
+                                            while ($assigned = $assigned_result->fetch_assoc()) {
+                                                $assigned_workers[] = $assigned['worker_id'];
+                                            }
 
-                                            <tr onclick="toggleCheckbox(this)">
-                                                <td class="selectName" style="text-align: center;">
-                                                    <input type="checkbox" id="donate">
-                                                    Lebron James
-                                                </td>
-                                                <td>communityWorkers@gmail.com</td>
-                                                <td>0909090909</td>
-                                                <td style="text-align: center;">Kagawad</td>
-                                            </tr>
-
-
-                                            <tr onclick="toggleCheckbox(this)">
-                                                <td class="selectName" style="text-align: center;">
-                                                    <input type="checkbox" id="donate">
-                                                    Lebron James
-                                                </td>
-                                                <td>communityWorkers@gmail.com</td>
-                                                <td>0909090909</td>
-                                                <td style="text-align: center;">Kagawad</td>
-                                            </tr>
-
-                                            <tr onclick="toggleCheckbox(this)">
-                                                <td class="selectName" style="text-align: center;">
-                                                    <input type="checkbox" id="donate">
-                                                    Lebron James
-                                                </td>
-                                                <td>communityWorkers@gmail.com</td>
-                                                <td>0909090909</td>
-                                                <td style="text-align: center;">Kagawad</td>
-                                            </tr>
-
-                                            <tr onclick="toggleCheckbox(this)">
-                                                <td class="selectName" style="text-align: center;">
-                                                    <input type="checkbox" id="donate">
-                                                    Lebron James
-                                                </td>
-                                                <td>communityWorkers@gmail.com</td>
-                                                <td>0909090909</td>
-                                                <td style="text-align: center;">Kagawad</td>
-                                            </tr>
-
-                                            <tr onclick="toggleCheckbox(this)">
-                                                <td class="selectName" style="text-align: center;">
-                                                    <input type="checkbox" id="donate">
-                                                    Lebron James
-                                                </td>
-                                                <td>communityWorkers@gmail.com</td>
-                                                <td>0909090909</td>
-                                                <td style="text-align: center;">Kagawad</td>
-                                            </tr>
-
-                                            <tr onclick="toggleCheckbox(this)">
-                                                <td class="selectName" style="text-align: center;">
-                                                    <input type="checkbox" id="donate">
-                                                    Lebron James
-                                                </td>
-                                                <td>communityWorkers@gmail.com</td>
-                                                <td>0909090909</td>
-                                                <td style="text-align: center;">Kagawad</td>
-                                            </tr>
-
-                                            
-                                            
-                                            
+                                            // Fetch all workers
+                                            while ($worker = $worker_result->fetch_assoc()):
+                                                $isAssigned = in_array($worker['id'], $assigned_workers);
+                                                ?>
+                                                <tr onclick="toggleCheckbox(this)">
+                                                    <td class="selectName" style="text-align: center;">
+                                                        <input type="checkbox" name="selected_workers[]"
+                                                            value="<?php echo $worker['id']; ?>" <?php echo $isAssigned ? 'checked' : ''; ?>>
+                                                        <?php echo htmlspecialchars($worker['first_name'] . ' ' . $worker['middle_name'] . ' ' . $worker['last_name'] . ' ' . $worker['extension_name']); ?>
+                                                    </td>
+                                                    <td><?php echo htmlspecialchars($worker['email']); ?></td>
+                                                    <td><?php echo htmlspecialchars($worker['contact']); ?></td>
+                                                    <td style="text-align: center;">
+                                                        <?php echo htmlspecialchars($worker['position']); ?>
+                                                    </td>
+                                                    <td style="text-align: center;">
+                                                        <?php echo $isAssigned ? 'Assigned' : 'Unassigned'; ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endwhile; ?>
                                         </tbody>
                                     </table>
                                     <div class="distributeBtn-container">
-                                        <button class="distributeBtn">Select All</button>
-                                        <button class="distributeBtn">Assign</button>
+                                        <button type="button" class="selectBtn" id="toggleSelectBtn"
+                                            onclick="toggleSelectAll()">Select All</button>
+                                        <button type="button" class="distributeBtn"
+                                            onclick="confirmAssign()">Assign</button>
                                     </div>
                                 </form>
-    
-                               
-
-                                
-
 
                             </div>
-
                         </div>
 
+
                     </div>
-                   
 
 
-                    
+
+
                 </div>
             </div>
         </main>
 
     </div>
 
+    <script>
+        function confirmAssign() {
+            const selectedWorkers = document.querySelectorAll("input[name='selected_workers[]']:checked");
+
+            if (selectedWorkers.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Workers Selected',
+                    text: 'Please select at least one worker to assign.',
+                });
+            } else {
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You are about to assign the selected workers.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, assign!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const formData = new FormData(document.getElementById("assignWorkerForm"));
+
+                        fetch("../endpoints/assign_worker.php", {
+                            method: "POST",
+                            body: formData
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                Swal.fire({
+                                    icon: data.type,
+                                    title: data.title,
+                                    text: data.message
+                                }).then(() => {
+                                    if (data.status === 'success') {
+                                        location.reload(); // Reload the page on success
+                                    }
+                                });
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Assignment Failed',
+                                    text: 'There was an error assigning workers. Please try again.'
+                                });
+                            });
+                    }
+                });
+            }
+        }
+
+    </script>
     <!-- sidebar import js -->
     <script src="../../includes/bgSidebar.js"></script>
 
@@ -257,59 +283,30 @@
     <!-- sidebar menu -->
     <script src="../../assets/src/utils/menu-btn.js"></script>
 
-    
+
 
 
     <!-- the checkbox will be checked when the tr is clicked -->
     <script>
         function toggleCheckbox(row) {
-            const checkbox = row.querySelector('input[type="checkbox"]');
-            checkbox.checked = !checkbox.checked; // Toggle checkbox state
+            const checkbox = row.querySelector("input[type='checkbox']");
+            checkbox.checked = !checkbox.checked;
+        }
+
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll("input[name='selected_workers[]']");
+            const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+
+            checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
+
+            // Update the button text
+            const toggleButton = document.getElementById("toggleSelectBtn");
+            toggleButton.textContent = allChecked ? "Select All" : "Unselect All";
         }
     </script>
 
 
-    
 
-
-    
-
-    <!-- ====sweetalert popup messagebox====== -->
-    <script>
-        $('.mainBtn').on('click', function() {
-            Swal.fire({
-            title: "Save Changes?",
-            text: "",
-            icon: "info",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes",
-            customClass: {
-                popup: 'custom-swal-popup' //to customize the style
-            }
-
-            }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                title: "Success!",
-                text: "",
-                icon: "success",
-                customClass: {
-                    popup: 'custom-swal-popup'
-                }
-                });
-            }
-            });
-
-        })
-    </script>
-
-
-    
-
-    
-    
-    
 </body>
+
 </html>
