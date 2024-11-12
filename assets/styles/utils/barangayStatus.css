@@ -132,6 +132,10 @@
     /* font-size: var(--size-sm); */
     font-size: var(--size-xs);
 }
+ .noEcMessage {
+    text-align: center;
+    font-size: var(--size-xs);
+}
 
 .ecList .ecDot {
     width: 10px;
@@ -148,6 +152,9 @@
 }
 .ecList .ecDot.red {
     background-color: var(--clr-red); 
+}
+.ecList .ecDot.grey {
+    background-color: var(--clr-grey); 
 }
 
 .ecTitle:hover + .ecList-modal {

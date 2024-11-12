@@ -214,9 +214,36 @@ button.addBg-admin i {
 .option-content input[type="checkbox"] {
     display: none;
 }
+.no-centers-message {
+    text-align: center;
+    color: #333;
+    font-size: 1.2rem;
+    margin: 20px 0;
+    padding: 20px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+/* .no-personnel, .no-activity-log {
+    display: none; 
+    text-align: center;
+    font-size: 16px;
+    color: #333;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+} */
 
-
-
+/* .personnel-content{
+    position: relative;
+    min-height: 100px; 
+}
+.activityLog-content {
+    position: relative;
+    margin-top: -70px;
+} */
 /* the html */
 /* <div class="filter-popup">
     <label for="modal-toggle" class="modal-button">

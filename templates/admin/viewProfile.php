@@ -30,6 +30,26 @@ $worker_stmt = $conn->prepare($worker_query);
 $worker_stmt->bind_param("i", $admin_id);
 $worker_stmt->execute();
 $worker_result = $worker_stmt->get_result();
+
+// Fetch all evacuation centers for this admin and determine their status
+$ec_query = "
+    SELECT ec.id, ec.name, 
+           (CASE WHEN COUNT(ev.id) > 0 THEN 'Active' ELSE 'Inactive' END) AS status
+    FROM evacuation_center AS ec
+    LEFT JOIN evacuees AS ev ON ec.id = ev.evacuation_center_id
+    WHERE ec.admin_id = ?
+    GROUP BY ec.id";
+$ec_stmt = $conn->prepare($ec_query);
+$ec_stmt->bind_param("i", $admin_id);
+$ec_stmt->execute();
+$ec_result = $ec_stmt->get_result();
+
+// Fetch activity logs for this admin
+$notification_query = "SELECT notification_msg, created_at FROM notifications WHERE logged_in_id = ?";
+$notification_stmt = $conn->prepare($notification_query);
+$notification_stmt->bind_param("i", $admin_id);
+$notification_stmt->execute();
+$notification_result = $notification_stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -118,7 +138,8 @@ $worker_result = $worker_stmt->get_result();
 
                         <div class="cta-modal">
                             <div class="cta-options">
-                                <a href="#">Delete</a>
+                                <a href="javascript:void(0);"
+                                    onclick="confirmDelete(<?php echo $admin_id; ?>)">Delete</a>
                             </div>
                         </div>
                     </div>
@@ -178,69 +199,24 @@ $worker_result = $worker_stmt->get_result();
                         </div>
 
                         <div class="barangayEcenter">
-                            <h3 class="ecHeader-title">
-                                Evacuation Centers
-                            </h3>
-
+                            <h3 class="ecHeader-title">Evacuation Centers</h3>
                             <div class="ecBarangay-container">
-                                <div class="ecBarangay-list">
-                                    <p class="ecBarangay-name">Barangay Hall</p>
-                                    <p class="ecBarangay-status statActive">Active</p>
-                                </div>
-
-                                <div class="ecBarangay-list">
-                                    <p class="ecBarangay-name">Barangay Hall</p>
-                                    <p class="ecBarangay-status statInactive">Inactive</p>
-                                </div>
-
-                                <div class="ecBarangay-list">
-                                    <p class="ecBarangay-name">Barangay Hall</p>
-                                    <p class="ecBarangay-status statActive">Active</p>
-                                </div>
-
-                                <div class="ecBarangay-list">
-                                    <p class="ecBarangay-name">Barangay Hall</p>
-                                    <p class="ecBarangay-status statInactive">Inactive</p>
-                                </div>
-
-                                <div class="ecBarangay-list">
-                                    <p class="ecBarangay-name">Barangay Hall</p>
-                                    <p class="ecBarangay-status statActive">Active</p>
-                                </div>
-
-                                <div class="ecBarangay-list">
-                                    <p class="ecBarangay-name">Barangay Hall</p>
-                                    <p class="ecBarangay-status statInactive">Inactive</p>
-                                </div>
-
-                                <div class="ecBarangay-list">
-                                    <p class="ecBarangay-name">Barangay Hall</p>
-                                    <p class="ecBarangay-status statInactive">Inactive</p>
-                                </div>
-
-                                <div class="ecBarangay-list">
-                                    <p class="ecBarangay-name">Barangay Hall</p>
-                                    <p class="ecBarangay-status statActive">Active</p>
-                                </div>
-
-                                <div class="ecBarangay-list">
-                                    <p class="ecBarangay-name">Barangay Hall</p>
-                                    <p class="ecBarangay-status statInactive">Inactive</p>
-                                </div>
-
-                                <div class="ecBarangay-list">
-                                    <p class="ecBarangay-name">Barangay Hall</p>
-                                    <p class="ecBarangay-status statActive">Active</p>
-                                </div>
-
-                                <div class="ecBarangay-list">
-                                    <p class="ecBarangay-name">Barangay Hall</p>
-                                    <p class="ecBarangay-status statInactive">Inactive</p>
-                                </div>
-
+                                <?php if ($ec_result->num_rows > 0): ?>
+                                    <?php while ($ec = $ec_result->fetch_assoc()): ?>
+                                        <div class="ecBarangay-list">
+                                            <p class="ecBarangay-name"><?php echo htmlspecialchars($ec['name']); ?></p>
+                                            <p
+                                                class="ecBarangay-status <?php echo $ec['status'] === 'Active' ? 'statActive' : 'statInactive'; ?>">
+                                                <?php echo $ec['status']; ?>
+                                            </p>
+                                        </div>
+                                    <?php endwhile; ?>
+                                <?php else: ?>
+                                    <p class="no-ec-message">No Evacuation Centers</p>
+                                <?php endif; ?>
                             </div>
-
                         </div>
+
                     </div>
 
 
@@ -286,20 +262,26 @@ $worker_result = $worker_stmt->get_result();
                                         </div>
                                     <?php endwhile; ?>
                                 <?php else: ?>
-                                    <p>No personnel found under this admin.</p>
+                                    <p style="padding: 28px" class="no-personnel">No personnel found under this admin.</p>
                                 <?php endif; ?>
                             </div>
 
-
-                            <!-- activity logs content -->
                             <div class="activityLog-content">
-                                <div class="log-container">
-                                    <p class="logDate">11-15-2024</p>
-                                    <div class="logDivider"></div>
-                                    <p class="logInfo">Evacuation Center created >> name of the ec</p>
-                                </div>
+                                <?php if ($notification_result->num_rows > 0): ?>
+                                    <?php while ($notification = $notification_result->fetch_assoc()): ?>
+                                        <div class="log-container">
+                                            <p class="logDate">
+                                                <?php echo htmlspecialchars(date("m-d-Y", strtotime($notification['created_at']))); ?>
+                                            </p>
+                                            <p class="logInfo">
+                                                <?php echo htmlspecialchars($notification['notification_msg']); ?>
+                                            </p>
+                                        </div>
+                                    <?php endwhile; ?>
+                                <?php else: ?>
+                                    <p class="no-activity-log">No activity logs found for this admin.</p>
+                                <?php endif; ?>
                             </div>
-
 
 
 
@@ -329,8 +311,48 @@ $worker_result = $worker_stmt->get_result();
     <script src="../../assets/src/utils/menu-btn.js"></script>
 
     <script>
+        function confirmDelete(adminId) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This action will delete the admin's profile permanently.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Send an AJAX request to delete the admin
+                    fetch(`../endpoints/delete_admin.php?id=${adminId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire(
+                                    'Deleted!',
+                                    'The admin has been deleted.',
+                                    'success'
+                                ).then(() => {
+                                    // Redirect or remove the admin from the DOM
+                                    window.location.href = 'barangayAcc.php'; // Or another page
+                                });
+                            } else {
+                                Swal.fire('Error', data.message || 'Could not delete admin.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire('Error', 'An error occurred while deleting the admin.', 'error');
+                        });
+                }
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
-            // Select the elements
             const personelHeader = document.querySelector('.personel-header');
             const activityLogHeader = document.querySelector('.activityLog-header');
             const personelActiveLine = document.querySelector('.personel .activeLine');
@@ -338,9 +360,11 @@ $worker_result = $worker_stmt->get_result();
 
             const personelContent = document.querySelectorAll('.personel-content');
             const activityLogContent = document.querySelectorAll('.activityLog-content');
+            const noPersonnelMessage = document.querySelector('.no-personnel');
+            const noActivityLogMessage = document.querySelector('.no-activity-log');
 
             // Function to handle toggling active class and showing active line
-            function toggleActive(header, activeLine, contentToShow, contentToHide) {
+            function toggleActive(header, activeLine, contentToShow, contentToHide, showEmptyMessage, hideEmptyMessage) {
                 // Remove active from both headers
                 personelHeader.classList.remove('active');
                 activityLogHeader.classList.remove('active');
@@ -356,26 +380,33 @@ $worker_result = $worker_stmt->get_result();
                 // Show and hide the corresponding content
                 contentToShow.forEach(content => content.style.display = 'flex');
                 contentToHide.forEach(content => content.style.display = 'none');
+
+                // Show/hide the empty messages accordingly
+                if (showEmptyMessage) showEmptyMessage.style.display = 'block';
+                if (hideEmptyMessage) hideEmptyMessage.style.display = 'none';
             }
 
             // Set personel-header as active by default on page load
             personelHeader.classList.add('active');
             personelActiveLine.style.display = 'block';
 
-            // Display personel-content by default
+            // Display personel-content and hide activityLog-content by default
             personelContent.forEach(content => content.style.display = 'flex');
             activityLogContent.forEach(content => content.style.display = 'none');
 
+            // Check if there's no personnel or activity log and display message accordingly
+            if (noPersonnelMessage) noPersonnelMessage.style.display = 'block';
+            if (noActivityLogMessage) noActivityLogMessage.style.display = 'none';
+
             // Add event listeners to the headers
             personelHeader.addEventListener('click', function () {
-                toggleActive(personelHeader, personelActiveLine, personelContent, activityLogContent);
+                toggleActive(personelHeader, personelActiveLine, personelContent, activityLogContent, noPersonnelMessage, noActivityLogMessage);
             });
 
             activityLogHeader.addEventListener('click', function () {
-                toggleActive(activityLogHeader, activityLogActiveLine, activityLogContent, personelContent);
+                toggleActive(activityLogHeader, activityLogActiveLine, activityLogContent, personelContent, noActivityLogMessage, noPersonnelMessage);
             });
         });
-
 
     </script>
 

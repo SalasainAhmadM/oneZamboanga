@@ -2,7 +2,29 @@
 session_start();
 include("../../connection/conn.php");
 
-$query = "SELECT * FROM admin WHERE role = 'admin'";
+// $query = "SELECT * FROM admin WHERE role = 'admin'";
+// $result = $conn->query($query);
+
+// Query to fetch admins with barangay, evacuation center count, and center details
+$query = "
+    SELECT 
+        a.id AS admin_id, 
+        a.barangay, 
+        a.first_name, 
+        a.middle_name, 
+        a.last_name, 
+        a.barangay_logo,
+        COUNT(e.id) AS evacuation_center_count,
+        GROUP_CONCAT(e.id) AS evacuation_center_ids,
+        GROUP_CONCAT(e.name) AS evacuation_center_names,
+        GROUP_CONCAT(e.capacity) AS evacuation_center_capacities,
+        GROUP_CONCAT(e.location) AS evacuation_center_locations,
+        GROUP_CONCAT(e.image) AS evacuation_center_images
+    FROM admin a
+    LEFT JOIN evacuation_center e ON a.id = e.admin_id
+    WHERE a.role = 'admin'
+    GROUP BY a.id
+";
 $result = $conn->query($query);
 ?>
 <!DOCTYPE html>
@@ -87,43 +109,80 @@ $result = $conn->query($query);
                     </div>
 
                     <div class="statusCard-container">
-                        <?php while ($admin = $result->fetch_assoc()): ?>
+                        <?php while ($admin = $result->fetch_assoc()):
+                            $admin_id = $admin['admin_id'];
+                            $center_ids = $admin['evacuation_center_ids'] ? explode(',', $admin['evacuation_center_ids']) : [];
+                            $center_names = $admin['evacuation_center_names'] ? explode(',', $admin['evacuation_center_names']) : [];
+                            $center_capacities = $admin['evacuation_center_capacities'] ? explode(',', $admin['evacuation_center_capacities']) : [];
+                            $center_locations = $admin['evacuation_center_locations'] ? explode(',', $admin['evacuation_center_locations']) : [];
+                            $center_images = $admin['evacuation_center_images'] ? explode(',', $admin['evacuation_center_images']) : [];
+                            ?>
                             <div class="statusCard"
-                                onclick="window.location.href='barangayEC.php?barangay=<?php echo urlencode($admin['barangay']); ?>'">
+                                onclick="window.location.href='barangayEC.php?barangay=<?php echo urlencode($admin['barangay']); ?>&admin_id=<?php echo $admin_id; ?>'">
                                 <img class="barangayLogo"
                                     src="<?php echo htmlspecialchars($admin['barangay_logo'] ?: '../../assets/img/zambo.png'); ?>"
                                     alt="Barangay Logo">
 
-                                <a href="#">
+                                <a
+                                    href="barangayEC.php?barangay=<?php echo urlencode($admin['barangay']); ?>&admin_id=<?php echo $admin_id; ?>">
                                     <h4 class="statusBgname"><?php echo htmlspecialchars($admin['barangay']); ?></h4>
                                 </a>
 
                                 <div class="modal-ecContainer">
-                                    <a href="barangayEC.php?barangay=<?php echo urlencode($admin['barangay']); ?>"
+                                    <a href="barangayEC.php?barangay=<?php echo urlencode($admin['barangay']); ?>&admin_id=<?php echo $admin_id; ?>"
                                         class="ecTitle">
-                                        <h5 class="totalEc">5 Evacuation Centers</h5>
-                                        <!-- Example placeholder for total centers -->
+                                        <h5 class="totalEc">
+                                            <?php echo htmlspecialchars($admin['evacuation_center_count']); ?>
+                                            Evacuation Center<?php echo $admin['evacuation_center_count'] > 1 ? 's' : ''; ?>
+                                        </h5>
                                     </a>
 
                                     <div class="ecList-modal">
-                                        <div class="ecList">
-                                            <div class="ecDot red"></div>
-                                            <p class="ecName">Barangay Hall</p>
-                                        </div>
-                                        <div class="ecList">
-                                            <div class="ecDot green"></div>
-                                            <p class="ecName">Tetuan Central School</p>
-                                        </div>
+                                        <?php if ($admin['evacuation_center_count'] == 0): ?>
+                                            <p class="noEcMessage">No Evacuation Center</p>
+                                        <?php else: ?>
+                                            <?php for ($i = 0; $i < count($center_ids); $i++):
+                                                $center_id = (int) $center_ids[$i];
+                                                $capacity = (int) $center_capacities[$i];
+                                                $center_name = htmlspecialchars($center_names[$i]);
+                                                $location = htmlspecialchars($center_locations[$i]);
+                                                $image = !empty($center_images[$i]) ? htmlspecialchars($center_images[$i]) : '../../assets/img/evacuation-default.svg';
 
-                                        <div class="ecList">
-                                            <div class="ecDot green"></div>
-                                            <p class="ecName">Tetuan Central School</p>
-                                        </div>
+                                                // Calculate total families
+                                                $family_count_sql = "SELECT COUNT(*) AS total_families FROM evacuees WHERE evacuation_center_id = ?";
+                                                $family_count_stmt = $conn->prepare($family_count_sql);
+                                                $family_count_stmt->bind_param("i", $center_id);
+                                                $family_count_stmt->execute();
+                                                $family_count_result = $family_count_stmt->get_result();
+                                                $total_families = ($family_count_result->num_rows > 0) ? $family_count_result->fetch_assoc()['total_families'] : 0;
 
-                                        <div class="ecList">
-                                            <div class="ecDot yellow"></div>
-                                            <p class="ecName">Tetuan Central School</p>
-                                        </div>
+                                                // Calculate total evacuees
+                                                $evacuees_count_sql = "
+                                SELECT 
+                                    (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
+                                    (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
+                                    (SELECT id FROM evacuees WHERE evacuation_center_id = ?)) AS total_evacuees
+                            ";
+                                                $evacuees_count_stmt = $conn->prepare($evacuees_count_sql);
+                                                $evacuees_count_stmt->bind_param("ii", $center_id, $center_id);
+                                                $evacuees_count_stmt->execute();
+                                                $evacuees_count_result = $evacuees_count_stmt->get_result();
+                                                $total_evacuees = ($evacuees_count_result->num_rows > 0) ? $evacuees_count_result->fetch_assoc()['total_evacuees'] : 0;
+
+                                                // Determine status color based on occupancy
+                                                if ($total_families === 0) {
+                                                    $status_color = "grey";
+                                                } else {
+                                                    $occupancy_percentage = ($total_families / $capacity) * 100;
+                                                    $status_color = $occupancy_percentage < 70 ? "green" : ($occupancy_percentage < 100 ? "yellow" : "red");
+                                                }
+                                                ?>
+                                                <div class="ecList">
+                                                    <div class="ecDot <?php echo $status_color; ?>"></div>
+                                                    <p class="ecName"><?php echo $center_name; ?></p>
+                                                </div>
+                                            <?php endfor; ?>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
 
@@ -135,9 +194,6 @@ $result = $conn->query($query);
                             </div>
                         <?php endwhile; ?>
                     </div>
-
-
-
                 </div>
             </div>
             <!-- <div class="main-wrapper">

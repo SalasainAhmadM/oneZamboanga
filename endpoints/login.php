@@ -3,7 +3,7 @@ session_start();
 require_once '../connection/conn.php';
 function checkInactiveEvacuationCenters($conn)
 {
-    // Query to find evacuation centers with no evacuees in the past 7 days
+    // Query to find evacuation centers with no evacuees 7 days after their created_at date
     $query = "
         SELECT ec.id, ec.name, ec.admin_id
         FROM evacuation_center ec
@@ -11,22 +11,23 @@ function checkInactiveEvacuationCenters($conn)
             SELECT 1
             FROM evacuees e
             WHERE e.evacuation_center_id = ec.id
-            AND DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+            AND e.date >= DATE_ADD(ec.created_at, INTERVAL 7 DAY)
         )
+        AND DATE_ADD(ec.created_at, INTERVAL 7 DAY) <= CURDATE()
     ";
 
     $stmt = $conn->prepare($query);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    // Insert notifications for each inactive evacuation center found
+    // Insert notifications for each evacuation center that has been inactive after 1 week
     while ($row = $result->fetch_assoc()) {
         $evacuationCenterId = $row['id'];
         $evacuationCenterName = $row['name'];
         $adminId = $row['admin_id'];
         $notificationMsg = "Evacuation center has been inactive: " . $evacuationCenterName;
 
-        // Check if a similar notification has been created within the last 7 days
+        // Check if a similar notification has already been created within the last 7 days
         $checkQuery = "
             SELECT 1
             FROM notifications
@@ -53,8 +54,6 @@ function checkInactiveEvacuationCenters($conn)
     }
 }
 
-
-// Example of calling the function
 checkInactiveEvacuationCenters($conn);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

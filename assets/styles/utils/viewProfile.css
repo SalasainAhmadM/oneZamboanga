@@ -308,23 +308,38 @@
 }
 
 .activityLog-content {
-    padding: 2em 1.5em 0;
+    padding: 2em 1.5em;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    display: none;
+    flex-direction: column;
+    gap: 1.5em;
+    /* background-color: #f9f9f9;  */
+    border-radius: 8px;
+    /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+    display: block;
 }
 
 .log-container {
     display: flex;
-    gap: 2em;
+    flex-direction: column;
+    gap: 0.5em;
+    padding: 1em;
+    background-color: #ffffff; 
+    border: 1px solid #ddd; 
+    border-radius: 6px;
 }
 
-.logDivider {
-    background-color: var(--clr-dark);
-    height: 20px;
-    width: 2px;
+.logDate {
+    font-weight: bold;
+    color: #333;
+    font-size: 0.9em;
 }
+
+.logInfo {
+    color: #555;
+    font-size: 0.95em;
+    line-height: 1.4;
+}
+
 
 /* ====== right content start ==== */
 

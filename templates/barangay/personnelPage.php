@@ -220,23 +220,30 @@ $position_result = $position_stmt->get_result();
                                     </tr>
                                 </thead>
                                 <tbody id="workerTableBody">
-                                    <?php while ($worker = $worker_result->fetch_assoc()): ?>
-                                        <tr class="worker-row"
-                                            data-position="<?php echo htmlspecialchars($worker['position']); ?>">
-                                            <td><?php echo htmlspecialchars($worker['first_name'] . ' ' . $worker['middle_name'] . ' ' . $worker['last_name']); ?>
-                                            </td>
-                                            <td><?php echo htmlspecialchars($worker['email']); ?></td>
-                                            <td><?php echo htmlspecialchars($worker['contact']); ?></td>
-                                            <td style="text-align: center;">
-                                                <?php echo htmlspecialchars($worker['position']); ?>
-                                            </td>
-                                            <td style="text-align: center;">
-                                                <a href="workersProfile.php?id=<?php echo urlencode($worker['id']); ?>"
-                                                    class="view-action">View</a>
-                                            </td>
+                                    <?php if ($worker_result->num_rows > 0): ?>
+                                        <?php while ($worker = $worker_result->fetch_assoc()): ?>
+                                            <tr class="worker-row"
+                                                data-position="<?php echo htmlspecialchars($worker['position']); ?>">
+                                                <td><?php echo htmlspecialchars($worker['first_name'] . ' ' . $worker['middle_name'] . ' ' . $worker['last_name']); ?>
+                                                </td>
+                                                <td><?php echo htmlspecialchars($worker['email']); ?></td>
+                                                <td><?php echo htmlspecialchars($worker['contact']); ?></td>
+                                                <td style="text-align: center;">
+                                                    <?php echo htmlspecialchars($worker['position']); ?>
+                                                </td>
+                                                <td style="text-align: center;">
+                                                    <a href="workersProfile.php?id=<?php echo urlencode($worker['id']); ?>"
+                                                        class="view-action">View</a>
+                                                </td>
+                                            </tr>
+                                        <?php endwhile; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="5" style="text-align: center;">No Community Workers Yet</td>
                                         </tr>
-                                    <?php endwhile; ?>
+                                    <?php endif; ?>
                                 </tbody>
+
                             </table>
                         </section>
 

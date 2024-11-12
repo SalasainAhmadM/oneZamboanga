@@ -1,3 +1,19 @@
+<?php
+require_once '../../connection/conn.php';
+if (isset($_GET['admin_id'])) {
+    $admin_id = $_GET['admin_id'];
+
+}
+
+// Fetch evacuation centers for this admin_id
+$sql = "SELECT id, name, location, capacity, image, created_at FROM evacuation_center WHERE admin_id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $admin_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$centers_found = ($result->num_rows > 0);
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -49,92 +65,79 @@
 
         <main>
             <header>
-                <button class="menu-btn" id="menu-open">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-                <!-- <h5>Hello <b>Mark</b>, welcome back!</h5> -->
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
                             <a href="barangayStatus.php">Barangay Tetuan</a>
-
-                            <!-- next page -->
                             <i class="fa-solid fa-chevron-right"></i>
                             <a href="#">Evacuation Centers</a>
                         </div>
-
-
-
-
-                        <!-- <a class="addBg-admin" href="../admin/addAdmin.php">
-                            <i class="fa-solid fa-user-plus"></i>
-                        </a> -->
                     </div>
                 </div>
             </header>
-
             <div class="main-wrapper bgEcWrapper">
                 <div class="main-container bgEcList">
-
-
-                    <!-- <div class="statusHeader">
-                        <h3>Barangay Tetuan</h3>
-                    </div> -->
-
                     <div class="bgEc-container">
-                        <div class="bgEc-cards" onclick="window.location.href='viewEvacuation.php'">
-                            <div class="bgEc-status red"></div>
-                            <img src="../../assets/img/evacuation-default.svg" alt="" class="bgEc-img">
+                        <?php if ($centers_found): ?>
+                            <?php while ($row = $result->fetch_assoc()):
+                                $center_id = $row['id'];
+                                $capacity = (int) $row['capacity'];
 
-                            <ul class="bgEc-info">
-                                <li><strong>Tetuan Central School</strong></li>
-                                <li>Location: Tetuan</li>
-                                <li>Capacity: 85 Families</li>
-                                <li>Total Families: 30</li>
-                                <li>Total Evacuees: 70</li>
-                            </ul>
-                        </div>
+                                // Get total families
+                                $family_count_sql = "SELECT COUNT(*) AS total_families FROM evacuees WHERE evacuation_center_id = ?";
+                                $family_count_stmt = $conn->prepare($family_count_sql);
+                                $family_count_stmt->bind_param("i", $center_id);
+                                $family_count_stmt->execute();
+                                $family_count_result = $family_count_stmt->get_result();
+                                $total_families = ($family_count_result->num_rows > 0) ? $family_count_result->fetch_assoc()['total_families'] : 0;
 
-                        <div class="bgEc-cards">
-                            <div class="bgEc-status green"></div>
-                            <img src="../../assets/img/ecDefault.svg" alt="" class="bgEc-img">
+                                // Get total evacuees (families + members)
+                                $evacuees_count_sql = "
+                                    SELECT 
+                                    (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
+                                    (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
+                                    (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
+                                    ) AS total_evacuees";
+                                $evacuees_count_stmt = $conn->prepare($evacuees_count_sql);
+                                $evacuees_count_stmt->bind_param("ii", $center_id, $center_id);
+                                $evacuees_count_stmt->execute();
+                                $evacuees_count_result = $evacuees_count_stmt->get_result();
+                                $total_evacuees = ($evacuees_count_result->num_rows > 0) ? $evacuees_count_result->fetch_assoc()['total_evacuees'] : 0;
 
-                            <ul class="bgEc-info">
-                                <li><strong>Tetuan Central School</strong></li>
-                                <li>Location: Tetuan</li>
-                                <li>Capacity: 85 Families</li>
-                                <li>Total Families: 30</li>
-                                <li>Total Evacuees: 70</li>
-                            </ul>
-                        </div>
-
-                        <div class="bgEc-cards">
-                            <div class="bgEc-status green"></div>
-                            <img src="../../assets/img/ecDeaultPhoto.svg" alt="" class="bgEc-img">
-
-                            <ul class="bgEc-info">
-                                <li><strong>Tetuan Central School</strong></li>
-                                <li>Location: Tetuan</li>
-                                <li>Capacity: 85 Families</li>
-                                <li>Total Families: 30</li>
-                                <li>Total Evacuees: 70</li>
-                            </ul>
-                        </div>
-
-                        <div class="bgEc-cards">
-                            <div class="bgEc-status yellow"></div>
-                            <img src="../../assets/img/ecDeaultPhoto.svg" alt="" class="bgEc-img">
-
-                            <ul class="bgEc-info">
-                                <li><strong>Tetuan Central School</strong></li>
-                                <li>Location: Tetuan</li>
-                                <li>Capacity: 85 Families</li>
-                                <li>Total Families: 30</li>
-                                <li>Total Evacuees: 70</li>
-                            </ul>
-                        </div>
+                                // Determine status color based on occupancy percentage
+                                if ($total_families === 0) {
+                                    $status_color = "grey";
+                                } else {
+                                    $occupancy_percentage = ($total_families / $capacity) * 100;
+                                    if ($occupancy_percentage < 70) {
+                                        $status_color = "green";
+                                    } elseif ($occupancy_percentage >= 70 && $occupancy_percentage < 100) {
+                                        $status_color = "yellow";
+                                    } else {
+                                        $status_color = "red";
+                                    }
+                                }
+                                ?>
+                                <div class="bgEc-cards"
+                                    onclick="window.location.href='viewEvacuation.php?id=<?php echo $row['id']; ?>'">
+                                    <div class="bgEc-status <?php echo $status_color; ?>"></div>
+                                    <img src="<?php echo !empty($row['image']) ? '../../assets/img/' . $row['image'] : '../../assets/img/ecDefault.svg'; ?>"
+                                        alt="" class="bgEc-img">
+                                    <ul class="bgEc-info">
+                                        <li><strong><?php echo htmlspecialchars($row['name']); ?></strong></li>
+                                        <li>Location: <?php echo htmlspecialchars($row['location']); ?></li>
+                                        <li>Capacity: <?php echo htmlspecialchars($row['capacity']); ?> Families</li>
+                                        <li>Total Families: <?php echo $total_families; ?></li>
+                                        <li>Total Evacuees: <?php echo $total_evacuees; ?></li>
+                                    </ul>
+                                </div>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <div class="no-centers-message">
+                                <p>No registered evacuation centers for this barangay.</p>
+                            </div>
+                        <?php endif; ?>
                     </div>
-
                 </div>
             </div>
         </main>
