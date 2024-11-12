@@ -31,16 +31,149 @@ if (isset($_SESSION['user_id'])) {
 }
 $admin_image = !empty($admin['image']) ? $admin['image'] : "../../assets/img/undraw_male_avatar_g98d.svg";
 
-// Query to get the total number of workers, excluding those with a verification code
-$count_sql = "SELECT COUNT(*) AS total_workers FROM worker WHERE verification_code IS NULL OR verification_code = ''";
-$count_result = $conn->query($count_sql);
+// Query to get the total number of workers for the logged-in admin, excluding those with a verification code
+$count_sql = "SELECT COUNT(*) AS total_workers FROM worker WHERE (verification_code IS NULL OR verification_code = '') AND admin_id = ?";
+$count_stmt = $conn->prepare($count_sql);
+$count_stmt->bind_param("i", $admin_id);
+$count_stmt->execute();
+$count_result = $count_stmt->get_result();
 $total_workers = ($count_result->num_rows > 0) ? $count_result->fetch_assoc()['total_workers'] : 0;
 
 // Query to get the total number of evacuation centers for this admin
 $center_count_sql = "SELECT COUNT(*) AS total_centers FROM evacuation_center WHERE admin_id = $admin_id";
 $center_count_result = $conn->query($center_count_sql);
 $total_centers = ($center_count_result->num_rows > 0) ? $center_count_result->fetch_assoc()['total_centers'] : 0;
+
+// Query to get the evacuation centers for this admin
+$centers_sql = "SELECT id, name FROM evacuation_center WHERE admin_id = ?";
+$centers_stmt = $conn->prepare($centers_sql);
+$centers_stmt->bind_param("i", $admin_id);
+$centers_stmt->execute();
+$centers_result = $centers_stmt->get_result();
+
+$centers = [];
+$total_evacuees_with_members = 0;  // Initialize the variable
+
+while ($row = $centers_result->fetch_assoc()) {
+    $center_id = $row['id'];
+    $center_name = $row['name'];
+
+    // Count evacuees and their members for each center
+    $count_total_sql = "
+        SELECT 
+            (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
+            (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
+                (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
+            ) AS total_count
+    ";
+    $count_total_stmt = $conn->prepare($count_total_sql);
+    $count_total_stmt->bind_param("ii", $center_id, $center_id);
+    $count_total_stmt->execute();
+    $total_result = $count_total_stmt->get_result();
+    $total_count = ($total_result->num_rows > 0) ? $total_result->fetch_assoc()['total_count'] : 0;
+    $centers[] = [
+        'name' => $center_name,
+        'evacuees' => $total_count
+    ];
+
+    $total_evacuees_with_members += $total_count;
+}
+
+// Query to get all evacuation centers for this admin
+$all_centers_sql = "SELECT id, name FROM evacuation_center WHERE admin_id = ?";
+$all_centers_stmt = $conn->prepare($all_centers_sql);
+$all_centers_stmt->bind_param("i", $admin_id);
+$all_centers_stmt->execute();
+$all_centers_result = $all_centers_stmt->get_result();
+
+$all_centers = [];
+while ($row = $all_centers_result->fetch_assoc()) {
+    $center_id = $row['id'];
+    $center_name = $row['name'];
+
+    // Count evacuees and their members for each center
+    $count_total_sql = "
+        SELECT 
+            (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
+            (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
+                (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
+            ) AS total_count
+    ";
+    $count_total_stmt = $conn->prepare($count_total_sql);
+    $count_total_stmt->bind_param("ii", $center_id, $center_id);
+    $count_total_stmt->execute();
+    $total_result = $count_total_stmt->get_result();
+    $total_count = ($total_result->num_rows > 0) ? $total_result->fetch_assoc()['total_count'] : 0;
+
+    $all_centers[] = [
+        'id' => $center_id,
+        'name' => $center_name,
+        'evacuees' => $total_count
+    ];
+}
+
+// Query to get the latest 4 evacuation centers for "Evacuation Center Overview"
+$latest_centers_sql = "
+    SELECT id, name 
+    FROM evacuation_center 
+    WHERE admin_id = ? 
+    ORDER BY id DESC 
+    LIMIT 4
+";
+$latest_centers_stmt = $conn->prepare($latest_centers_sql);
+$latest_centers_stmt->bind_param("i", $admin_id);
+$latest_centers_stmt->execute();
+$latest_centers_result = $latest_centers_stmt->get_result();
+
+$latest_centers = [];
+while ($row = $latest_centers_result->fetch_assoc()) {
+    $center_id = $row['id'];
+    $center_name = $row['name'];
+
+    // Count evacuees and their members for each center
+    $count_total_stmt->bind_param("ii", $center_id, $center_id);
+    $count_total_stmt->execute();
+    $total_result = $count_total_stmt->get_result();
+    $total_count = ($total_result->num_rows > 0) ? $total_result->fetch_assoc()['total_count'] : 0;
+
+    $latest_centers[] = [
+        'id' => $center_id,
+        'name' => $center_name,
+        'evacuees' => $total_count
+    ];
+}
+
+// Fetch the admin's notifications
+$notif_sql = "SELECT notification_msg, created_at 
+ FROM notifications 
+ WHERE logged_in_id = ? AND user_type = 'admin' 
+ ORDER BY created_at DESC";
+$notif_stmt = $conn->prepare($notif_sql);
+$notif_stmt->bind_param("i", $admin_id);
+$notif_stmt->execute();
+$notif_result = $notif_stmt->get_result();
+
+$notif_count = $notif_result->num_rows;
+
+// Check if there are notifications with status 'notify' for the admin
+$notif_check_query = "SELECT COUNT(*) AS unread_count FROM notifications WHERE logged_in_id = ? AND user_type = 'admin' AND status = 'notify'";
+$stmt = $conn->prepare($notif_check_query);
+$stmt->bind_param("i", $admin_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$row = $result->fetch_assoc();
+$has_unread_notifications = $row['unread_count'] > 0;
+
+$bell_icon_class = $has_unread_notifications ? "bell-icon-red" : "bell-icon-gray";
+
+// Retrieve notifications that are not cleared
+$notif_query = "SELECT * FROM notifications WHERE logged_in_id = ? AND user_type = 'admin' AND status != 'cleared'";
+$notif_stmt = $conn->prepare($notif_query);
+$notif_stmt->bind_param("i", $admin_id);
+$notif_stmt->execute();
+$notif_result = $notif_stmt->get_result();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -62,6 +195,25 @@ $total_centers = ($center_count_result->num_rows > 0) ? $center_count_result->fe
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+<style>
+    .bell-icon-red {
+        color: var(--clr-red);
+    }
+
+    .bell-icon-gray {
+        color: var(--clr-grey);
+    }
+
+    .container .right-section .top #bell-icon.bell-icon-red::after {
+        content: "";
+        width: 8px;
+        height: 8px;
+        position: absolute;
+        background: var(--clr-red);
+        border-radius: 50%;
+        right: 0;
+    }
+</style>
 
 <body>
 
@@ -130,7 +282,7 @@ $total_centers = ($center_count_result->num_rows > 0) ? $center_count_result->fe
                     <div class="progress">
                         <div class="info">
                             <h5>Evacuees</h5>
-                            <p>Total: 100</p>
+                            <p>Total: <?php echo $total_evacuees_with_members; ?></p>
                         </div>
                     </div>
                     <i class="fa-solid fa-children"></i>
@@ -166,58 +318,20 @@ $total_centers = ($center_count_result->num_rows > 0) ? $center_count_result->fe
             </div>
 
             <div class="ecenter">
-                <div class="item">
-                    <div class="left">
-                        <div class="icon">
-                            <i class="fa-solid fa-person-shelter"></i>
+                <?php foreach ($latest_centers as $center): ?>
+                    <div class="item">
+                        <div class="left">
+                            <div class="icon">
+                                <i class="fa-solid fa-person-shelter"></i>
+                            </div>
+                            <div class="details">
+                                <h5><?php echo htmlspecialchars($center['name']); ?></h5>
+                                <p><?php echo $center['evacuees']; ?> Evacuees</p>
+                            </div>
                         </div>
-                        <div class="details">
-                            <h5>Barangay Hall</h5>
-                            <p>53 Evacuees</p>
-                        </div>
+                        <a href="viewEC.php?id=<?php echo $center['id']; ?>"><i class="fa-solid fa-chevron-right"></i></a>
                     </div>
-                    <!-- <i class="fa-solid fa-ellipsis-vertical"></i> -->
-                    <a href="viewEC.php"><i class="fa-solid fa-chevron-right"></i></a>
-                </div>
-                <div class="item">
-                    <div class="left">
-                        <div class="icon">
-                            <i class="fa-solid fa-person-shelter"></i>
-                        </div>
-                        <div class="details">
-                            <h5>Tetuan Central School</h5>
-                            <p>22 Evacuees</p>
-                        </div>
-                    </div>
-                    <!-- <i class="fa-solid fa-ellipsis-vertical"></i> -->
-                    <a href="viewEC.php"><i class="fa-solid fa-chevron-right"></i></a>
-                </div>
-                <div class="item">
-                    <div class="left">
-                        <div class="icon">
-                            <i class="fa-solid fa-person-shelter"></i>
-                        </div>
-                        <div class="details">
-                            <h5>Barangay Hall</h5>
-                            <p>53 Evacuees</p>
-                        </div>
-                    </div>
-                    <!-- <i class="fa-solid fa-ellipsis-vertical"></i> -->
-                    <a href="viewEC.php"><i class="fa-solid fa-chevron-right"></i></a>
-                </div>
-                <div class="item">
-                    <div class="left">
-                        <div class="icon">
-                            <i class="fa-solid fa-person-shelter"></i>
-                        </div>
-                        <div class="details">
-                            <h5>Tetuan Central School</h5>
-                            <p>23 Evacuees</p>
-                        </div>
-                    </div>
-                    <!-- <i class="fa-solid fa-ellipsis-vertical"></i> -->
-                    <a href="viewEC.php"><i class="fa-solid fa-chevron-right"></i></a>
-                </div>
+                <?php endforeach; ?>
             </div>
         </main>
 
@@ -230,19 +344,11 @@ $total_centers = ($center_count_result->num_rows > 0) ? $center_count_result->fe
                     <h2>Demographics</h2>
                     <div class="sideProfile">
                         <i class="fa-solid fa-bars feedShow"></i>
-                        <!-- <img src="../../assets/img/hero.jpg" alt="">  -->
 
 
 
                     </div>
 
-                    <!-- <div class="sideProfile">
-                        <i class="fa-solid fa-bars feedShow"></i>
-                        <h2>Demographics</h2>
-                    </div>
-                    <div class="profilecontain">
-                        <img src="../../assets/img/hero.jpg" alt=""> 
-                    </div> -->
                 </div>
 
 
@@ -251,43 +357,18 @@ $total_centers = ($center_count_result->num_rows > 0) ? $center_count_result->fe
                 </div>
             </div>
 
-            <!-- <div class="sideProfile">
-                <i class="fa-solid fa-bars feedShow"></i>
-
-                <img src="../../assets/img/hero.jpg" alt=""> 
-                
-                
-            </div> -->
         </div>
 
         <aside class="right-section feed">
             <div class="top">
                 <div class="icons">
-                    <i class="fa-regular fa-bell margin" id="bell-icon"></i>
-
+                    <i class="fa-regular fa-bell margin <?php echo $bell_icon_class; ?>" id="bell-icon"></i>
                     <i class="fa-solid fa-chart-pie chartShow"></i>
                 </div>
 
-                <!-- act feed show -->
                 <i class="fa-solid fa-arrow-left" id="act-icon" style="display: none;"></i>
 
 
-                <!-- <div class="notif">
-                    <h4>Notifications</h4>
-                    <div class="notif-box">
-                        <h5 class="notif-title">Notif Title</h5>
-                        <p class="notif-info">Description ..  Lorem ipsum, dolor sit amet consectetur adipisicing elit. Velit repudiandae accusantium nam. Similique vel iste rerum, ratione placeat et suscipit accusantium natus quibusdam a molestiae amet tempore sapiente, necessitatibus sunt.</p>
-                    </div>
-
-                    <div class="notif-box">
-                        <h5 class="notif-title">Notif Title</h5>
-                        <p class="notif-info">Description ..  Lorem ipsum, dolor sit amet consectetur adipisicing elit. Velit repudiandae accusantium nam. Similique vel iste rerum, ratione placeat et suscipit accusantium natus quibusdam a molestiae amet tempore sapiente, necessitatibus sunt.</p>
-                    </div>
-
-                    <div class="notif-clear">
-                        <button>Clear All</button>
-                    </div>
-                </div> -->
                 <div class="profile">
                     <div class="left">
                         <img src="<?php echo htmlspecialchars($admin_image); ?>" alt="Profile Image">
@@ -330,135 +411,7 @@ $total_centers = ($center_count_result->num_rows > 0) ? $center_count_result->fe
                         <p class="feed">50pcs food distributed to the family</p>
                     </div>
 
-                    <div class="feeds">
 
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">50pcs food distribsdf dfad dsadd dsasdf dfdfduted to the familsfdy</p>
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">50pcs food distributed</p>
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">50pcs food distributed to the family</p>
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">50pcs food distribsdf dfad dsadd dsasdf dfdfduted to the familsfdy</p>
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">50pcs food distributed</p>
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">50pcs food distributed to the family</p>
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">50pcs food distribsdf dfad dsadd dsasdf dfdfduted to the familsfdy</p>
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">50pcs food distributed</p>
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">50pcs food distributed to the family</p>
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">50pcs food distribsdf dfad dsadd dsasdf dfdfduted to the familsfdy</p>
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">50pcs food distributed to the family</p>
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">50pcs food distribsdf dfad dsadd dsasdf dfdfduted to the familsfdy</p>
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">50pcs food distributed to the family</p>
-                    </div>
 
                     <div class="feeds">
 
@@ -480,187 +433,89 @@ $total_centers = ($center_count_result->num_rows > 0) ? $center_count_result->fe
 
             <div class="actFeed notif">
                 <div class="feed-content notf">
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">Notification info here</p>
-
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">Notification info here</p>
-
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">Notification info here</p>
-
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">Notification info here</p>
-
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">Notification info here</p>
-
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">Notification info here</p>
-
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">Notification info here</p>
-
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">Notification info here</p>
-
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">Notification info here</p>
-
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">Notification info here</p>
-
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">Notification info here</p>
-
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">Notification info here</p>
-
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">Notification info here</p>
-
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">Notification info here</p>
-
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">Notification info here</p>
-
-                    </div>
+                    <?php if ($notif_result->num_rows > 0): ?>
+                        <?php while ($notif = $notif_result->fetch_assoc()): ?>
+                            <div class="feeds">
+                                <div class="feeds-date">
+                                    <p><?php echo date("m-d-Y", strtotime($notif['created_at'])); ?></p>
+                                    <div class="linee"></div>
+                                </div>
+                                <p class="feed"><?php echo htmlspecialchars($notif['notification_msg']); ?></p>
+                            </div>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <p>No new notifications.</p>
+                    <?php endif; ?>
                     <span class="clearNotif">Clear All</span>
-
-
-
                 </div>
             </div>
-
-
-
 
         </aside>
 
 
     </div>
+    <script>
+        document.getElementById('bell-icon').addEventListener('click', function () {
+            // Send AJAX request to mark 'notify' notifications as "viewed"
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "../endpoints/update_notifications.php", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        // Change bell icon color to gray if notifications were successfully marked as "viewed"
+                        document.getElementById('bell-icon').classList.remove('bell-icon-red');
+                        document.getElementById('bell-icon').classList.add('bell-icon-gray');
+                    }
+                }
+            };
+
+            xhr.send("user_id=<?php echo $admin_id; ?>&user_type=admin");
+        });
 
 
+        document.querySelector('.clearNotif').addEventListener('click', function () {
+            // Trigger SweetAlert confirmation
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This will clear all your notifications.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, clear all'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Send AJAX request to update notifications to 'cleared'
+                    const xhr = new XMLHttpRequest();
+                    xhr.open("POST", "../endpoints/clear_notifications.php", true);
+                    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
+                    xhr.onload = function () {
+                        if (xhr.status === 200) {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response.success) {
+                                Swal.fire(
+                                    'Cleared!',
+                                    'Your notifications have been cleared.',
+                                    'success'
+                                );
+
+                                // Optionally, clear the notifications from the UI
+                                document.querySelector('.feed-content.notf').innerHTML = '<p>No new notifications.</p>';
+                                document.getElementById('bell-icon').classList.remove('bell-icon-red');
+                                document.getElementById('bell-icon').classList.add('bell-icon-gray');
+                            }
+                        }
+                    };
+
+                    xhr.send("user_id=<?php echo $admin_id; ?>&user_type=admin");
+                }
+            });
+        });
+    </script>
     <!-- ====== scripts ======== -->
 
     <!-- sidebar import js -->
@@ -681,17 +536,21 @@ $total_centers = ($center_count_result->num_rows > 0) ? $center_count_result->fe
     <!-- graphs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.5/dist/chart.umd.min.js"></script>
 
+
     <script>
         const ctx = document.getElementById('myChart');
+
+        // PHP data to JavaScript
+        const centerNames = <?php echo json_encode(array_column($all_centers, 'name')); ?>;
+        const evacueesCounts = <?php echo json_encode(array_column($all_centers, 'evacuees')); ?>;
 
         new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Barangay Hall', 'City High Covered Court', 'Tetuan Central School', 'Children', 'ICAS'],
+                labels: centerNames,
                 datasets: [{
                     label: 'Total Evacuees',
-                    data: [8, 46, 31, 10, 4],
-
+                    data: evacueesCounts,
                     borderWidth: 1
                 }]
             },

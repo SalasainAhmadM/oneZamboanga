@@ -1,6 +1,61 @@
 <?php
 session_start();
 require_once '../connection/conn.php';
+function checkInactiveEvacuationCenters($conn)
+{
+    // Query to find evacuation centers with no evacuees in the past 7 days
+    $query = "
+        SELECT ec.id, ec.name, ec.admin_id
+        FROM evacuation_center ec
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM evacuees e
+            WHERE e.evacuation_center_id = ec.id
+            AND DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        )
+    ";
+
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Insert notifications for each inactive evacuation center found
+    while ($row = $result->fetch_assoc()) {
+        $evacuationCenterId = $row['id'];
+        $evacuationCenterName = $row['name'];
+        $adminId = $row['admin_id'];
+        $notificationMsg = "Evacuation center has been inactive: " . $evacuationCenterName;
+
+        // Check if a similar notification has been created within the last 7 days
+        $checkQuery = "
+            SELECT 1
+            FROM notifications
+            WHERE logged_in_id = ?
+            AND notification_msg = ?
+            AND user_type = 'admin'
+            AND created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        ";
+        $checkStmt = $conn->prepare($checkQuery);
+        $checkStmt->bind_param("is", $adminId, $notificationMsg);
+        $checkStmt->execute();
+        $checkResult = $checkStmt->get_result();
+
+        // If no recent notification exists, insert a new one
+        if ($checkResult->num_rows === 0) {
+            $notificationQuery = "
+                INSERT INTO notifications (logged_in_id, notification_msg, user_type, created_at, status)
+                VALUES (?, ?, 'admin', NOW(), 'notify')
+            ";
+            $notificationStmt = $conn->prepare($notificationQuery);
+            $notificationStmt->bind_param("is", $adminId, $notificationMsg);
+            $notificationStmt->execute();
+        }
+    }
+}
+
+
+// Example of calling the function
+checkInactiveEvacuationCenters($conn);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING);

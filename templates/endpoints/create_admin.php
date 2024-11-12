@@ -10,6 +10,15 @@ use PHPMailer\PHPMailer\Exception;
 // Database connection
 include("../../connection/conn.php");
 
+// Check if the admin is logged in and get the admin_id from the session
+if (isset($_SESSION['user_id'])) {
+    $admin_id = $_SESSION['user_id'];
+} else {
+    // Redirect to login if not logged in
+    header("Location: ../../login.php");
+    exit();
+}
+
 // Check if form data has been submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get form data and sanitize
@@ -119,7 +128,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mail->isHTML(true);
             $mail->Subject = 'One Zamboanga Admin Account Registration';
             $mail->Body = "
-                <h1>Welcome, $firstName $lastName!</h1>
+                <h1>Welcome, $firstName $middleName $lastName!</h1>
                 <p>Your admin account has been successfully created.</p>
                 <p><strong>Username:</strong> $username</p>
                 <p><strong>Password:</strong> $password</p>
@@ -130,6 +139,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mail->send();
             $_SESSION['message'] = "Admin registered successfully. Credentials have been emailed.";
             $_SESSION['message_type'] = "success";
+
+            // Insert notification
+            $notification_msg = "New Admin Account Added: $firstName $middleName $lastName";
+            $notificationQuery = "INSERT INTO notifications (logged_in_id, user_type, notification_msg, status) 
+                                  VALUES ('$admin_id', 'admin', '$notification_msg', 'notify')";
+
+            if (!mysqli_query($conn, $notificationQuery)) {
+                $_SESSION['message'] = "Worker account created, but notification failed.";
+                $_SESSION['message_type'] = "warning";
+            }
         } catch (Exception $e) {
             $_SESSION['message'] = "Error: {$mail->ErrorInfo}";
             $_SESSION['message_type'] = "error";

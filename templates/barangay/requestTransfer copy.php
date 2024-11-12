@@ -32,6 +32,14 @@ if (isset($_SESSION['user_id'])) {
     exit;
 }
 
+// Fetch evacuees under the logged-in admin_id with member count
+$evacuees_sql = "SELECT e.id, e.first_name, e.middle_name, e.last_name, e.contact, e.barangay, e.disaster_type, e.date,
+                 (SELECT COUNT(*) FROM members m WHERE m.evacuees_id = e.id) AS member_count
+                 FROM evacuees e WHERE e.admin_id = ?";
+$evacuees_stmt = $conn->prepare($evacuees_sql);
+$evacuees_stmt->bind_param("i", $admin_id);
+$evacuees_stmt->execute();
+$evacuees_result = $evacuees_stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -182,92 +190,38 @@ if (isset($_SESSION['user_id'])) {
                                 </thead>
 
                                 <tbody>
+                                    <?php while ($row = $evacuees_result->fetch_assoc()): ?>
+                                        <tr onclick="window.location.href='viewEvacueesDetails.php?id=<?= $row['id'] ?>'">
+                                            <td><?= htmlspecialchars($row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name']) ?>
+                                            </td>
+                                            <td><?= htmlspecialchars($row['contact']) ?></td>
+                                            <td class="ecMembers" style="text-align: center;">
+                                                <?= $row['member_count'] ?>
 
-                                    <!-- <tr onclick="window.location.href='viewEvacuees.php'">
-                                        <td>
-                                            Mark Larenz Tabotabo
-                                        </td>
-                                        <td>09356234162</td>
-                                        <td style="text-align: center;">10,000</td>
-                                        <td>House Owner</td>
-                                        <td><a href="viewEvacuees.php" class="view-action">View</a></td>
-                                        <td style="text-align: center;"><a href="viewEvacuees.php" class="view-action">View</a></td>
-                                    </tr> -->
+                                                <ul class="viewMembers" style="text-align: left;">
+                                                    <?php
+                                                    // Fetch the individual members for this evacuee
+                                                    $members_sql = "SELECT first_name, last_name FROM members WHERE evacuees_id = ?";
+                                                    $members_stmt = $conn->prepare($members_sql);
+                                                    $members_stmt->bind_param("i", $row['id']);
+                                                    $members_stmt->execute();
+                                                    $members_result = $members_stmt->get_result();
 
-                                    <tr onclick="window.location.href='viewEvacueesDetails.php'">
-                                        <td>
-                                            Mark Larenz Tabotabo
-                                        </td>
-                                        <td>09356234162</td>
-
-                                        <td class="ecMembers" style="text-align: center;">
-                                            4
-
-                                            <ul class="viewMembers" style="text-align: left;">
-                                                <li>Lebron James</li>
-                                                <li>Bronny James</li>
-                                                <li>Kevin Durant</li>
-                                                <li>mark larenz tabotabo bacane</li>
-                                            </ul>
-                                        </td>
-
-                                        <td style="text-align: center;">Tetuan</td>
-                                        <td style="text-align: center;">11-15-2024</td>
-                                        <td>Flood</td>
-                                        <td style="text-align: center;"><a href="viewEvacueesDetails.php"
-                                                class="view-action">View</a></td>
-                                    </tr>
-
-
-                                    <tr onclick="window.location.href='viewEvacueesDetails.php'">
-                                        <td>
-                                            Mark Larenz Tabotabo
-                                        </td>
-                                        <td>09356234162</td>
-
-                                        <td class="ecMembers" style="text-align: center;">
-                                            3
-
-                                            <ul class="viewMembers" style="text-align: left;">
-                                                <li>Lebron James</li>
-                                                <li>Bronny James</li>
-                                                <li>Kevin Durant</li>
-                                            </ul>
-                                        </td>
-
-                                        <td style="text-align: center;">Tugbungan</td>
-                                        <td style="text-align: center;">11-15-2024</td>
-                                        <td>Flood</td>
-                                        <td style="text-align: center;"><a href="viewEvacueesDetails.php"
-                                                class="view-action">View</a></td>
-                                    </tr>
-
-                                    <tr onclick="window.location.href='viewEvacueesDetails.php'">
-                                        <td>
-                                            Mark Larenz Tabotabo
-                                        </td>
-                                        <td>09356234162</td>
-
-                                        <td class="ecMembers" style="text-align: center;">
-                                            3
-
-                                            <ul class="viewMembers" style="text-align: left;">
-                                                <li>Lebron James</li>
-                                                <li>Bronny James</li>
-                                                <li>Kevin Durant</li>
-                                            </ul>
-                                        </td>
-
-                                        <td style="text-align: center;">Guiwan</td>
-                                        <td style="text-align: center;">11-15-2024</td>
-                                        <td>Flood</td>
-                                        <td style="text-align: center;"><a href="viewEvacueesDetails.php"
-                                                class="view-action">View</a></td>
-                                    </tr>
-
-
-
-
+                                                    while ($member = $members_result->fetch_assoc()): ?>
+                                                        <li><?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?>
+                                                        </li>
+                                                    <?php endwhile; ?>
+                                                </ul>
+                                            </td>
+                                            <td style="text-align: center;"><?= htmlspecialchars($row['barangay']) ?></td>
+                                            <td style="text-align: center;"><?= htmlspecialchars($row['date']) ?></td>
+                                            <td><?= htmlspecialchars($row['disaster_type']) ?></td>
+                                            <td style="text-align: center;">
+                                                <a href="viewEvacueesDetails.php?id=<?= $row['id'] ?>"
+                                                    class="view-action">View</a>
+                                            </td>
+                                        </tr>
+                                    <?php endwhile; ?>
                                 </tbody>
                             </table>
                         </section>

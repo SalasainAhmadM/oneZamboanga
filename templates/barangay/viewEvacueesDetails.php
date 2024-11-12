@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
     <link rel="stylesheet" href="../../assets/fontawesome/all.css">
     <link rel="stylesheet" href="../../assets/fontawesome/fontawesome.min.css">
     <!--styles-->
-    
+
     <link rel="stylesheet" href="../../assets/styles/style.css">
     <link rel="stylesheet" href="../../assets/styles/utils/dashboard.css">
     <link rel="stylesheet" href="../../assets/styles/utils/ecenter.css">
@@ -38,10 +39,11 @@
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+
 <body>
 
     <div class="container">
-        
+
         <aside class="left-section">
             <special-logo></special-logo>
             <!-- <div class="logo">
@@ -64,7 +66,7 @@
 
         <main>
             <header>
-                <button class="menu-btn" id="menu-open"> 
+                <button class="menu-btn" id="menu-open">
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <!-- <h5>Hello <b>Mark</b>, welcome back!</h5> -->
@@ -81,7 +83,7 @@
                             <a href="#">Profile</a>
                         </div>
 
-                        
+
 
 
                         <!-- <a class="addBg-admin" href="addEvacuees.php">
@@ -106,8 +108,9 @@
                             </div>
                         </div>
                     </div> -->
-                    <button class="profile-cta btnAdmit" onclick="window.location.href='evacueesForm.php'">Admit</button>
-                    
+                    <button class="profile-cta btnAdmit"
+                        onclick="window.location.href='evacueesForm.php'">Admit</button>
+
                     <div class="eprofile-top">
                         <div class="evacueesProfile">
                             <div class="profileInfo-left">
@@ -143,12 +146,12 @@
     
                                     <div class="activeLine"></div>
                                 </div> -->
-    
+
                                 <div class="activityLog">
                                     <p class="activityLog-header" style="color: var(--clr-slate600);">
                                         Activity Logs
                                     </p>
-    
+
                                     <div class="activeLine log"></div>
                                 </div>
                             </div>
@@ -167,7 +170,7 @@
                                     <p class="logInfo">Admitted</p>
                                 </div>
 
-                                
+
 
                                 <div class="log-container">
                                     <p class="logDate">11-15-2024</p>
@@ -182,7 +185,7 @@
                                     <p class="logInfo">Transferred, waiting for approval</p>
                                 </div>
 
-                                
+
 
                                 <div class="log-container">
                                     <p class="logDate">11-28-2024</p>
@@ -192,16 +195,16 @@
                             </div>
                         </div>
                     </div>
-                    
+
 
 
 
 
                     <div class="table-container">
                         <section class="tblheader">
-                            
+
                             <h4>Family Members</h4>
-    
+
                             <!-- <div class="filter-popup">
                                 <label for="modal-toggle" class="modal-button">
                                     <i class="fa-solid fa-filter"></i>
@@ -243,19 +246,19 @@
                                     </div>
                                 </div>
                             </div>
-    
-    
+
+
                             <!-- <div class="input_group">
                                 <input type="search" placeholder="Search...">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                             </div> -->
-    
+
                         </section>
-    
+
                         <section class="tblbody">
                             <table id="mainTable">
                                 <thead>
-                                    
+
                                     <tr>
                                         <!-- <th>Id</th> -->
                                         <th>Full Name</th>
@@ -266,32 +269,8 @@
                                         <th>Occupation</th>
                                     </tr>
                                 </thead>
-                                
+
                                 <tbody>
-                                    
-                                    <tr onclick="window.location.href='#'">
-                                        <td>
-                                            Lebron James
-                                        </td>
-                                        <td>Brother</td>
-                                        <td>22</td>
-                                        <td style="text-align: center;">Male</td>
-                                        <td>Colloge</td>
-                                        <td>Student</td>
-                                        <!-- <td><a href="#" class="view-action">Edit</a></td> -->
-                                    </tr>
-                                    
-                                    <tr onclick="window.location.href='#'">
-                                        <td>
-                                            Lebron James
-                                        </td>
-                                        <td>Brother</td>
-                                        <td>22</td>
-                                        <td style="text-align: center;">Male</td>
-                                        <td>Colloge</td>
-                                        <td>Student</td>
-                                        <!-- <td><a href="#" class="view-action">Edit</a></td> -->
-                                    </tr>
 
                                     <tr onclick="window.location.href='#'">
                                         <td>
@@ -353,27 +332,51 @@
                                         <!-- <td><a href="#" class="view-action">Edit</a></td> -->
                                     </tr>
 
-                                                                        
+                                    <tr onclick="window.location.href='#'">
+                                        <td>
+                                            Lebron James
+                                        </td>
+                                        <td>Brother</td>
+                                        <td>22</td>
+                                        <td style="text-align: center;">Male</td>
+                                        <td>Colloge</td>
+                                        <td>Student</td>
+                                        <!-- <td><a href="#" class="view-action">Edit</a></td> -->
+                                    </tr>
+
+                                    <tr onclick="window.location.href='#'">
+                                        <td>
+                                            Lebron James
+                                        </td>
+                                        <td>Brother</td>
+                                        <td>22</td>
+                                        <td style="text-align: center;">Male</td>
+                                        <td>Colloge</td>
+                                        <td>Student</td>
+                                        <!-- <td><a href="#" class="view-action">Edit</a></td> -->
+                                    </tr>
+
+
                                 </tbody>
                             </table>
                         </section>
-        
+
                         <div class="no-match-message">No matching data found</div>
                     </div>
-                    
+
                     <!-- <div class="eprofile-bot">
                     </div> -->
 
-                    
-                    
-                    
+
+
+
                 </div>
             </div>
         </main>
 
     </div>
 
-    
+
     <!-- sidebar import js -->
     <script src="../../includes/bgSidebar.js"></script>
 
@@ -386,8 +389,9 @@
     <!-- sidebar menu -->
     <script src="../../assets/src/utils/menu-btn.js"></script>
 
-    
-    
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </body>
+
 </html>

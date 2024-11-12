@@ -112,7 +112,7 @@ label {
 /* loader */
 
 /* btn for adding */
-button.addBg-admin {
+button.addBg-admin , button.deleteBg-admin {
     outline: none;
     border: none;
     display: flex;

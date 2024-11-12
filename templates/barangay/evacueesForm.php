@@ -26,14 +26,21 @@ if (isset($_SESSION['user_id'])) {
     header("Location: ../../login.php");
     exit;
 }
-// Fetch the evacuation centers associated with this admin
-$sql = "SELECT id, name, location, image, capacity 
-FROM evacuation_center 
-WHERE admin_id = ?";
+// Fetch the evacuation centers associated with this admin where capacity is not full
+$sql = "SELECT ec.id, ec.name, ec.location, ec.image, ec.capacity,
+               COALESCE(evacuee_count.count, 0) AS evacuee_count
+        FROM evacuation_center ec
+        LEFT JOIN (
+            SELECT evacuation_center_id, COUNT(*) AS count
+            FROM evacuees
+            GROUP BY evacuation_center_id
+        ) AS evacuee_count ON ec.id = evacuee_count.evacuation_center_id
+        WHERE ec.admin_id = ? AND (evacuee_count.count IS NULL OR evacuee_count.count < ec.capacity)";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $admin_id);
 $stmt->execute();
 $centers_result = $stmt->get_result();
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -211,7 +218,7 @@ $centers_result = $stmt->get_result();
                                     </div>
 
                                     <div class="headFam-details">
-                                        <input type="number" name="age_head" class="age_head" required>
+                                        <input type="number" name="age_head" class="age" required>
                                         <label class="details" for="age_head">Age</label>
                                     </div>
 
@@ -231,6 +238,11 @@ $centers_result = $stmt->get_result();
                                     <div class="income">
                                         <label for="monthly_income">Total Monthly Income:</label>
                                         <input type="number" name="monthly_income" required>
+                                    </div>
+                                    <div class="contact">
+                                        <label for="contact">Contact Number:</label>
+                                        <input type="number" name="contact" id="contact" pattern="[0-9]{10,15}"
+                                            placeholder="e.g., 09123456789" required>
                                     </div>
                                 </div>
 
@@ -349,17 +361,24 @@ $centers_result = $stmt->get_result();
         function validateForm(event) {
             event.preventDefault(); // Prevent form submission until validated
 
-            // Validate required fields (adjust field names as needed)
+            // Validate required fields
             const evacuationCenter = document.getElementById('evacuation_center').value;
             const barangay = document.getElementById('barangay').value;
             const firstName = document.querySelector('input[name="first_name"]').value;
             const lastName = document.querySelector('input[name="last_name"]').value;
+            const disaster = document.getElementById('dSelect').value;
 
             if (!evacuationCenter || !barangay || !firstName || !lastName) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Validation Error',
                     text: 'Please fill in all required fields.',
+                });
+            } else if (!disaster) { // Check if a disaster type is selected
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Please indicate the type of disaster.',
                 });
             } else {
                 Swal.fire({
@@ -379,6 +398,7 @@ $centers_result = $stmt->get_result();
         // Attach event listener to the form's submit button
         document.querySelector('form').addEventListener('submit', validateForm);
     </script>
+
 
     <!-- sidebar import js -->
     <script src="../../includes/bgSidebar.js"></script>

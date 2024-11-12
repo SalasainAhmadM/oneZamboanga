@@ -130,8 +130,10 @@ $centers_result = $stmt->get_result();
                         </a> -->
                         <button class="addBg-admin">
                             Create
-                            <!-- <i class="fa-solid fa-plus"></i> -->
                         </button>
+                        <!-- <button class="deleteBg-admin">
+                            <i class="fa-solid fa-building-circle-xmark"></i>
+                        </button> -->
                     </div>
                 </div>
             </header>
@@ -148,18 +150,56 @@ $centers_result = $stmt->get_result();
                         <div class="main-container bgEcList">
                             <div class="bgEc-container">
                                 <?php if ($centers_result->num_rows > 0): ?>
-                                    <?php while ($center = $centers_result->fetch_assoc()): ?>
+                                    <?php while ($center = $centers_result->fetch_assoc()):
+                                        $center_id = $center['id'];
+                                        $capacity = (int) $center['capacity'];
+
+                                        $family_count_sql = "SELECT COUNT(*) AS total_families FROM evacuees WHERE evacuation_center_id = ?";
+                                        $family_count_stmt = $conn->prepare($family_count_sql);
+                                        $family_count_stmt->bind_param("i", $center_id);
+                                        $family_count_stmt->execute();
+                                        $family_count_result = $family_count_stmt->get_result();
+                                        $total_families = ($family_count_result->num_rows > 0) ? $family_count_result->fetch_assoc()['total_families'] : 0;
+
+                                        $evacuees_count_sql = "
+                                SELECT 
+                                (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
+                                (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
+                                (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
+                                 ) AS total_evacuees
+                                ";
+                                        $evacuees_count_stmt = $conn->prepare($evacuees_count_sql);
+                                        $evacuees_count_stmt->bind_param("ii", $center_id, $center_id);
+                                        $evacuees_count_stmt->execute();
+                                        $evacuees_count_result = $evacuees_count_stmt->get_result();
+                                        $total_evacuees = ($evacuees_count_result->num_rows > 0) ? $evacuees_count_result->fetch_assoc()['total_evacuees'] : 0;
+
+                                        if ($total_families === 0) {
+                                            $status_color = "grey";
+                                        } else {
+                                            $occupancy_percentage = ($total_families / $capacity) * 100;
+
+                                            if ($occupancy_percentage < 70) {
+                                                $status_color = "green";
+                                            } elseif ($occupancy_percentage >= 70 && $occupancy_percentage < 100) {
+                                                $status_color = "yellow";
+                                            } else {
+                                                $status_color = "red";
+                                            }
+                                        }
+                                        ?>
                                         <div class="bgEc-cards"
-                                            onclick="window.location.href='viewEC.php?id=<?php echo $center['id']; ?>'">
-                                            <div class="bgEc-status green"></div>
+                                            onclick="window.location.href='assignPage.php?id=<?php echo $center['id']; ?>'">
+                                            <div class="bgEc-status <?php echo $status_color; ?>"></div>
                                             <img src="<?php echo !empty($center['image']) ? htmlspecialchars($center['image']) : '../../assets/img/evacuation-default.svg'; ?>"
-                                                alt="Evacuation Center Image" class="bgEc-img">
+                                                alt="" class="bgEc-img">
+
                                             <ul class="bgEc-info">
                                                 <li><strong><?php echo htmlspecialchars($center['name']); ?></strong></li>
                                                 <li>Location: <?php echo htmlspecialchars($center['location']); ?></li>
                                                 <li>Capacity: <?php echo htmlspecialchars($center['capacity']); ?> Families</li>
-                                                <li>Total Families: 50</li>
-                                                <li>Total Evacuees: 70</li>
+                                                <li>Total Families: <?php echo $total_families; ?></li>
+                                                <li>Total Evacuees: <?php echo $total_evacuees; ?></li>
                                             </ul>
                                         </div>
                                     <?php endwhile; ?>
@@ -182,6 +222,7 @@ $centers_result = $stmt->get_result();
                             <form id="createEvacuationForm" action="../endpoints/create_evacuation_center.php"
                                 method="POST" enctype="multipart/form-data">
                                 <input type="hidden" name="admin_id" value="<?php echo htmlspecialchars($admin_id); ?>">
+                                <input type="hidden" name="barangay" value="<?php echo htmlspecialchars($barangay); ?>">
 
                                 <div class="addEC-input">
                                     <label for="evacuationCenterName">Name of Evacuation Center</label>
@@ -213,50 +254,8 @@ $centers_result = $stmt->get_result();
                                 </div>
                             </form>
 
-                            <script>
-                                function confirmSubmission() {
-                                    // Check if all required fields are filled
-                                    const name = document.getElementById("evacuationCenterName").value;
-                                    const location = document.getElementById("location").value;
-                                    const capacity = document.getElementById("capacity").value;
-
-                                    if (name && location && capacity) {
-                                        // If all fields are filled, show the confirmation alert
-                                        Swal.fire({
-                                            title: 'Are you sure?',
-                                            text: "You are about to create a new evacuation center.",
-                                            icon: 'warning',
-                                            showCancelButton: true,
-                                            confirmButtonColor: '#3085d6',
-                                            cancelButtonColor: '#d33',
-                                            confirmButtonText: 'Yes, create it!'
-                                        }).then((result) => {
-                                            if (result.isConfirmed) {
-                                                // Submit the form if confirmed
-                                                document.getElementById("createEvacuationForm").submit();
-                                            }
-                                        });
-                                    } else {
-                                        // Alert if any required fields are missing
-                                        Swal.fire({
-                                            title: 'Incomplete form',
-                                            text: "Please fill in all required fields.",
-                                            icon: 'error',
-                                            confirmButtonColor: '#3085d6',
-                                        });
-                                    }
-                                }
-                            </script>
-
                         </div>
                     </div>
-
-
-
-
-
-
-
 
                 </div>
             </div>
@@ -264,7 +263,40 @@ $centers_result = $stmt->get_result();
 
     </div>
 
+    <script>
+        function confirmSubmission() {
+            // Check if all required fields are filled
+            const name = document.getElementById("evacuationCenterName").value;
+            const location = document.getElementById("location").value;
+            const capacity = document.getElementById("capacity").value;
 
+            if (name && location && capacity) {
+                // If all fields are filled, show the confirmation alert
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You are about to create a new evacuation center.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, create it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Submit the form if confirmed
+                        document.getElementById("createEvacuationForm").submit();
+                    }
+                });
+            } else {
+                // Alert if any required fields are missing
+                Swal.fire({
+                    title: 'Incomplete form',
+                    text: "Please fill in all required fields.",
+                    icon: 'error',
+                    confirmButtonColor: '#3085d6',
+                });
+            }
+        }
+    </script>
 
     <!-- sidebar import js -->
     <script src="../../includes/bgSidebar.js"></script>

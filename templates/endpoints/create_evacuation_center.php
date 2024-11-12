@@ -2,12 +2,38 @@
 session_start();
 include("../../connection/conn.php");
 
+if (isset($_SESSION['user_id'])) {
+    $admin_id = $_SESSION['user_id'];
+
+    // Fetch the admin's details from the database, including barangay
+    $sql = "SELECT first_name, middle_name, last_name, extension_name, username, email, image, proof_image, gender, city, barangay, contact, position 
+            FROM admin 
+            WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $admin_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $admin = $result->fetch_assoc();
+        $admin_name = trim($admin['first_name'] . ' ' . $admin['middle_name'] . ' ' . $admin['last_name'] . ' ' . $admin['extension_name']);
+        $barangayAdmin = $admin['barangay'];
+    } else {
+        header("Location: ../../login.php");
+        exit;
+    }
+} else {
+    header("Location: ../../login.php");
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Collect and sanitize input data
     $name = mysqli_real_escape_string($conn, $_POST['evacuationCenterName']);
     $location = mysqli_real_escape_string($conn, $_POST['location']);
     $capacity = mysqli_real_escape_string($conn, $_POST['capacity']);
     $admin_id = $_POST['admin_id'];
+    $logged_in_id = $admin_id;
 
     // Check if evacuation center with same name, location, and admin_id already exists
     $checkQuery = "SELECT * FROM evacuation_center WHERE name = '$name' AND location = '$location' AND admin_id = '$admin_id'";
@@ -42,6 +68,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (mysqli_query($conn, $query)) {
             $_SESSION['message'] = "Evacuation Center created successfully!";
             $_SESSION['message_type'] = "success";
+
+            // Insert notification
+            $notification_msg = "New Evacuation Center Added: " . $name;
+            $notificationQuery = "INSERT INTO notifications (logged_in_id, user_type, notification_msg, status) 
+                                  VALUES ('$logged_in_id', 'admin', '$notification_msg', 'notify')";
+
+            if (!mysqli_query($conn, $notificationQuery)) {
+                $_SESSION['message'] = "Evacuation Center created, but notification failed.";
+                $_SESSION['message_type'] = "warning";
+            }
+
+            // Insert notification for superadmin
+            $notification_msg = "New Evacuation Center Added: " . $name . " at Barangay: " . $barangayAdmin;
+            $notificationQuery = "INSERT INTO notifications (logged_in_id, user_type, notification_msg, status) 
+                                  VALUES ('1', 'admin', '$notification_msg', 'notify')";
+
+            if (!mysqli_query($conn, $notificationQuery)) {
+                $_SESSION['message'] = "Evacuation Center created, but notification failed.";
+                $_SESSION['message_type'] = "warning";
+            }
         } else {
             $_SESSION['message'] = "Error creating Evacuation Center.";
             $_SESSION['message_type'] = "error";

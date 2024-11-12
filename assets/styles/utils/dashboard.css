@@ -562,7 +562,7 @@ main .ecenter .item a > i {
     border-radius: 50%;
     right: 0;
 } */
-.container .right-section .top #bell-icon::after {
+/* .container .right-section .top #bell-icon::after {
     content: "";
     width: 8px;
     height: 8px;
@@ -570,7 +570,7 @@ main .ecenter .item a > i {
     background: var(--clr-red);
     border-radius: 50%;
     right: 0;
-}
+} */
 
 
 

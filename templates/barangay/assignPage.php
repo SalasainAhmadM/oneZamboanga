@@ -152,6 +152,41 @@ $position_result = $position_stmt->get_result();
                                     <input type="hidden" name="evacuation_center_id" value="<?php echo $center_id; ?>">
                                     <table class="distributedTable donate">
                                         <thead>
+                                            <div class="distributeSearch" style="display: none;">
+                                                <input type="text" placeholder="Search...">
+                                                <label for="distributeSearch"><i
+                                                        class="fa-solid fa-magnifying-glass"></i></label>
+                                            </div>
+
+                                            <div class="filterStatus">
+                                                <!-- Position Filter Dropdown -->
+                                                <div class="statusFilter">
+                                                    <label for="statusEC"><i class="fa-solid fa-filter"></i></label>
+                                                    <input type="checkbox" id="statusEC" class="statusEC"
+                                                        onclick="toggleStatusDropdown()">
+
+                                                    <div class="showStatus" id="positionDropdown">
+                                                        <p onclick="filterByPosition('All')">All</p>
+                                                        <?php while ($position = $position_result->fetch_assoc()): ?>
+                                                            <p
+                                                                onclick="filterByPosition('<?php echo htmlspecialchars($position['position']); ?>')">
+                                                                <?php echo htmlspecialchars($position['position']); ?>
+                                                            </p>
+                                                        <?php endwhile; ?>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Search Filter -->
+                                                <div class="searchFilter">
+                                                    <input type="text" id="searchInput"
+                                                        placeholder="Search by name or email..."
+                                                        onkeyup="filterWorkers()">
+                                                    <label for="searchInput"><i
+                                                            class="fa-solid fa-magnifying-glass"></i></label>
+                                                </div>
+                                            </div>
+
+
                                             <tr>
                                                 <th>Name</th>
                                                 <th>Email</th>
@@ -162,7 +197,6 @@ $position_result = $position_stmt->get_result();
                                         </thead>
                                         <tbody>
                                             <?php
-                                            // Query to fetch all workers with assignment status to the current evacuation center
                                             $assigned_workers = []; // To store assigned worker IDs
                                             $assigned_result = $conn->query("SELECT worker_id FROM assigned_worker WHERE evacuation_center_id = $center_id AND status = 'assigned'");
 
@@ -288,6 +322,41 @@ $position_result = $position_stmt->get_result();
 
     <!-- the checkbox will be checked when the tr is clicked -->
     <script>
+        function toggleStatusDropdown() {
+            const dropdown = document.getElementById("positionDropdown");
+            dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+        }
+
+        // Filter workers by selected position
+        function filterByPosition(position) {
+            const rows = document.querySelectorAll("tbody tr");
+            rows.forEach(row => {
+                const positionCell = row.querySelector("td:nth-child(4)"); // Position column
+                if (position === 'All' || positionCell.textContent.trim() === position) {
+                    row.style.display = ""; // Show row
+                } else {
+                    row.style.display = "none"; // Hide row
+                }
+            });
+        }
+
+        // Search workers by name or email
+        function filterWorkers() {
+            const searchInput = document.getElementById("searchInput").value.toLowerCase();
+            const rows = document.querySelectorAll("tbody tr");
+
+            rows.forEach(row => {
+                const name = row.querySelector(".selectName").textContent.toLowerCase();
+                const email = row.querySelector("td:nth-child(2)").textContent.toLowerCase();
+                if (name.includes(searchInput) || email.includes(searchInput)) {
+                    row.style.display = ""; // Show row
+                } else {
+                    row.style.display = "none"; // Hide row
+                }
+            });
+        }
+
+
         function toggleCheckbox(row) {
             const checkbox = row.querySelector("input[type='checkbox']");
             checkbox.checked = !checkbox.checked;

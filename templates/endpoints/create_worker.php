@@ -117,7 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mail->isHTML(true);
             $mail->Subject = 'One Zamboanga Community Account Registration';
             $mail->Body = "
-                <h1>Welcome, $firstName $lastName!</h1>
+                <h1>Welcome, $firstName $middleName $lastName!</h1>
                 <p>Your community account has been successfully created.</p>
                 <p><strong>Username:</strong> $username</p>
                 <p><strong>Password:</strong> $password</p>
@@ -128,6 +128,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mail->send();
             $_SESSION['message'] = "Community account registered successfully. Credentials have been emailed.";
             $_SESSION['message_type'] = "success";
+
+            // Insert notification
+            $notification_msg = "New Worker Account Added: $firstName $middleName $lastName";
+            $notificationQuery = "INSERT INTO notifications (logged_in_id, user_type, notification_msg, status) 
+                                  VALUES ('$admin_id', 'admin', '$notification_msg', 'notify')";
+
+            if (!mysqli_query($conn, $notificationQuery)) {
+                $_SESSION['message'] = "Worker account created, but notification failed.";
+                $_SESSION['message_type'] = "warning";
+            }
         } catch (Exception $e) {
             $_SESSION['message'] = "Error: {$mail->ErrorInfo}";
             $_SESSION['message_type'] = "error";

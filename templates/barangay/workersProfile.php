@@ -337,7 +337,7 @@ if (isset($_GET['id'])) {
                                     icon: "success",
                                     confirmButtonColor: "#3085d6"
                                 }).then(() => {
-                                    window.location.href = 'workersList.php'; // Redirect after confirmation
+                                    window.location.href = 'personnelPage.php';
                                 });
                             } else {
                                 Swal.fire({
