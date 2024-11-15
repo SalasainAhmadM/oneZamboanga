@@ -24,10 +24,11 @@ $sql = "
         GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) ORDER BY m.first_name ASC SEPARATOR ', ') AS member_names
     FROM evacuees e
     LEFT JOIN members m ON e.id = m.evacuees_id
-    WHERE e.evacuation_center_id = ?
+    WHERE e.evacuation_center_id = ? AND e.status != 'Transfer' 
     GROUP BY e.id
     ORDER BY e.date DESC;
 ";
+
 
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $evacuationCenterId);  // Bind the evacuation center ID parameter

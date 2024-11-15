@@ -18,7 +18,7 @@ try {
         $redistributeQty = (int) $evacuee['quantity'];
 
         // Get the existing quantity for the distribute entry by distribute_id
-        $distQuery = "SELECT quantity FROM distribute WHERE id = ?";
+        $distQuery = "SELECT quantity, evacuees_id, distributor_id, distributor_type FROM distribute WHERE id = ?";
         $distStmt = $conn->prepare($distQuery);
         $distStmt->bind_param("i", $distributeId);
         $distStmt->execute();
@@ -27,6 +27,9 @@ try {
         if ($distResult->num_rows > 0) {
             $distRow = $distResult->fetch_assoc();
             $currentQty = $distRow['quantity'];
+            $evacueesId = $distRow['evacuees_id'];
+            $distributorId = $distRow['distributor_id'];
+            $distributorType = $distRow['distributor_type'];
 
             if ($redistributeQty > $currentQty) {
                 throw new Exception("Redistribution quantity exceeds current available quantity for distribute ID $distributeId.");
@@ -46,8 +49,8 @@ try {
                 $deleteDistStmt->execute();
             }
 
-            // Fetch supply current and original quantity
-            $supplyQuery = "SELECT quantity, original_quantity FROM supply WHERE id = ?";
+            // Fetch supply details
+            $supplyQuery = "SELECT name, unit, quantity, original_quantity, evacuation_center_id FROM supply WHERE id = ?";
             $supplyStmt = $conn->prepare($supplyQuery);
             $supplyStmt->bind_param("i", $supplyId);
             $supplyStmt->execute();
@@ -55,8 +58,11 @@ try {
 
             if ($supplyResult->num_rows > 0) {
                 $supplyRow = $supplyResult->fetch_assoc();
+                $supplyName = $supplyRow['name'];
+                $supplyUnit = $supplyRow['unit'];
                 $currentSupplyQty = $supplyRow['quantity'];
                 $originalQtyLimit = $supplyRow['original_quantity'];
+                $evacuationCenterId = $supplyRow['evacuation_center_id'];
 
                 // Calculate how much can go into supply and if there is any excess
                 $transferToSupply = min($originalQtyLimit - $currentSupplyQty, $redistributeQty);
@@ -94,6 +100,28 @@ try {
                         $updateStockStmt->execute();
                     }
                 }
+
+                // Insert into evacuees_log
+                $logMsg = "{$redistributeQty} " . ($redistributeQty > 1 ? $supplyUnit . "s" : $supplyUnit) . " of {$supplyName} have been returned.";
+                $logQuery = "INSERT INTO evacuees_log (log_msg, status, evacuees_id) VALUES (?, 'notify', ?)";
+                $logStmt = $conn->prepare($logQuery);
+                $logStmt->bind_param("si", $logMsg, $evacueesId);
+                $logStmt->execute();
+
+                // Fetch evacuation center name
+                $evacuationCenterQuery = "SELECT name FROM evacuation_center WHERE id = ?";
+                $evacuationCenterStmt = $conn->prepare($evacuationCenterQuery);
+                $evacuationCenterStmt->bind_param("i", $evacuationCenterId);
+                $evacuationCenterStmt->execute();
+                $evacuationCenterResult = $evacuationCenterStmt->get_result();
+                $evacuationCenterName = $evacuationCenterResult->fetch_assoc()['name'];
+
+                // Insert into feeds
+                $feedMsg = "{$redistributeQty} " . ($redistributeQty > 1 ? $supplyUnit . "s" : $supplyUnit) . " of {$supplyName} have been returned to {$evacuationCenterName}.";
+                $feedQuery = "INSERT INTO feeds (logged_in_id, user_type, feed_msg, status) VALUES (?, ?, ?, 'notify')";
+                $feedStmt = $conn->prepare($feedQuery);
+                $feedStmt->bind_param("iss", $distributorId, $distributorType, $feedMsg);
+                $feedStmt->execute();
             }
         }
     }

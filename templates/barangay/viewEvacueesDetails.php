@@ -1,3 +1,49 @@
+<?php
+require_once '../../connection/conn.php';
+
+// Get the evacuee ID from the URL
+$evacueeId = $_GET['id'];
+
+// Fetch the main evacuee details
+$query = "SELECT * FROM evacuees WHERE id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $evacueeId);
+$stmt->execute();
+$result = $stmt->get_result();
+$evacuee = $result->fetch_assoc();
+
+// Fetch the evacuation center details
+$evacuationQuery = "SELECT * FROM evacuation_center WHERE id = ?";
+$evacuationStmt = $conn->prepare($evacuationQuery);
+$evacuationStmt->bind_param("i", $evacuee['evacuation_center_id']);
+$evacuationStmt->execute();
+$evacuationResult = $evacuationStmt->get_result();
+$evacuationCenter = $evacuationResult->fetch_assoc();
+
+// Fetch all other evacuation centers for the dropdown
+$centersQuery = "SELECT id, name FROM evacuation_center WHERE id != ? AND admin_id = ?";
+$centersStmt = $conn->prepare($centersQuery);
+$centersStmt->bind_param("ii", $evacuee['evacuation_center_id'], $evacuee['admin_id']);
+$centersStmt->execute();
+$centersResult = $centersStmt->get_result();
+$otherCenters = [];
+while ($center = $centersResult->fetch_assoc()) {
+    $otherCenters[] = $center;
+}
+// Fetch household members
+$membersQuery = "SELECT * FROM members WHERE evacuees_id = ?";
+$membersStmt = $conn->prepare($membersQuery);
+$membersStmt->bind_param("i", $evacueeId);
+$membersStmt->execute();
+$membersResult = $membersStmt->get_result();
+
+// Fetch activity logs
+$logsQuery = "SELECT log_msg, created_at FROM evacuees_log WHERE evacuees_id = ? ORDER BY created_at DESC";
+$logsStmt = $conn->prepare($logsQuery);
+$logsStmt->bind_param("i", $evacueeId);
+$logsStmt->execute();
+$logsResult = $logsStmt->get_result();
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -108,8 +154,7 @@
                             </div>
                         </div>
                     </div> -->
-                    <button class="profile-cta btnAdmit"
-                        onclick="window.location.href='evacueesForm.php'">Admit</button>
+                    <button class="profile-cta btnAdmit">Admit</button>
 
                     <div class="eprofile-top">
                         <div class="evacueesProfile">
@@ -119,84 +164,50 @@
                             </div>
 
                             <div class="profileInfo-right">
-                                <h3 profile-name>Mark Larenz Tabotabo</h3>
+                                <h3 profile-name>
+                                    <?php echo $evacuee['first_name'] . ' ' . $evacuee['middle_name'] . ' ' . $evacuee['last_name']; ?>
+                                </h3>
 
                                 <div class="profile-details">
-                                    <p class="details-profile">Address: Tetuan Alvarez Drive</p>
-                                    <p class="details-profile">Gender: Male</p>
-                                    <p class="details-profile">Age: 22</p>
-                                    <p class="details-profile">Contact Number: 0909090909</p>
-                                    <p class="details-profile">Occupation: Student</p>
-                                    <p class="details-profile">Status of Occupancy:</p>
-                                    <p class="details-profile">Damaged: </p>
-                                    <p class="details-profile">Cost of damaged: </p>
+                                    <p class="details-profile">Address: <?php echo $evacuee['barangay']; ?></p>
+                                    <p class="details-profile">Sex: <?php echo $evacuee['gender']; ?></p>
+                                    <p class="details-profile">Birth date:
+                                        <?php echo date("F j, Y", strtotime($evacuee['birthday'])); ?>
+                                    </p>
+                                    <p class="details-profile">Age: <?php echo $evacuee['age']; ?></p>
+                                    <p class="details-profile">Contact Number: <?php echo $evacuee['contact']; ?></p>
+                                    <p class="details-profile">Occupation: <?php echo $evacuee['occupation']; ?></p>
+                                    <p class="details-profile">Status of Occupancy: <?php echo $evacuee['status']; ?>
+                                    </p>
+                                    <p class="details-profile">Damaged: <?php echo ucfirst($evacuee['damage']); ?></p>
+                                    <p class="details-profile">Cost of damaged: <?php echo $evacuee['cost_damage']; ?>
+                                    </p>
                                 </div>
                             </div>
-
                         </div>
 
                         <div class="eprofileLog">
                             <div class="right-header">
-                                <!-- <div class="distribution">
-                                    
-    
-                                    <p class="distributon-header">
-                                        Distribution
-                                    </p>
-    
-                                    <div class="activeLine"></div>
-                                </div> -->
-
                                 <div class="activityLog">
                                     <p class="activityLog-header" style="color: var(--clr-slate600);">
                                         Activity Logs
                                     </p>
-
                                     <div class="activeLine log"></div>
                                 </div>
                             </div>
 
                             <div class="data">
-
-                                <div class="log-container">
-                                    <p class="logDate">11-15-2024</p>
-                                    <div class="logDivider"></div>
-                                    <p class="logInfo">Moved-out</p>
-                                </div>
-
-                                <div class="log-container">
-                                    <p class="logDate">11-15-2024</p>
-                                    <div class="logDivider"></div>
-                                    <p class="logInfo">Admitted</p>
-                                </div>
-
-
-
-                                <div class="log-container">
-                                    <p class="logDate">11-15-2024</p>
-                                    <div class="logDivider"></div>
-                                    <p class="logInfo">Approved, transferred successfully</p>
-                                </div>
-
-
-                                <div class="log-container">
-                                    <p class="logDate">11-28-2024</p>
-                                    <div class="logDivider"></div>
-                                    <p class="logInfo">Transferred, waiting for approval</p>
-                                </div>
-
-
-
-                                <div class="log-container">
-                                    <p class="logDate">11-28-2024</p>
-                                    <div class="logDivider"></div>
-                                    <p class="logInfo">Admitted</p>
-                                </div>
+                                <?php while ($log = $logsResult->fetch_assoc()): ?>
+                                    <div class="log-container">
+                                        <p class="logDate"><?php echo date("m-d-Y", strtotime($log['created_at'])); ?></p>
+                                        <div class="logDivider"></div>
+                                        <p class="logInfo"><?php echo htmlspecialchars($log['log_msg']); ?></p>
+                                    </div>
+                                <?php endwhile; ?>
                             </div>
                         </div>
+
                     </div>
-
-
 
 
 
@@ -229,38 +240,36 @@
                                     </div>
                                 </div>
                             </div> -->
-                            <div class="filterFam">
+                            <!-- <div class="filterFam">
                                 <label for="fam-toggle" class="famBtn">
                                     <i class="fa-solid fa-filter"></i>
                                 </label>
                                 <input type="checkbox" id="fam-toggle" class="fam-toggle">
 
                                 <div class="modal-fam">
-                                    <!-- <div class="famOption">
+                                     <div class="famOption">
                                         <input type="checkbox" name="famMembers" id="pwd">
                                         <label for="pwd">Family Head</label>
-                                    </div> -->
+                                    </div> 
                                     <div class="famOption">
                                         <input type="checkbox" name="famMembers" id="head">
                                         <label for="head">PWD</label>
                                     </div>
                                 </div>
-                            </div>
+                            </div>-->
 
 
-                            <!-- <div class="input_group">
-                                <input type="search" placeholder="Search...">
+                            <div class="input_group">
+                                <input type="search" id="searchInput" placeholder="Search...">
                                 <i class="fa-solid fa-magnifying-glass"></i>
-                            </div> -->
+                            </div>
 
                         </section>
 
                         <section class="tblbody">
                             <table id="mainTable">
                                 <thead>
-
                                     <tr>
-                                        <!-- <th>Id</th> -->
                                         <th>Full Name</th>
                                         <th>Relationship</th>
                                         <th>Age</th>
@@ -269,95 +278,29 @@
                                         <th>Occupation</th>
                                     </tr>
                                 </thead>
-
                                 <tbody>
-
-                                    <tr onclick="window.location.href='#'">
-                                        <td>
-                                            Lebron James
-                                        </td>
-                                        <td>Brother</td>
-                                        <td>22</td>
-                                        <td style="text-align: center;">Male</td>
-                                        <td>Colloge</td>
-                                        <td>Student</td>
-                                        <!-- <td><a href="#" class="view-action">Edit</a></td> -->
-                                    </tr>
-
-                                    <tr onclick="window.location.href='#'">
-                                        <td>
-                                            Lebron James
-                                        </td>
-                                        <td>Brother</td>
-                                        <td>22</td>
-                                        <td style="text-align: center;">Male</td>
-                                        <td>Colloge</td>
-                                        <td>Student</td>
-                                        <!-- <td><a href="#" class="view-action">Edit</a></td> -->
-                                    </tr>
-
-                                    <tr onclick="window.location.href='#'">
-                                        <td>
-                                            Lebron James
-                                        </td>
-                                        <td>Brother</td>
-                                        <td>22</td>
-                                        <td style="text-align: center;">Male</td>
-                                        <td>Colloge</td>
-                                        <td>Student</td>
-                                        <!-- <td><a href="#" class="view-action">Edit</a></td> -->
-                                    </tr>
-
-                                    <tr onclick="window.location.href='#'">
-                                        <td>
-                                            Lebron James
-                                        </td>
-                                        <td>Brother</td>
-                                        <td>22</td>
-                                        <td style="text-align: center;">Male</td>
-                                        <td>Colloge</td>
-                                        <td>Student</td>
-                                        <!-- <td><a href="#" class="view-action">Edit</a></td> -->
-                                    </tr>
-
-                                    <tr onclick="window.location.href='#'">
-                                        <td>
-                                            Lebron James
-                                        </td>
-                                        <td>Brother</td>
-                                        <td>22</td>
-                                        <td style="text-align: center;">Male</td>
-                                        <td>Colloge</td>
-                                        <td>Student</td>
-                                        <!-- <td><a href="#" class="view-action">Edit</a></td> -->
-                                    </tr>
-
-                                    <tr onclick="window.location.href='#'">
-                                        <td>
-                                            Lebron James
-                                        </td>
-                                        <td>Brother</td>
-                                        <td>22</td>
-                                        <td style="text-align: center;">Male</td>
-                                        <td>Colloge</td>
-                                        <td>Student</td>
-                                        <!-- <td><a href="#" class="view-action">Edit</a></td> -->
-                                    </tr>
-
-                                    <tr onclick="window.location.href='#'">
-                                        <td>
-                                            Lebron James
-                                        </td>
-                                        <td>Brother</td>
-                                        <td>22</td>
-                                        <td style="text-align: center;">Male</td>
-                                        <td>Colloge</td>
-                                        <td>Student</td>
-                                        <!-- <td><a href="#" class="view-action">Edit</a></td> -->
-                                    </tr>
-
-
+                                    <?php if ($membersResult->num_rows > 0) { ?>
+                                        <?php while ($member = $membersResult->fetch_assoc()) { ?>
+                                            <tr onclick="window.location.href='#'">
+                                                <td><?php
+                                                // Concatenate the names for the full name
+                                                echo $member['first_name'] . ' ' . $member['middle_name'] . ' ' . $member['last_name'] . ' ' . $member['extension_name'];
+                                                ?></td>
+                                                <td><?php echo $member['relation']; ?></td>
+                                                <td><?php echo $member['age']; ?></td>
+                                                <td style="text-align: center;"><?php echo $member['gender']; ?></td>
+                                                <td><?php echo $member['education']; ?></td>
+                                                <td><?php echo $member['occupation']; ?></td>
+                                            </tr>
+                                        <?php } ?>
+                                    <?php } else { ?>
+                                        <tr>
+                                            <td colspan="6" style="text-align: center;">No Family Member for this evacuee.
+                                            </td>
+                                        </tr>
+                                    <?php } ?>
                                 </tbody>
+
                             </table>
                         </section>
 
@@ -376,6 +319,77 @@
 
     </div>
 
+    <script>
+        document.querySelector('.btnAdmit').addEventListener('click', function (event) {
+            event.preventDefault(); // Prevent default button action
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This will mark the evacuee as transferred.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Confirm!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Send AJAX request to transfer the evacuee
+                    fetch("../endpoints/approve_transfer.php?id=<?= $evacueeId; ?>", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: 'Evacuee has been successfully transferred.',
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                }).then(() => {
+                                    // Redirect to requestTransfer.php
+                                    window.location.href = 'requestTransfer.php';
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: data.message || 'An error occurred while transferring the evacuee.',
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: 'Failed to communicate with the server.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        });
+                }
+            });
+        });
+
+
+        // JavaScript to filter table based on search input
+        document.getElementById('searchInput').addEventListener('keyup', function () {
+            let filter = this.value.toLowerCase();
+            let rows = document.querySelectorAll('#mainTable tbody tr');
+
+            rows.forEach(row => {
+                let fullName = row.cells[0].textContent.toLowerCase();
+                if (fullName.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
 
     <!-- sidebar import js -->
     <script src="../../includes/bgSidebar.js"></script>

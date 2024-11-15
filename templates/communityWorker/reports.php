@@ -1,53 +1,3 @@
-<?php
-session_start();
-require_once '../../connection/conn.php';
-
-if (isset($_SESSION['user_id'])) {
-    $admin_id = $_SESSION['user_id'];
-
-    // Fetch the barangay of the logged-in admin
-    $query = "SELECT id AS admin_id, barangay FROM admin WHERE id = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $admin_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    // Check if the admin is found
-    if ($result->num_rows === 1) {
-        $admin = $result->fetch_assoc();
-        $barangay = $admin['barangay'];
-    } else {
-        echo "Admin details not found.";
-        exit();
-    }
-
-    // Fetch evacuees with status 'Transfer' for the logged-in admin
-    $sql = "
-        SELECT 
-            e.id AS evacuee_id,
-            CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
-            e.contact,
-            e.barangay,
-            e.date,
-            e.disaster_type,
-            COUNT(m.id) AS member_count,
-            GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) ORDER BY m.first_name ASC SEPARATOR ', ') AS member_names
-        FROM evacuees e
-        LEFT JOIN members m ON e.id = m.evacuees_id
-        WHERE e.admin_id = ? AND e.status = 'Transfer'
-        GROUP BY e.id
-        ORDER BY e.date DESC;
-    ";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $admin_id);
-    $stmt->execute();
-    $evacueesResult = $stmt->get_result();
-} else {
-    header("Location: ../../login.php");
-    exit();
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -106,7 +56,7 @@ if (isset($_SESSION['user_id'])) {
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="#">Request Admission Transfer</a>
+                            <a href="#">Prints Reports</a>
 
                             <!-- next page -->
                             <!-- <i class="fa-solid fa-chevron-right"></i>
@@ -129,7 +79,7 @@ if (isset($_SESSION['user_id'])) {
 
             <div class="main-wrapper">
                 <div class="main-container overview">
-                    <!-- <special-navbar></special-navbar> -->
+                    <special-navbar></special-navbar>
 
 
 
@@ -184,6 +134,7 @@ if (isset($_SESSION['user_id'])) {
                         <section class="tblbody">
                             <table id="mainTable">
                                 <thead>
+
                                     <tr>
                                         <th>Family Head</th>
                                         <th>Contact #</th>
@@ -194,43 +145,10 @@ if (isset($_SESSION['user_id'])) {
                                         <th style="text-align: center;">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <?php if ($evacueesResult->num_rows > 0): ?>
-                                        <?php while ($row = $evacueesResult->fetch_assoc()): ?>
-                                            <tr
-                                                onclick="window.location.href='viewEvacueesDetails.php?id=<?php echo $row['evacuee_id']; ?>'">
-                                                <td><?php echo htmlspecialchars($row['family_head']); ?></td>
-                                                <td><?php echo htmlspecialchars($row['contact']); ?></td>
-                                                <td class="ecMembers" style="text-align: center;">
-                                                    <?php echo $row['member_count']; ?>
-                                                    <ul class="viewMembers" style="text-align: left;">
-                                                        <?php
-                                                        $member_names = explode(', ', $row['member_names']);
-                                                        foreach ($member_names as $member_name): ?>
-                                                            <li><?php echo htmlspecialchars($member_name); ?></li>
-                                                        <?php endforeach; ?>
-                                                    </ul>
-                                                </td>
-                                                <td style="text-align: center;">
-                                                    <?php echo htmlspecialchars($row['barangay']); ?>
-                                                </td>
-                                                <td style="text-align: center;"><?php echo htmlspecialchars($row['date']); ?>
-                                                </td>
-                                                <td><?php echo htmlspecialchars($row['disaster_type']); ?></td>
-                                                <td style="text-align: center;">
-                                                    <a href="viewEvacueesDetails.php?id=<?php echo $row['evacuee_id']; ?>"
-                                                        class="view-action">View</a>
-                                                </td>
-                                            </tr>
-                                        <?php endwhile; ?>
-                                    <?php else: ?>
-                                        <tr>
-                                            <td colspan="7" style="text-align: center;">No evacuees with transfer request
-                                                found.</td>
-                                        </tr>
-                                    <?php endif; ?>
-                                </tbody>
 
+                                <tbody>
+
+                                </tbody>
                             </table>
                         </section>
 
@@ -245,14 +163,16 @@ if (isset($_SESSION['user_id'])) {
 
 
     <!-- sidebar import js -->
-    <script src="../../includes/bgSidebar.js"></script>
+    <script src="../../includes/sidebarWokers.js"></script>
 
+    <!-- import logo -->
     <script src="../../includes/logo.js"></script>
 
     <!-- import logout -->
     <script src="../../includes/logout.js"></script>
 
-    <script src="../../includes/ecNavbar.js"></script>
+    <!-- import navbar -->
+    <script src="../../includes/printReportsWorkers.js"></script>
 
     <!-- sidebar menu -->
     <script src="../../assets/src/utils/menu-btn.js"></script>

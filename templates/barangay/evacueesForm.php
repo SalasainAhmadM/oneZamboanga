@@ -151,9 +151,10 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
                                 <div class="ecInfo">
                                     <label for="evacuation_center">Evacuation Center</label>
                                     <span>:</span>
-                                    <input type="text" name="evacuation_center" id="evacuation_center" required
-                                        placeholder="Enter evacuation center"
-                                        value="<?php echo $evacuationCenter['name']; ?>">
+                                    <input type="text" name="evacuation_center_name" id="evacuation_center_name"
+                                        value="<?php echo htmlspecialchars($evacuationCenter['name']); ?>" readonly>
+                                    <input type="hidden" name="evacuation_center" id="evacuation_center"
+                                        value="<?php echo $evacuationCenterId; ?>">
                                 </div>
 
                                 <div class="ecInfo">

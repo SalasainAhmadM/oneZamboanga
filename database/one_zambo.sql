@@ -202,7 +202,7 @@ CREATE TABLE `evacuees` (
   `admin_id` int(11) NOT NULL,
   `evacuation_center_id` int(11) NOT NULL,
   `date` date DEFAULT curdate(),
-  `status` enum('Admitted','Transferred','Moved-out') NOT NULL DEFAULT 'Admitted'
+  `status` enum('Admitted','Transfer','Transferred','Moved-out') NOT NULL DEFAULT 'Admitted'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
@@ -248,6 +248,21 @@ INSERT INTO `feeds` (`id`, `logged_in_id`, `user_type`, `feed_msg`, `created_at`
 (16, 2, 'admin', 'Evacuee \"Peter D Parker II\" admitted to \"WMSU Main Campus\".', '2024-11-15 08:55:24', 'notify'),
 (17, 2, 'admin', '0 pack(s) of Magi distributed to Parker', '2024-11-15 09:05:05', 'notify'),
 (18, 2, 'admin', '13 packs of Magi distributed to Parker', '2024-11-15 09:08:56', 'notify');
+
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `evacuees_log`
+--
+
+CREATE TABLE `evacuees_log` (
+  `id` int(11) NOT NULL,
+  `log_msg` varchar(255) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `status` enum('notify','cleared') NOT NULL,
+   `evacuees_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 

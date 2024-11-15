@@ -29,10 +29,10 @@ class SpecialSidebar extends HTMLElement {
                 </div> -->
 
                 <div class="item">
-                    <a href="#">
+                    <a href="reports.php">
                         <i class="fa-solid fa-file-signature"></i>
                     </a>
-                    <a href="#" class="dot">Reports</a>
+                    <a href="reports.php" class="dot">Reports</a>
                 </div>
                 
                 <div class="item">

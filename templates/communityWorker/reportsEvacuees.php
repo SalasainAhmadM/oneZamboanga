@@ -1,46 +1,3 @@
-<?php
-session_start();
-include("../../connection/conn.php");
-
-if (isset($_SESSION['user_id'])) {
-    $admin_id = $_SESSION['user_id'];
-
-    // Fetch the admin's details from the database
-    $sql = "SELECT first_name, middle_name, last_name, extension_name, username, email
-    FROM admin 
-    WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $admin_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-        $admin = $result->fetch_assoc();
-        $first_name = $admin['first_name'];
-        $middle_name = $admin['middle_name'];
-        $last_name = $admin['last_name'];
-        $extension_name = $admin['extension_name'];
-        $email = $admin['email'];
-
-        $admin_name = trim($first_name . ' ' . $middle_name . ' ' . $last_name . ' ' . $extension_name);
-
-    } else {
-        $first_name = $middle_name = $last_name = $extension_name = $email = '';
-    }
-} else {
-    header("Location: ../../login.php");
-    exit;
-}
-
-// Fetch evacuees under the logged-in admin_id with member count
-$evacuees_sql = "SELECT e.id, e.first_name, e.middle_name, e.last_name, e.contact, e.barangay, e.disaster_type, e.date,
-                 (SELECT COUNT(*) FROM members m WHERE m.evacuees_id = e.id) AS member_count
-                 FROM evacuees e WHERE e.admin_id = ?";
-$evacuees_stmt = $conn->prepare($evacuees_sql);
-$evacuees_stmt->bind_param("i", $admin_id);
-$evacuees_stmt->execute();
-$evacuees_result = $evacuees_stmt->get_result();
-?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -99,7 +56,7 @@ $evacuees_result = $evacuees_stmt->get_result();
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="viewEC.php">Request admission transfer chu chu</a>
+                            <a href="#">Prints Reports</a>
 
                             <!-- next page -->
                             <!-- <i class="fa-solid fa-chevron-right"></i>
@@ -122,7 +79,7 @@ $evacuees_result = $evacuees_stmt->get_result();
 
             <div class="main-wrapper">
                 <div class="main-container overview">
-                    <!-- <special-navbar></special-navbar> -->
+                    <special-navbar></special-navbar>
 
 
 
@@ -190,38 +147,7 @@ $evacuees_result = $evacuees_stmt->get_result();
                                 </thead>
 
                                 <tbody>
-                                    <?php while ($row = $evacuees_result->fetch_assoc()): ?>
-                                        <tr onclick="window.location.href='viewEvacueesDetails.php?id=<?= $row['id'] ?>'">
-                                            <td><?= htmlspecialchars($row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name']) ?>
-                                            </td>
-                                            <td><?= htmlspecialchars($row['contact']) ?></td>
-                                            <td class="ecMembers" style="text-align: center;">
-                                                <?= $row['member_count'] ?>
 
-                                                <ul class="viewMembers" style="text-align: left;">
-                                                    <?php
-                                                    // Fetch the individual members for this evacuee
-                                                    $members_sql = "SELECT first_name, last_name FROM members WHERE evacuees_id = ?";
-                                                    $members_stmt = $conn->prepare($members_sql);
-                                                    $members_stmt->bind_param("i", $row['id']);
-                                                    $members_stmt->execute();
-                                                    $members_result = $members_stmt->get_result();
-
-                                                    while ($member = $members_result->fetch_assoc()): ?>
-                                                        <li><?= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) ?>
-                                                        </li>
-                                                    <?php endwhile; ?>
-                                                </ul>
-                                            </td>
-                                            <td style="text-align: center;"><?= htmlspecialchars($row['barangay']) ?></td>
-                                            <td style="text-align: center;"><?= htmlspecialchars($row['date']) ?></td>
-                                            <td><?= htmlspecialchars($row['disaster_type']) ?></td>
-                                            <td style="text-align: center;">
-                                                <a href="viewEvacueesDetails.php?id=<?= $row['id'] ?>"
-                                                    class="view-action">View</a>
-                                            </td>
-                                        </tr>
-                                    <?php endwhile; ?>
                                 </tbody>
                             </table>
                         </section>
@@ -237,18 +163,19 @@ $evacuees_result = $evacuees_stmt->get_result();
 
 
     <!-- sidebar import js -->
-    <script src="../../includes/bgSidebar.js"></script>
+    <script src="../../includes/sidebarWokers.js"></script>
 
+    <!-- import logo -->
     <script src="../../includes/logo.js"></script>
 
     <!-- import logout -->
     <script src="../../includes/logout.js"></script>
 
-    <script src="../../includes/ecNavbar.js"></script>
+    <!-- import navbar -->
+    <script src="../../includes/printReportsWorkers.js"></script>
 
     <!-- sidebar menu -->
     <script src="../../assets/src/utils/menu-btn.js"></script>
-
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 

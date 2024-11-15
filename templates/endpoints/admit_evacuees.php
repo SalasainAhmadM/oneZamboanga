@@ -51,6 +51,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
         $stmt->execute();
         $evacuees_id = $stmt->insert_id;
 
+        // Insert into `evacuees_log` table
+        $log_msg = "Admitted";
+        $log_sql = "INSERT INTO evacuees_log (log_msg, status, evacuees_id) VALUES (?, 'notify', ?)";
+        $log_stmt = $conn->prepare($log_sql);
+        $log_stmt->bind_param("si", $log_msg, $evacuees_id);
+        $log_stmt->execute();
+
         // Insert members if any
         if (!empty($_POST['firstName'])) {
             $member_sql = "INSERT INTO members (first_name, middle_name, last_name, extension_name, relation, education, gender, age, occupation, evacuees_id) 
@@ -87,7 +94,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
         // Set session success message
         $_SESSION['message'] = "Evacuees admitted successfully.";
         $_SESSION['message_type'] = "success";
-        header("Location: ../barangay/evacueesForm.php");
+        header("Location: ../barangay/evacueesForm.php?id=$evacuation_center");
         exit();
 
     } catch (Exception $e) {
@@ -97,13 +104,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
         // Set session failure message
         $_SESSION['message'] = "Failed to admit evacuee: " . $e->getMessage();
         $_SESSION['message_type'] = "error";
-        header("Location: ../barangay/evacueesForm.php");
+        header("Location: ../barangay/evacueesForm.php?id=$evacuation_center");
         exit();
     }
 } else {
     $_SESSION['message'] = "Invalid request.";
     $_SESSION['message_type'] = "error";
-    header("Location: ../barangay/evacueesForm.php");
+    header("Location: ../barangay/evacueesForm.php?id=$evacuation_center");
     exit();
 }
 ?>

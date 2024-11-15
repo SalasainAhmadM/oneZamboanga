@@ -27,15 +27,46 @@ if (isset($_SESSION['user_id'])) {
     exit;
 }
 
-$evacuationCenterId = $_GET['id'];  // Get the evacuation center ID from the URL parameter
+$evacueeId = $_GET['id'];  // Get the evacuation center ID from the URL parameter
 
-// Fetch the evacuation center name
-$evacuationCenterSql = "SELECT name FROM evacuation_center WHERE id = ?";
-$evacuationCenterStmt = $conn->prepare($evacuationCenterSql);
-$evacuationCenterStmt->bind_param("i", $evacuationCenterId);
-$evacuationCenterStmt->execute();
-$evacuationCenterResult = $evacuationCenterStmt->get_result();
-$evacuationCenter = $evacuationCenterResult->fetch_assoc();
+// Fetch the evacuation center ID for the evacuee
+$evacueeSql = "SELECT evacuation_center_id FROM evacuees WHERE id = ?";
+$evacueeStmt = $conn->prepare($evacueeSql);
+$evacueeStmt->bind_param("i", $evacueeId);
+$evacueeStmt->execute();
+$evacueeResult = $evacueeStmt->get_result();
+$evacuee = $evacueeResult->fetch_assoc();
+
+if ($evacuee) {
+    $evacuationCenterId = $evacuee['evacuation_center_id'];
+
+    // Fetch the evacuation center name
+    $evacuationCenterSql = "SELECT name FROM evacuation_center WHERE id = ?";
+    $evacuationCenterStmt = $conn->prepare($evacuationCenterSql);
+    $evacuationCenterStmt->bind_param("i", $evacuationCenterId);
+    $evacuationCenterStmt->execute();
+    $evacuationCenterResult = $evacuationCenterStmt->get_result();
+    $evacuationCenter = $evacuationCenterResult->fetch_assoc();
+}
+
+// Fetch evacuee data
+$evacueeDataSql = "SELECT * FROM evacuees WHERE id = ?";
+$evacueeDataStmt = $conn->prepare($evacueeDataSql);
+$evacueeDataStmt->bind_param("i", $evacueeId);
+$evacueeDataStmt->execute();
+$evacueeDataResult = $evacueeDataStmt->get_result();
+$evacueeData = $evacueeDataResult->fetch_assoc();
+
+// Fetch members associated with the evacuee
+$membersDataSql = "SELECT * FROM members WHERE evacuees_id = ?";
+$membersDataStmt = $conn->prepare($membersDataSql);
+$membersDataStmt->bind_param("i", $evacueeId);
+$membersDataStmt->execute();
+$membersDataResult = $membersDataStmt->get_result();
+$members = [];
+while ($row = $membersDataResult->fetch_assoc()) {
+    $members[] = $row;
+}
 
 ?>
 <!DOCTYPE html>
@@ -116,11 +147,12 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="viewEC.php"><?php echo $evacuationCenter['name']; ?></a>
+                            <a
+                                href="viewEC.php?id=<?php echo $evacuationCenterId; ?>"><?php echo $evacuationCenter['name']; ?></a>
 
                             <!-- next page -->
                             <i class="fa-solid fa-chevron-right"></i>
-                            <a href="#">Add Evacuees</a>
+                            <a href="#">Edit Evacuees</a>
                         </div>
 
 
@@ -145,21 +177,24 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
                         </div>
 
 
-                        <form action="../endpoints/admit_evacuees.php" method="POST" enctype="multipart/form-data">
+                        <form action="../endpoints/edit_evacuees.php" method="POST" enctype="multipart/form-data">
                             <div class="ec-info">
                                 <div class="ecInfo">
                                     <label for="evacuation_center">Evacuation Center</label>
                                     <span>:</span>
-                                    <input type="text" name="evacuation_center" id="evacuation_center" required
-                                        placeholder="Enter evacuation center"
-                                        value="<?php echo $evacuationCenter['name']; ?>">
+                                    <input type="text" name="evacuation_center_name" id="evacuation_center_name"
+                                        value="<?php echo htmlspecialchars($evacuationCenter['name']); ?>" readonly>
+                                    <input type="hidden" name="evacuation_center" id="evacuation_center"
+                                        value="<?php echo $evacuationCenterId; ?>">
+                                    <input type="hidden" name="evacuees_id" id="evacuees_id"
+                                        value="<?php echo $evacueeId; ?>">
                                 </div>
 
                                 <div class="ecInfo">
                                     <label for="barangay">Barangay</label>
                                     <span>:</span>
                                     <input type="text" name="barangay" id="barangay"
-                                        value="<?= htmlspecialchars($barangay); ?>" required>
+                                        value="<?= htmlspecialchars($barangay); ?>" required readonly>
                                 </div>
 
                                 <div class="ecInfo">
@@ -167,17 +202,19 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
                                     <span>:</span>
                                     <select name="disaster" id="dSelect" onchange="toggleInput()">
                                         <option value="">Select</option>
-                                        <option value="Flood">Flood Incident</option>
-                                        <option value="Fire">Fire Incident</option>
-                                        <option value="others">Others</option>
+                                        <option value="Flood" <?= $evacueeData['disaster_type'] == 'Flood' ? 'selected' : ''; ?>>Flood Incident</option>
+                                        <option value="Fire" <?= $evacueeData['disaster_type'] == 'Fire' ? 'selected' : ''; ?>>Fire Incident</option>
+                                        <option value="others" <?= !in_array($evacueeData['disaster_type'], ['Flood', 'Fire']) ? 'selected' : ''; ?>>Others</option>
                                     </select>
                                     <input type="text" name="disaster_specify" placeholder="Specify.." id="dInput"
-                                        style="display: none;">
+                                        style="<?= !in_array($evacueeData['disaster_type'], ['Flood', 'Fire']) ? 'display:block;' : 'display:none;'; ?>"
+                                        value="<?= htmlspecialchars($evacueeData['disaster_type']); ?>">
                                 </div>
                                 <div class="ecInfo">
                                     <label for="date">Date</label>
                                     <span>:</span>
-                                    <input name="date" type="date" required>
+                                    <input name="date" type="date"
+                                        value="<?= htmlspecialchars($evacueeData['date']); ?>" required>
                                 </div>
                             </div>
 
@@ -185,54 +222,63 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
                                 <label for="">Name of Family Head:</label>
                                 <div class="details-container">
                                     <div class="headFam-details">
-                                        <input type="text" name="last_name" id="lastName" required>
+                                        <input type="text" name="last_name" id="lastName"
+                                            value="<?= htmlspecialchars($evacueeData['last_name']); ?>" required>
                                         <label class="details" for="last_name">Last Name</label>
                                     </div>
                                     <div class="headFam-details">
-                                        <input type="text" name="first_name" id="firstName" required>
+                                        <input type="text" name="first_name" id="firstName"
+                                            value="<?= htmlspecialchars($evacueeData['first_name']); ?>" required>
                                         <label class="details" for="first_name">First Name</label>
                                     </div>
                                     <div class="headFam-details">
-                                        <input type="text" name="middle_name" id="middleName" required>
+                                        <input type="text" name="middle_name" id="middleName"
+                                            value="<?= htmlspecialchars($evacueeData['middle_name']); ?>" required>
                                         <label class="details" for="middle_name">Middle Name</label>
                                     </div>
                                     <div class="headFam-details">
-                                        <input type="text" name="extension_name" class="age" id="extensionName">
+                                        <input type="text" name="extension_name" class="age" id="extensionName"
+                                            value="<?= htmlspecialchars($evacueeData['extension_name']); ?>">
                                         <label class="details" for="extension_name">Extension</label>
                                     </div>
                                 </div>
 
                                 <div class="occupation-container">
                                     <div class="headFam-details">
-                                        <input type="date" name="birthday" class="age" required>
+                                        <input type="date" name="birthday" class="age"
+                                            value="<?= htmlspecialchars($evacueeData['birthday']); ?>" required>
                                         <label class="details" for="birthday">Birthdate</label>
                                     </div>
 
                                     <div class="headFam-details">
-                                        <input type="number" name="age_head" class="age" required>
+                                        <input type="number" name="age_head" class="age"
+                                            value="<?= htmlspecialchars($evacueeData['age']); ?>" required>
                                         <label class="details" for="age_head">Age</label>
                                     </div>
 
                                     <div class="headFam-details">
                                         <select name="gender_head" class="age" required>
                                             <option value="">Select</option>
-                                            <option value="Male">Male</option>
-                                            <option value="Female">Female</option>
+                                            <option value="Male" <?= $evacueeData['gender'] == 'Male' ? 'selected' : ''; ?>>Male</option>
+                                            <option value="Female" <?= $evacueeData['gender'] == 'Female' ? 'selected' : ''; ?>>Female</option>
                                         </select>
                                         <label class="details" for="gender_head">Sex</label>
                                     </div>
                                     <div class="occupation">
                                         <label for="occupation_head">Occupation:</label>
-                                        <input type="text" name="occupation_head" required>
+                                        <input type="text" name="occupation_head"
+                                            value="<?= htmlspecialchars($evacueeData['occupation']); ?>" required>
                                     </div>
 
                                     <div class="income">
                                         <label for="monthly_income">Total Monthly Income:</label>
-                                        <input type="number" name="monthly_income" required>
+                                        <input type="number" name="monthly_income"
+                                            value="<?= htmlspecialchars($evacueeData['monthly_income']); ?>" required>
                                     </div>
                                     <div class="contact">
                                         <label for="contact">Contact Number:</label>
                                         <input type="number" name="contact" id="contact" pattern="[0-9]{10,15}"
+                                            value="<?= htmlspecialchars($evacueeData['contact']); ?>"
                                             placeholder="e.g., 09123456789" required>
                                     </div>
                                 </div>
@@ -243,20 +289,24 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
                                             <p>Status of Occupancy:</p>
                                         </div>
                                         <div class="checkbox-info">
-                                            <input type="checkbox" name="position" value="Owner" id="houseOwnerCheckbox"
-                                                onclick="fillHouseOwner()">
+                                            <input type="checkbox" name="position[]" value="Owner"
+                                                <?= $evacueeData['position'] == 'Owner' ? 'checked' : ''; ?>
+                                                id="houseOwnerCheckbox" onclick="fillHouseOwner()">
                                             <label for="position">House Owner</label>
                                         </div>
                                         <div class="checkbox-info">
-                                            <input type="checkbox" name="position" value="Sharer">
+                                            <input type="checkbox" name="position[]" value="Sharer"
+                                                <?= $evacueeData['position'] == 'Sharer' ? 'checked' : ''; ?>>
                                             <label for="position">Sharer</label>
                                         </div>
                                         <div class="checkbox-info">
-                                            <input type="checkbox" name="position" value="Renter">
+                                            <input type="checkbox" name="position[]" value="Renter"
+                                                <?= $evacueeData['position'] == 'Renter' ? 'checked' : ''; ?>>
                                             <label for="position">Renter</label>
                                         </div>
                                         <div class="checkbox-info">
-                                            <input type="checkbox" name="position" value="Boarder">
+                                            <input type="checkbox" name="position[]" value="Boarder"
+                                                <?= $evacueeData['position'] == 'Boarder' ? 'checked' : ''; ?>>
                                             <label for="position">Boarder</label>
                                         </div>
                                     </div>
@@ -266,78 +316,43 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
                                             <p>Damaged:</p>
                                         </div>
                                         <div class="checkbox-info">
-                                            <input type="checkbox" name="damage[]" value="totally">
+                                            <input type="checkbox" name="damage[]" value="totally"
+                                                <?= $evacueeData['damage'] == 'totally' ? 'checked' : ''; ?>>
                                             <label for="damage">Totally Damaged</label>
                                         </div>
                                         <div class="checkbox-info">
-                                            <input type="checkbox" name="damage[]" value="partially">
+                                            <input type="checkbox" name="damage[]" value="partially"
+                                                <?= $evacueeData['damage'] == 'partially' ? 'checked' : ''; ?>>
                                             <label for="damage">Partially Damaged</label>
                                         </div>
                                         <div class="checkbox-info">
                                             <label for="cost_damage">Estimated Cost of Damaged:</label>
-                                            <input type="number" name="cost_damage">
+                                            <input type="number" name="cost_damage"
+                                                value="<?= htmlspecialchars($evacueeData['cost_damage']); ?>">
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="owner">
                                     <label for="house_owner">Name of House owner:</label>
-                                    <input type="text" name="house_owner" id="houseOwner" required>
+                                    <input type="text" name="house_owner" id="houseOwner"
+                                        value="<?= htmlspecialchars($evacueeData['house_owner']); ?>" required>
                                 </div>
                             </div>
 
                             <div class="addMembers-container" id="addMembersContainer">
                                 <p class="memberTitle">Add Members:</p>
-                                <div class="member-details" id="memberDetailsContainer">
-                                    <div class="member-input">
-                                        <label>Last Name: </label>
-                                        <input type="text" name="lastName[]">
-                                    </div>
-                                    <div class="member-input">
-                                        <label>First Name: </label>
-                                        <input type="text" name="firstName[]">
-                                    </div>
-                                    <div class="member-input">
-                                        <label>Middle Name: </label>
-                                        <input type="text" name="middleName[]">
-                                    </div>
-                                    <div class="member-input">
-                                        <label>Extension: </label>
-                                        <input type="text" placeholder="e.g., Jr." name="extension[]">
-                                    </div>
-                                    <div class="member-input">
-                                        <label>Relation to Family Head:</label>
-                                        <input type="text" name="relation[]">
-                                    </div>
-                                    <div class="member-input">
-                                        <label>Age:</label>
-                                        <input type="number" name="age[]">
-                                    </div>
-                                    <div class="member-input">
-                                        <label>Gender:</label>
-                                        <select name="gender[]">
-                                            <option value="">Select</option>
-                                            <option value="Male">Male</option>
-                                            <option value="Female">Female</option>
-                                        </select>
-                                    </div>
-                                    <div class="member-input">
-                                        <label>Education:</label>
-                                        <input type="text" name="education[]">
-                                    </div>
-                                    <div class="member-input">
-                                        <label>Occupation:</label>
-                                        <input type="text" name="occupation[]">
-                                    </div>
-                                </div>
+
                             </div>
 
                             <div id="membersContainer"></div>
                             <button onclick="addMemberForm(event)" class="addBtn">Add Member</button>
 
                             <div class="addEvacuees">
-                                <button type="submit" class="mainBtn" id="create">Admit</button>
+                                <button type="submit" class="mainBtn" id="create">Update</button>
                             </div>
+
+
                         </form>
 
                     </div>
@@ -375,7 +390,7 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
                 Swal.fire({
                     icon: 'question',
                     title: 'Confirm Submission',
-                    text: 'Are you sure you want to submit this form?',
+                    text: 'Are you sure you want to update this form?',
                     showCancelButton: true,
                     confirmButtonText: 'Yes, submit',
                 }).then((result) => {
@@ -389,7 +404,93 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
         // Attach event listener to the form's submit button
         document.querySelector('form').addEventListener('submit', validateForm);
     </script>
+    <script>
+        let memberCount = 0;
+        const membersData = <?= json_encode($members); ?>; // Fetch members from PHP
 
+        function createMemberForm(member = null) {
+            if (memberCount >= 20) {
+                alert("Maximum of 20 members reached.");
+                return;
+            }
+
+            const memberWrapper = document.createElement("div");
+            memberWrapper.classList.add("member-wrapper");
+
+            const memberContainer = document.createElement("div");
+            memberContainer.classList.add("member-details");
+
+            memberContainer.innerHTML = `
+            <div class="member-input">
+                <label>Last Name: </label>
+                <input type="text" name="lastName[]" value="${member?.last_name || ''}">
+            </div>
+            <div class="member-input">
+                <label>First Name: </label>
+                <input type="text" name="firstName[]" value="${member?.first_name || ''}">
+            </div>
+            <div class="member-input">
+                <label>Middle Name: </label>
+                <input type="text" name="middleName[]" value="${member?.middle_name || ''}">
+            </div>
+            <div class="member-input">
+                <label>Extension: </label>
+                <input type="text" placeholder="e.g., Jr." name="extension[]" value="${member?.extension_name || ''}">
+            </div>
+            <div class="member-input">
+                <label>Relation to Family Head:</label>
+                <input type="text" name="relation[]" value="${member?.relation || ''}">
+            </div>
+            <div class="member-input">
+                <label>Age:</label>
+                <input type="number" name="age[]" value="${member?.age || ''}">
+            </div>
+            <div class="member-input">
+                <label>Gender:</label>
+                <select name="gender[]">
+                    <option value="" ${!member?.gender ? 'selected' : ''}>Select</option>
+                    <option value="Male" ${member?.gender === 'Male' ? 'selected' : ''}>Male</option>
+                    <option value="Female" ${member?.gender === 'Female' ? 'selected' : ''}>Female</option>
+                </select>
+            </div>
+            <div class="member-input">
+                <label>Education:</label>
+                <input type="text" name="education[]" value="${member?.education || ''}">
+            </div>
+            <div class="member-input">
+                <label>Occupation:</label>
+                <input type="text" name="occupation[]" value="${member?.occupation || ''}">
+            </div>
+        `;
+
+            const deleteButton = document.createElement("button");
+            deleteButton.innerHTML = '<i class="fa-solid fa-xmark"></i> Remove';
+            deleteButton.classList.add("deleteBtn");
+            deleteButton.onclick = function () {
+                memberWrapper.remove();
+                memberCount--;
+            };
+
+            memberWrapper.appendChild(memberContainer);
+            memberWrapper.appendChild(deleteButton);
+            memberWrapper.appendChild(document.createElement("br"));
+
+            document.getElementById("membersContainer").appendChild(memberWrapper);
+            memberCount++;
+        }
+
+        function addMemberForm(event) {
+            event.preventDefault();
+            createMemberForm();
+        }
+
+        // Initialize with existing members if available
+        if (membersData.length > 0) {
+            membersData.forEach(member => createMemberForm(member));
+        } else {
+            createMemberForm(); // Add a blank form if no members exist
+        }
+    </script>
 
     <!-- sidebar import js -->
     <script src="../../includes/bgSidebar.js"></script>
@@ -402,47 +503,6 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
 
     <!-- sidebar menu -->
     <script src="../../assets/src/utils/menu-btn.js"></script>
-
-    <script>
-        let memberCount = 1;
-
-        function addMemberForm(event) {
-            event.preventDefault();
-
-            if (memberCount >= 20) {
-                alert("Maximum of 20 members reached.");
-                return;
-            }
-
-            // Clone the member form
-            const memberContainer = document.getElementById("memberDetailsContainer");
-            const clone = memberContainer.cloneNode(true);
-
-            // Create a wrapper div for each member form and add a delete button
-            const memberWrapper = document.createElement("div");
-            memberWrapper.classList.add("member-wrapper");
-
-            // Add the cloned form and delete button to the wrapper
-            memberWrapper.appendChild(clone);
-
-            // Add a delete button with Fssont Awesome icon
-            const deleteButton = document.createElement("button");
-            deleteButton.innerHTML = '<i class="fa-solid fa-xmark"></i> Remove';
-            deleteButton.classList.add("deleteBtn");
-            deleteButton.onclick = function () {
-                memberWrapper.remove();
-                memberCount--;
-            };
-
-            // Append delete button and line break after the form
-            memberWrapper.appendChild(deleteButton);
-            memberWrapper.appendChild(document.createElement("br"));
-
-            // Append the member wrapper to the main container
-            document.getElementById("membersContainer").appendChild(memberWrapper);
-            memberCount++;
-        }
-    </script>
 
 
     <!--select to input js-->

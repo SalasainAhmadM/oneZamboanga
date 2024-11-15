@@ -105,10 +105,17 @@ try {
         $distributeStmt->execute();
 
 
+        // Create a log message for evacuees_log
         $unit = ($distributedQuantity > 1) ? $supplyUnit . 's' : $supplyUnit;
+        $logMessage = "{$distributedQuantity} {$unit} of {$supplyName} have been distributed.";
 
+        // Insert the log into evacuees_log
+        $logStmt = $conn->prepare("INSERT INTO evacuees_log (log_msg, status, evacuees_id) VALUES (?, 'notify', ?)");
+        $logStmt->bind_param("si", $logMessage, $evacueeId);
+        $logStmt->execute();
+
+        // Insert into feeds table
         $feedMessage = "{$distributedQuantity} {$unit} of {$supplyName} distributed to {$lastName}.";
-
         $feedStmt = $conn->prepare("INSERT INTO feeds (logged_in_id, user_type, feed_msg, status) VALUES (?, 'admin', ?, 'notify')");
         $feedStmt->bind_param("is", $adminId, $feedMessage);
         $feedStmt->execute();
