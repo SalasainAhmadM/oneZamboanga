@@ -193,6 +193,107 @@ button.addBg-admin i {
     display: block;
 }
 
+/* start extra css in resourceSupply.php */
+ /* select quantity category */
+ .selectQuantity {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    width: 100%;
+}
+
+.perPiece,
+.perPack {
+    background-color: var(--clr-slate600);
+    color: var(--clr-white);
+    padding-inline: .5em;
+    border-radius: .5em;
+    font-size: var(--size-sm);
+    transition: .3s;
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--clr-dark);
+    }
+}
+
+.piece {
+    display: none;
+}
+
+.pack {
+    display: none;
+}
+
+
+
+/* manage category */
+.categoryCTA {
+    background-color: var(--clr-slate600);
+    color: var(--clr-white);
+    border: none;
+    outline: none;
+    padding: .2em;
+    transition: .3s;
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--clr-dark);
+    }
+}
+
+.listCategory {
+    position: relative;
+    display: none;
+}
+
+.closeManage {
+    display: none;
+    border: none;
+    outline: none;
+    background-color: transparent;
+
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 9;
+
+    i {
+        font-size: var(--size-lg);
+        font-weight: 600;
+        color: var(--clr-slate600);
+        cursor: pointer;
+
+        &:hover {
+            color: var(--clr-dark);
+        }
+    }
+}
+
+.supply-card {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.supply-img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+/* end */
+
+
 /* filter options */
 .filter-option {
     text-align: center;

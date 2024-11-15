@@ -118,7 +118,7 @@ $latest_centers_sql = "
     FROM evacuation_center 
     WHERE admin_id = ? 
     ORDER BY id DESC 
-    LIMIT 4
+    LIMIT 10
 ";
 $latest_centers_stmt = $conn->prepare($latest_centers_sql);
 $latest_centers_stmt->bind_param("i", $admin_id);
@@ -136,11 +136,19 @@ while ($row = $latest_centers_result->fetch_assoc()) {
     $total_result = $count_total_stmt->get_result();
     $total_count = ($total_result->num_rows > 0) ? $total_result->fetch_assoc()['total_count'] : 0;
 
-    $latest_centers[] = [
-        'id' => $center_id,
-        'name' => $center_name,
-        'evacuees' => $total_count
-    ];
+    // Only add centers with at least one evacuee
+    if ($total_count > 0) {
+        $latest_centers[] = [
+            'id' => $center_id,
+            'name' => $center_name,
+            'evacuees' => $total_count
+        ];
+    }
+
+    // Limit to the latest 4 centers with evacuees
+    if (count($latest_centers) >= 4) {
+        break;
+    }
 }
 
 // Fetch the admin's notifications
@@ -172,6 +180,14 @@ $notif_stmt = $conn->prepare($notif_query);
 $notif_stmt->bind_param("i", $admin_id);
 $notif_stmt->execute();
 $notif_result = $notif_stmt->get_result();
+
+// Retrieve feeds
+$feeds_sql = "SELECT feed_msg, created_at FROM feeds WHERE logged_in_id = ? AND user_type = 'admin' ORDER BY created_at DESC";
+$feeds_stmt = $conn->prepare($feeds_sql);
+$feeds_stmt->bind_param("i", $admin_id);
+$feeds_stmt->execute();
+$feeds_result = $feeds_stmt->get_result();
+
 ?>
 
 
@@ -391,40 +407,24 @@ $notif_result = $notif_stmt->get_result();
 
             <div class="actFeed">
                 <div class="feed-content">
-                    <div class="feeds">
+                    <?php
+                    while ($feed = $feeds_result->fetch_assoc()) {
+                        // Format the date as 'm-d-Y' for consistency
+                        $feed_date = date("m-d-Y", strtotime($feed['created_at']));
+                        ?>
+                        <div class="feeds">
 
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
+                            <div class="feeds-date">
+                                <p><?php echo $feed_date; ?></p>
+                                <div class="linee"></div>
+                            </div>
+
+                            <p class="feed"><?php echo htmlspecialchars($feed['feed_msg']); ?></p>
                         </div>
-
-                        <p class="feed">50pcs food distributed</p>
-                    </div>
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">50pcs food distributed to the family</p>
-                    </div>
-
-
-
-                    <div class="feeds">
-
-                        <div class="feeds-date">
-                            <p>11-15-2024</p>
-                            <div class="linee"></div>
-                        </div>
-
-                        <p class="feed">50pcs food distribsdf dfad dsadd dsasdf dfdfduted to the familsfdy</p>
-                    </div>
-
+                    <?php } ?>
                 </div>
             </div>
+
 
             <div class="separator notifHeader" id="first">
                 <!-- <h4>Level of Criticality</h4> -->

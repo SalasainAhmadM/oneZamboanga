@@ -26,16 +26,20 @@ if (isset($_SESSION['user_id'])) {
     header("Location: ../../login.php");
     exit;
 }
-
-$evacuationCenterId = $_GET['id'];  // Get the evacuation center ID from the URL parameter
-
-// Fetch the evacuation center name
-$evacuationCenterSql = "SELECT name FROM evacuation_center WHERE id = ?";
-$evacuationCenterStmt = $conn->prepare($evacuationCenterSql);
-$evacuationCenterStmt->bind_param("i", $evacuationCenterId);
-$evacuationCenterStmt->execute();
-$evacuationCenterResult = $evacuationCenterStmt->get_result();
-$evacuationCenter = $evacuationCenterResult->fetch_assoc();
+// Fetch the evacuation centers associated with this admin where capacity is not full
+$sql = "SELECT ec.id, ec.name, ec.location, ec.image, ec.capacity,
+               COALESCE(evacuee_count.count, 0) AS evacuee_count
+        FROM evacuation_center ec
+        LEFT JOIN (
+            SELECT evacuation_center_id, COUNT(*) AS count
+            FROM evacuees
+            GROUP BY evacuation_center_id
+        ) AS evacuee_count ON ec.id = evacuee_count.evacuation_center_id
+        WHERE ec.admin_id = ? AND (evacuee_count.count IS NULL OR evacuee_count.count < ec.capacity)";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $admin_id);
+$stmt->execute();
+$centers_result = $stmt->get_result();
 
 ?>
 <!DOCTYPE html>
@@ -116,8 +120,7 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a
-                                href="viewEC.php?id=<?php echo $evacuationCenterId; ?>"><?php echo $evacuationCenter['name']; ?></a>
+                            <a href="viewEC.php">Tetuan Central School</a>
 
                             <!-- next page -->
                             <i class="fa-solid fa-chevron-right"></i>
@@ -151,9 +154,14 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
                                 <div class="ecInfo">
                                     <label for="evacuation_center">Evacuation Center</label>
                                     <span>:</span>
-                                    <input type="text" name="evacuation_center" id="evacuation_center" required
-                                        placeholder="Enter evacuation center"
-                                        value="<?php echo $evacuationCenter['name']; ?>">
+                                    <select name="evacuation_center" id="evacuation_center" required>
+                                        <option value="">Select</option>
+                                        <?php while ($center = $centers_result->fetch_assoc()): ?>
+                                            <option value="<?= $center['id']; ?>">
+                                                <?= htmlspecialchars($center['name']); ?>
+                                            </option>
+                                        <?php endwhile; ?>
+                                    </select>
                                 </div>
 
                                 <div class="ecInfo">

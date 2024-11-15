@@ -25,9 +25,9 @@
     list-style: none;
 }
 
-.navList {
+/* .navList {
 
-}
+} */
 
 /* .navList li {
     font-size: var(--size-lg);
@@ -208,7 +208,9 @@
 .bgEc-status.yellow {
     background-color: var(--clr-yellow);
 }
-
+.bgEc-status.grey {
+    background-color: var(--clr-grey);
+}
 .bgEc-info {
     list-style: none;
     padding-inline: 1.5em;

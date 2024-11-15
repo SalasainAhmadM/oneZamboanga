@@ -1,8 +1,10 @@
+
+
 class SpecialNavbar extends HTMLElement {
     connectedCallback() {
         // Extract the 'id' parameter from the current URL
         const urlParams = new URLSearchParams(window.location.search);
-        const idParam = urlParams.get('id') ? `?id=${urlParams.get('id')}` : '';
+        const idParam = evacuationCenterId ? `?id=${evacuationCenterId}` : '';
 
         this.innerHTML = `
             <div class="ecNavbar">

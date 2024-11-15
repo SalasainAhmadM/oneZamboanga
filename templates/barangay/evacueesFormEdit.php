@@ -116,8 +116,7 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a
-                                href="viewEC.php?id=<?php echo $evacuationCenterId; ?>"><?php echo $evacuationCenter['name']; ?></a>
+                            <a href="viewEC.php"><?php echo $evacuationCenter['name']; ?></a>
 
                             <!-- next page -->
                             <i class="fa-solid fa-chevron-right"></i>

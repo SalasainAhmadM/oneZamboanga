@@ -328,7 +328,6 @@ $evacueeStmt->close();
                                     </div>
                                 </form>
 
-
                                 <form action="javascript:void(0);">
                                     <table class="receivedTable sent">
                                         <thead>
@@ -341,7 +340,6 @@ $evacueeStmt->close();
                                                 <th>Quantity</th>
                                             </tr>
                                         </thead>
-
                                         <tbody>
                                             <?php foreach ($evacueeData as $evacuee): ?>
                                                 <tr onclick="toggleCheckboxRe(this)">
@@ -361,7 +359,7 @@ $evacueeStmt->close();
                                                     <td><?= htmlspecialchars($evacuee['status']); ?></td>
                                                     <td><?= htmlspecialchars($evacuee['date_received']); ?></td>
                                                     <td><?= htmlspecialchars($evacuee['time_received']); ?></td>
-                                                    <td><?= htmlspecialchars($evacuee['quantity']); ?>s</td>
+                                                    <td><?= htmlspecialchars($evacuee['quantity']); ?></td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
@@ -369,15 +367,12 @@ $evacueeStmt->close();
                                     <div class="receiveBtn-container">
                                         <button class="redistributeBtn" onclick="selectAllRedistribute()">Select
                                             All</button>
-                                        <button class="redistributeBtn" onclick="confirmRedistribute()">Return
-                                            Supplies</button>
+                                        <button class="redistributeBtn" onclick="chooseAction()">Choose Action</button>
                                     </div>
                                 </form>
 
                                 <script>
-                                    // redistribute 
-                                    // const supplyId = <?php echo json_encode($supplyId); ?>;
-
+                                    // Toggles checkbox selection
                                     function toggleCheckboxRe(row) {
                                         const checkbox = row.querySelector('input[type="checkbox"]');
                                         checkbox.checked = !checkbox.checked;
@@ -388,7 +383,25 @@ $evacueeStmt->close();
                                         checkboxes.forEach(checkbox => checkbox.checked = !checkbox.checked);
                                     }
 
-                                    function confirmRedistribute() {
+                                    function chooseAction() {
+                                        Swal.fire({
+                                            title: 'Choose Action',
+                                            text: 'Would you like to Return or Redistribute Supply?',
+                                            icon: 'question',
+                                            showDenyButton: true,
+                                            showCancelButton: true,
+                                            confirmButtonText: 'Return Supply',
+                                            denyButtonText: 'Redistribute Supply'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                confirmAction('return_supply.php', 'Return Supply');
+                                            } else if (result.isDenied) {
+                                                confirmAction('redistribute_supply.php', 'Redistribute Supply');
+                                            }
+                                        });
+                                    }
+
+                                    function confirmAction(endpoint, action) {
                                         const selectedEvacuees = Array.from(document.querySelectorAll('.receivedTable input[type="checkbox"]:checked'))
                                             .map(checkbox => ({
                                                 distribute_id: checkbox.value,
@@ -413,10 +426,10 @@ $evacueeStmt->close();
                                         ).join('');
 
                                         Swal.fire({
-                                            title: 'Confirm Returning of Supplies',
+                                            title: `Confirm ${action}`,
                                             html: `<div>${quantityInputs}</div>`,
                                             showCancelButton: true,
-                                            confirmButtonText: 'Return',
+                                            confirmButtonText: action,
                                             preConfirm: () => {
                                                 return selectedEvacuees.map(evacuee => {
                                                     const quantity = document.getElementById(`quantity_${evacuee.distribute_id}`).value;
@@ -437,7 +450,7 @@ $evacueeStmt->close();
                                                     supply_id: supplyId
                                                 };
 
-                                                fetch('../endpoints/return_supply.php', {
+                                                fetch(`../endpoints/${endpoint}`, {
                                                     method: 'POST',
                                                     headers: { 'Content-Type': 'application/json' },
                                                     body: JSON.stringify(redistributionData)
@@ -445,10 +458,10 @@ $evacueeStmt->close();
                                                     .then(response => response.json())
                                                     .then(data => {
                                                         if (data.success) {
-                                                            Swal.fire("Success", "Supplies returned successfully!", "success")
+                                                            Swal.fire("Success", `${action} successfully completed!`, "success")
                                                                 .then(() => location.reload());
                                                         } else {
-                                                            Swal.fire("Error", data.message || "Error in returning.", "error");
+                                                            Swal.fire("Error", data.message || `Error in ${action.toLowerCase()}.`, "error");
                                                         }
                                                     })
                                                     .catch(error => {

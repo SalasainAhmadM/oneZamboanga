@@ -216,7 +216,7 @@ tr:hover .ecMembers > .viewMembers {
     display: none;
 }
 
-.distributeBtn , .selectBtn {
+.distributeBtn , .selectBtn ,.redistributeBtn {
     outline: none;
     border: none;
     background-color: var(--clr-slate600);
@@ -523,7 +523,7 @@ table {
     .receiveBtn-container {
         bottom: 30px;
     }
-    .distributeBtn {
+    .distributeBtn ,  .redistributeBtn{
         padding: .2em .3em;
         font-size: var(--size-xs);
     }
