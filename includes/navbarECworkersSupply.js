@@ -1,32 +1,35 @@
-
-
 class SpecialNavbar extends HTMLElement {
     connectedCallback() {
-        // Extract the 'id' parameter from the current URL
+        // Extract the 'center_id' and 'worker_id' parameters from the current URL
         const urlParams = new URLSearchParams(window.location.search);
-        const idParam = evacuationCenterId ? `?id=${evacuationCenterId}` : '';
+        const centerId = urlParams.get('center_id');
+        const workerId = urlParams.get('worker_id');
+        
+        // Construct query string with the extracted parameters
+        const queryString = `?id=${centerId}&worker_id=${workerId}`;
 
+        // Generate the navbar HTML with dynamic links
         this.innerHTML = `
             <div class="ecNavbar">
                 <ul>
                     <div class="navList">
-                        <li><a href="viewEC.php${idParam}">Overview</a></li>
+                        <li><a href="viewAssignedEC.php${queryString}">Overview</a></li>
                         <div class="indicator"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="evacueesPage.php${idParam}">Evacuees</a></li>
+                        <li><a href="evacueesPage.php${queryString}">Evacuees</a></li>
                         <div class="indicator"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="resources.php${idParam}">Resource Management</a></li>
+                        <li><a href="resources.php${queryString}">Resource Management</a></li>
                         <div class="indicator long"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="personnel.php${idParam}">Team</a></li>
+                        <li><a href="personnel.php${queryString}">Team</a></li>
                         <div class="indicator extrasmall"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="nearEC.php${idParam}">Transfer</a></li>
+                        <li><a href="nearEC.php${queryString}">Transfer</a></li>
                         <div class="indicator small"></div> 
                     </div>
                 </ul>

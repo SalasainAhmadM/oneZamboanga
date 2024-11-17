@@ -189,7 +189,7 @@ $centers_result = $stmt->get_result();
                                         }
                                         ?>
                                         <div class="bgEc-cards"
-                                            onclick="window.location.href='assignPage.php?id=<?php echo $center['id']; ?>'">
+                                            onclick="window.location.href='viewEC.php?id=<?php echo $center['id']; ?>'">
                                             <div class="bgEc-status <?php echo $status_color; ?>"></div>
                                             <img src="<?php echo !empty($center['image']) ? htmlspecialchars($center['image']) : '../../assets/img/evacuation-default.svg'; ?>"
                                                 alt="" class="bgEc-img">

@@ -273,7 +273,7 @@ $logsResult = $logsStmt->get_result();
 
 
 
-                            <div class="input_group">
+                            <div class="input_group" style="margin-top: 10px">
                                 <input type="search" id="searchInput" placeholder="Search...">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                             </div>
@@ -379,7 +379,7 @@ $logsResult = $logsStmt->get_result();
         <label for="centerSelect">Select a new evacuation center:</label>
         <select id="centerSelect" class="swal2-select" style="width: 400px;">
             <?php foreach ($otherCenters as $center): ?>
-                                                                                                                            <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
+                                                                                                                                    <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
             <?php endforeach; ?>
         </select>
     `,

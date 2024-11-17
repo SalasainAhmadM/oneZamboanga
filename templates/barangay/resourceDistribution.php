@@ -110,10 +110,10 @@ $supplyResult = $supplyStmt->get_result();
 
                             <!-- next page -->
                             <i class="fa-solid fa-chevron-right"></i>
-                            <a href="resources.php">Resource Management</a>
+                            <a href="resources.php?id=<?php echo $evacuationCenterId; ?>">Resource Management</a>
 
                             <i class="fa-solid fa-chevron-right"></i>
-                            <a href="resourceDistribution.php">Distribution</a>
+                            <a href="resourceDistribution.php?id=<?php echo $evacuationCenterId; ?>">Distribution</a>
                         </div>
 
 

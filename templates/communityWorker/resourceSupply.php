@@ -1,5 +1,50 @@
+<?php
+session_start();
+require_once '../../connection/conn.php';
+
+if (isset($_GET['id']) && isset($_GET['worker_id'])) {
+    $evacuationCenterId = intval($_GET['id']);
+    $workerId = intval($_GET['worker_id']);
+}
+
+// Fetch the evacuation center name and admin_id
+$evacuationCenterSql = "SELECT name, admin_id FROM evacuation_center WHERE id = ?";
+$evacuationCenterStmt = $conn->prepare($evacuationCenterSql);
+$evacuationCenterStmt->bind_param("i", $evacuationCenterId);
+$evacuationCenterStmt->execute();
+$evacuationCenterResult = $evacuationCenterStmt->get_result();
+$evacuationCenter = $evacuationCenterResult->fetch_assoc();
+$adminId = $evacuationCenter['admin_id'];
+
+// Fetch categories associated with the admin, including their IDs
+$categorySql = "SELECT id, name FROM category WHERE admin_id = ?";
+$categoryStmt = $conn->prepare($categorySql);
+$categoryStmt->bind_param("i", $adminId);
+$categoryStmt->execute();
+$categoryResult = $categoryStmt->get_result();
+
+// Store categories in an array for reuse in different sections
+$categories = [];
+while ($row = $categoryResult->fetch_assoc()) {
+    $categories[] = $row;
+}
+
+// Fetch supplies associated with the evacuation center, including the dynamic `quantity` calculation
+$supplySql = "
+    SELECT s.id, s.name, s.description, s.unit, s.image, s.category_id,
+           (s.quantity + COALESCE(SUM(st.quantity), 0)) AS total_quantity
+    FROM supply s
+    LEFT JOIN stock st ON s.id = st.supply_id
+    WHERE s.evacuation_center_id = ?
+    GROUP BY s.id";
+$supplyStmt = $conn->prepare($supplySql);
+$supplyStmt->bind_param("i", $evacuationCenterId);
+$supplyStmt->execute();
+$supplyResult = $supplyStmt->get_result();
+?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +55,7 @@
     <link rel="stylesheet" href="../../assets/fontawesome/all.css">
     <link rel="stylesheet" href="../../assets/fontawesome/fontawesome.min.css">
     <!--styles-->
-    
+
     <link rel="stylesheet" href="../../assets/styles/style.css">
     <link rel="stylesheet" href="../../assets/styles/utils/dashboard.css">
     <link rel="stylesheet" href="../../assets/styles/utils/ecenter.css">
@@ -20,7 +65,8 @@
     <link rel="stylesheet" href="../../assets/styles/utils/resources.css">
 
     <!-- jquery cdn -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 
     <!-- sweetalert cdn -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -28,8 +74,8 @@
 
 
     <style>
-        
-        
+
+
     </style>
 
 
@@ -43,7 +89,8 @@
             width: 100%;
         }
 
-        .perPiece, .perPack {
+        .perPiece,
+        .perPack {
             background-color: var(--clr-slate600);
             color: var(--clr-white);
             padding-inline: .5em;
@@ -97,7 +144,7 @@
             top: 10px;
             right: 10px;
             z-index: 9;
-            
+
             i {
                 font-size: var(--size-lg);
                 font-weight: 600;
@@ -109,17 +156,29 @@
                 }
             }
         }
-
-
     </style>
 
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
-<body>
 
+<body>
+    <?php
+    if (isset($_SESSION['message'])) {
+        echo "<script>
+    Swal.fire({
+        icon: '{$_SESSION['message_type']}',
+        title: '{$_SESSION['message']}'
+    }).then(() => {
+        location.reload();
+    });
+    </script>";
+        unset($_SESSION['message']);
+        unset($_SESSION['message_type']);
+    }
+    ?>
     <div class="container">
-        
+
         <aside class="left-section">
             <special-logo></special-logo>
             <!-- <div class="logo">
@@ -142,24 +201,28 @@
 
         <main>
             <header>
-                <button class="menu-btn" id="menu-open"> 
+                <button class="menu-btn" id="menu-open">
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <!-- <h5>Hello <b>Mark</b>, welcome back!</h5> -->
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="viewAssignedEC.php">Tetuan Central School</a>
+                            <a
+                                href="viewAssignedEC.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>"><?php echo $evacuationCenter['name']; ?></a>
 
                             <!-- next page -->
                             <i class="fa-solid fa-chevron-right"></i>
-                            <a href="resources.php">Resource Management</a>
+                            <a
+                                href="resources.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>">Resource
+                                Management</a>
 
                             <i class="fa-solid fa-chevron-right"></i>
-                            <a href="resourceSupply.php">Supplies</a>
+                            <a
+                                href="resourceSupply.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>">Supplies</a>
                         </div>
 
-                        
+
 
 
                         <!-- <a class="addBg-admin" href="addEvacuees.php">
@@ -173,25 +236,24 @@
                 <div class="main-container overview">
 
                     <special-navbar></special-navbar>
-                    
                     <div class="supplySearch">
-                        <input type="text" placeholder="Search...">
+                        <input type="text" id="supply-search" placeholder="Search supply by name..."
+                            onkeyup="filterSupplies()">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </div>
 
                     <ul class="supply-filter">
-                        <li class="active">All</li>
-                        <li>Food</li>
-                        <li>Drinks</li>
-                        <li>Clothes</li>
-                        <li>Ayuda pack</li>
-                        <li class="addCategory" style="background-color: transparent;">
+                        <li class="active" data-category-id="all">All</li>
+                        <?php foreach ($categories as $category): ?>
+                            <li data-category-id="<?php echo htmlspecialchars($category['id']); ?>">
+                                <?php echo htmlspecialchars($category['name']); ?>
+                            </li>
+                        <?php endforeach; ?>
+                        <li class="addCategory" data-category-id="all" style="background-color: transparent;">
                             <label for="category-modal">
-                                <!-- <i class="fa-solid fa-plus"></i> -->
                                 <i class="fa-solid fa-ellipsis-vertical"></i>
                             </label>
                             <input type="checkbox" id="category-modal" class="category-modal">
-
                             <div class="modalCategory">
                                 <div class="categoryOption">
                                     <button class="supplyAdd">Add Supply</button>
@@ -206,87 +268,103 @@
                         </li>
                     </ul>
 
+
+
                     <!-- popup supply add -->
                     <div class="addForm-supply">
                         <button class="closeForm"><i class="fa-solid fa-xmark"></i></button>
-                        <form action="" class="supplyForm">
+                        <form action="../endpoints/add_supply.php" method="post" enctype="multipart/form-data"
+                            class="supplyForm">
+
                             <h3>Add Supply</h3>
+                            <input type="hidden" name="admin_id" value="<?php echo htmlspecialchars($adminId); ?>">
+                            <input type="hidden" name="evacuation_center_id"
+                                value="<?php echo htmlspecialchars($evacuationCenterId); ?>">
+                            <input type="hidden" name="evacuation_center_name" id="evacuationCenterName"
+                                value="<?php echo htmlspecialchars($evacuationCenter['name']); ?>" readonly>
                             <div class="addInput-wrapper">
                                 <div class="add-input">
-                                    <label for="">Supply Name: </label>
-                                    <input type="text" required>
+                                    <label for="supplyName">Supply Name:</label>
+                                    <input type="text" name="name" id="supplyName" required>
                                 </div>
-    
+
                                 <div class="add-input">
-                                    <label for="">Category: </label>
-                                    <select name="" id="" required>
+                                    <label for="category">Category:</label>
+                                    <select name="category_id" id="category" required>
                                         <option value="">Select</option>
-                                        <option value="">Ayuda Pack</option>
-                                        <option value="">Food</option>
+                                        <?php foreach ($categories as $category): ?>
+                                            <option value="<?php echo htmlspecialchars($category['id']); ?>">
+                                                <?php echo htmlspecialchars($category['name']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
                                     </select>
                                 </div>
-    
+
                                 <div class="add-input">
-                                    <label for="">Date: </label>
-                                    <input type="date" required>
+                                    <label for="date">Date:</label>
+                                    <input type="date" name="date" id="date" required>
                                 </div>
 
                                 <div class="add-input">
-                                    <label for="">Time: </label>
-                                    <input type="time" required>
-                                </div>
-    
-                                <div class="add-input">
-                                    <label for="">From: </label>
-                                    <input type="text" required>
-                                </div>
-    
-                                <div class="add-input">
-                                    <label for="">Quantity: </label>
-                                    <input type="number" class="piece" placeholder="Enter amount by piece" required>
-                                    <input type="number" class="pack" placeholder="Enter amount by pack" required>
-
-                                    <ul class="selectQuantity">
-                                        <li class="perPiece">By piece</li>
-                                        <li class="perPack">By pack</li>
-                                    </ul>
-
+                                    <label for="time">Time:</label>
+                                    <input type="time" name="time" id="time" required>
                                 </div>
 
                                 <div class="add-input">
-                                    <label for="">Add Photo: </label>
-                                    <input type="file" required>
+                                    <label for="from">From:</label>
+                                    <input type="text" name="from" id="from" required>
                                 </div>
-    
+
                                 <div class="add-input">
-                                    <label for="">Description: </label>
-                                    <input type="text" required>
+                                    <label for="quantity">Quantity:</label>
+                                    <input type="number" name="quantity" id="quantity" placeholder="Enter quantity"
+                                        required>
+                                </div>
+                                <div class="add-input">
+                                    <label for="unit">Unit:</label>
+                                    <select name="unit" id="unit" id="unit" required>
+                                        <option value="">Select</option>
+                                        <option value="piece">Piece</option>
+                                        <option value="pack">Pack</option>
+                                    </select>
+                                </div>
+
+                                <div class="add-input">
+                                    <label for="image">Add Photo:</label>
+                                    <input type="file" name="image" id="image" required>
+                                </div>
+
+                                <div class="add-input">
+                                    <label for="description">Description:</label>
+                                    <input type="text" name="description" id="description" required>
                                 </div>
                             </div>
 
-                            <button class="mainBtn">Add Supply</button>
+                            <button type="button" class="mainBtn">Add Supply</button>
                         </form>
+
                     </div>
 
                     <!-- popup category add -->
                     <div class="addForm-category">
-                        <form action="" class="categoryForm">
+                        <form action="../endpoints/add_category_worker.php" method="POST" class="categoryForm">
                             <button class="closeCategory"><i class="fa-solid fa-xmark"></i></button>
                             <h3>Add Category</h3>
                             <div class="addInput-wrapper">
                                 <div class="add-input category">
-                                    <label for="">Category: </label>
-                                    <input type="text" required>
+                                    <label for="category">Category: </label>
+                                    <input type="text" name="category" required>
                                 </div>
-    
-                                
                             </div>
-
-                            <button class="mainBtn category" style="width: 100%;">Add Category</button>
+                            <input type="hidden" name="admin_id" value="<?php echo htmlspecialchars($adminId); ?>">
+                            <input type="hidden" name="evacuation_center_id"
+                                value="<?php echo htmlspecialchars($evacuationCenterId); ?>">
+                            <input type="hidden" name="worker_id" value="<?php echo htmlspecialchars($workerId); ?>">
+                            <button type="button" class="mainBtn category" style="width: 100%;">Add Category</button>
                         </form>
 
-                        <table class="listCategory">
 
+                        <table class="listCategory">
                             <thead>
                                 <button class="closeManage"><i class="fa-solid fa-xmark"></i></button>
                                 <tr>
@@ -294,101 +372,56 @@
                                     <th colspan="2" style="text-align: center;">Action</th>
                                 </tr>
                             </thead>
-                                <tr>
-                                    <td>Food</td>
-                                    <td><button class="categoryCTA">Edit</button></td>
-                                    <td><button class="categoryCTA">Delete</button></td>
-                                </tr>
-
-                                <tr>
-                                    <td>Food, canton, etc ambut</td>
-                                    <td><button class="categoryCTA">Edit</button></td>
-                                    <td><button class="categoryCTA">Delete</button></td>
-                                </tr>
                             <tbody>
-
+                                <?php foreach ($categories as $category): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($category['name']); ?></td>
+                                        <td>
+                                            <button class="categoryCTA"
+                                                onclick="editCategory(<?php echo $category['id']; ?>, '<?php echo htmlspecialchars($category['name'], ENT_QUOTES); ?>')">Edit</button>
+                                        </td>
+                                        <td>
+                                            <button class="categoryCTA"
+                                                onclick="deleteCategory(<?php echo $category['id']; ?>)">Delete</button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
                             </tbody>
+
                         </table>
 
-                        
+
+
                     </div>
-                    
 
-                    <div class="supply-container">
-                        <div class="supply-wrapper">
-                            <!-- <div class="supply-card add">
-                                
-                                <a href="#" class="supply-add">
-                                    <i class="fa-solid fa-plus"></i>
-                                </a>
-                            </div> -->
-                            <div class="supply-card">
-                                
-                                <img class="supply-img" src="../../assets/img/canton.png" alt="">
-                                <ul class="supply-info">
-                                    <li>Name: Pancit Canton</li>
-                                    <li>Description: basta lucky me pancit canton ito</li>
-                                    <li>Quantity: 100 packs</li>
-                                </ul>
-                                <a href="viewSupply.php" class="supply-btn">View Details</a>
-                            </div>
+                    <div class="supply-wrapper">
+                        <?php if ($supplyResult->num_rows > 0): ?>
+                            <?php while ($supply = $supplyResult->fetch_assoc()): ?>
+                                <div class="supply-card" data-category="<?php echo htmlspecialchars($supply['category_id']); ?>"
+                                    data-name="<?php echo strtolower(htmlspecialchars($supply['name'])); ?>">
 
-                            <div class="supply-card">
-                                <img class="supply-img" src="../../assets/img/canton.png" alt="">
-                                <ul class="supply-info">
-                                    <li>Name: Pancit Canton</li>
-                                    <!-- <li>Description: basta lucky me pancit canton ito</li> -->
-                                     <li>Description: </li>
-                                    <li>Quantity: 10 pieces <span style="color: var(--clr-red);">(Low stock)</span></li>
-                                </ul>
-                                <a href="#" class="supply-btn">View Details</a>
-                            </div>
+                                    <?php
+                                    $imagePath = !empty($supply['image']) ? "../../assets/img/" . htmlspecialchars($supply['image']) : "../../assets/img/supplies.png";
+                                    ?>
+                                    <img class="supply-img" src="<?php echo $imagePath; ?>" alt="">
+                                    <ul class="supply-info">
+                                        <li>Name: <?php echo htmlspecialchars($supply['name']); ?></li>
+                                        <li>Description: <?php echo htmlspecialchars($supply['description']); ?></li>
+                                        <li>Quantity:
+                                            <?php echo htmlspecialchars($supply['total_quantity']) . ' ' . htmlspecialchars($supply['unit']); ?>s
+                                        </li>
+                                    </ul>
+                                    <a href="viewSupply.php?id=<?php echo htmlspecialchars($supply['id']); ?>&center_id=<?php echo htmlspecialchars($evacuationCenterId); ?>&worker_id=<?php echo htmlspecialchars($workerId); ?>"
+                                        class="supply-btn">View Details</a>
 
-                            <div class="supply-card">
-                                <img class="supply-img" src="../../assets/img/canton.png" alt="">
-                                <ul class="supply-info">
-                                    <li>Name: Pancit Canton</li>
-                                    <li>Description: basta lucky me pancit canton ito</li>
-                                    <li>Quantity: 100 packs</li>
-                                </ul>
-                                <a href="#" class="supply-btn">View Details</a>
-                            </div>
-
-                            <div class="supply-card">
-                                <img class="supply-img" src="../../assets/img/canton.png" alt="">
-                                <ul class="supply-info">
-                                    <li>Name: Pancit Canton</li>
-                                    <li>Description: basta lucky me pancit canton ito</li>
-                                    <li>Quantity: 100 pieces</li>
-                                </ul>
-                                <a href="#" class="supply-btn">View Details</a>
-                            </div>
-
-                            <div class="supply-card">
-                                <img class="supply-img" src="../../assets/img/canton.png" alt="">
-                                <ul class="supply-info">
-                                    <li>Name: Pancit Canton</li>
-                                    <li>Description: basta lucky me pancit canton ito</li>
-                                    <li>Quantity: 100 pieces</li>
-                                </ul>
-                                <a href="#" class="supply-btn">View Details</a>
-                            </div>
-
-                            <div class="supply-card">
-                                <img class="supply-img" src="../../assets/img/canton.png" alt="">
-                                <ul class="supply-info">
-                                    <li>Name: Pancit Canton</li>
-                                    <li>Description: basta lucky me pancit canton ito</li>
-                                    <li>Quantity: 100 packs</li>
-                                </ul>
-                                <a href="#" class="supply-btn">View Details</a>
-                            </div>
-                        </div>
+                                </div>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <p>No Supplies Yet.</p>
+                        <?php endif; ?>
                     </div>
-                   
 
 
-                    
                 </div>
             </div>
         </main>
@@ -397,45 +430,87 @@
 
     <!-- filter active -->
     <script>
-        const supplyFiler = document.querySelectorAll('.supply-filter li');
+        function filterSupplies() {
+            const searchInput = document.getElementById('supply-search').value.toLowerCase();
+            const supplyCards = document.querySelectorAll('.supply-card');
 
-        supplyFiler.forEach(item => {
-            item.addEventListener('click', function() {
-                //check if the item is clicked
-                if (this.classList.contains('active')) {
-                    //if active, remove active class
-                    this.classList.remove('active');
+            supplyCards.forEach(card => {
+                const supplyName = card.getAttribute('data-name');
+                if (supplyName.includes(searchInput)) {
+                    card.style.display = 'block';
                 } else {
-                    // if not, first remove active
-                    supplyFiler.forEach(i => i.classList.remove('active'));
-
-                    // then add actgive if clicked
-                    this.classList.add('active');
+                    card.style.display = 'none';
                 }
-            })
-        })
+            });
+        }
+
+        const supplyFilter = document.querySelectorAll('.supply-filter li');
+        const supplyCards = document.querySelectorAll('.supply-card');
+
+        supplyFilter.forEach(item => {
+            item.addEventListener('click', function () {
+                // Remove active class from all filter items
+                supplyFilter.forEach(i => i.classList.remove('active'));
+
+                // Add active class to the clicked filter item
+                this.classList.add('active');
+
+                // Get the category ID from the clicked item
+                const categoryId = this.getAttribute('data-category-id');
+
+                // Filter supply cards based on the selected category
+                supplyCards.forEach(card => {
+                    const cardCategory = card.getAttribute('data-category');
+
+                    if (categoryId === 'all' || cardCategory === categoryId) {
+                        card.style.display = 'block'; // Show the card if it matches
+                    } else {
+                        card.style.display = 'none'; // Hide the card if it doesn't match
+                    }
+                });
+            });
+        });
+
     </script>
+
 
     <!-- select type of quantity -->
     <script>
-        const selectQuantity = document.querySelector('.selectQuantity');
-        const perPieceBtn = document.querySelector('.perPiece');
-        const perPackBtn = document.querySelector('.perPack');
+        document.querySelector('.mainBtn').addEventListener('click', () => {
+            Swal.fire({
+                title: "Add Supply?",
+                icon: "info",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData(document.querySelector('.supplyForm'));
 
-        const inputPiece = document.querySelector('.piece');
-        const inputPack = document.querySelector('.pack');
-
-        perPieceBtn.addEventListener('click', function() {
-            selectQuantity.style.display = 'none';
-            inputPiece.style.display = 'block';
-        })
-
-        perPackBtn.addEventListener('click', function() {
-            selectQuantity.style.display = 'none';
-            inputPack.style.display = 'block';
+                    $.ajax({
+                        url: '../endpoints/add_supply.php',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+                            Swal.fire("Success!", "Supply successfully added.", "success");
+                        },
+                        error: function () {
+                            Swal.fire("Error", "There was a problem adding the supply.", "error");
+                        }
+                    });
+                }
+            });
         });
+
+
+
     </script>
 
+    <!-- sweetalerts import js -->
+    <script src="../../includes/modals.js"></script>
 
     <!-- sidebar import js -->
     <script src="../../includes/sidebarWokers.js"></script>
@@ -452,9 +527,8 @@
     <!-- sidebar menu -->
     <script src="../../assets/src/utils/menu-btn.js"></script>
 
-
     <script>
-                
+
         const supplyBtn = document.querySelector('.supplyAdd');
         const categoryBtn = document.querySelector('.categoryAdd');
         const supplyForm = document.querySelector('.addForm-supply');
@@ -463,7 +537,7 @@
         const closeCategoryForm = document.querySelector('.closeCategory');
         const modalOption = document.querySelector('.category-modal');
         const body = document.querySelector('body'); // to get the body element
-        
+
 
         const categoryManageBtn = document.querySelector('.categoryManage');
         const categoryHide = document.querySelector('.categoryForm');
@@ -472,18 +546,18 @@
 
 
         // add supply
-        supplyBtn.addEventListener('click', function() {
+        supplyBtn.addEventListener('click', function () {
             supplyForm.style.display = 'block';
 
             // If modalOption is an input (checkbox or radio button), uncheck it
             if (modalOption.type === 'checkbox' || modalOption.type === 'radio') {
                 modalOption.checked = false; // Uncheck the input
             }
-            
+
             body.classList.add('body-overlay'); // add the overlay class to the body
         });
 
-        closeForm.addEventListener('click', function() {
+        closeForm.addEventListener('click', function () {
             supplyForm.style.display = 'none';
             body.classList.remove('body-overlay'); // remove the overlay class to the body
         });
@@ -491,7 +565,7 @@
 
 
         // add category
-        categoryBtn.addEventListener('click', function() {
+        categoryBtn.addEventListener('click', function () {
             categoryForm.style.display = 'block';
             categoryHide.style.display = 'block';
             viewManageCategory.style.display = 'none';
@@ -501,11 +575,11 @@
             if (modalOption.type === 'checkbox' || modalOption.type === 'radio') {
                 modalOption.checked = false; // Uncheck the input
             }
-            
+
             body.classList.add('body-overlay'); // add the overlay class to the body
         });
 
-        closeCategoryForm.addEventListener('click', function() {
+        closeCategoryForm.addEventListener('click', function () {
             categoryForm.style.display = 'none';
             body.classList.remove('body-overlay'); // remove the overlay class to the body
         });
@@ -513,7 +587,7 @@
 
 
         // view category
-        categoryManageBtn.addEventListener('click', function() {
+        categoryManageBtn.addEventListener('click', function () {
             categoryForm.style.display = 'block';
             categoryHide.style.display = 'none';
             viewManageCategory.style.display = 'block';
@@ -524,11 +598,11 @@
             if (modalOption.type === 'checkbox' || modalOption.type === 'radio') {
                 modalOption.checked = false; // Uncheck the input
             }
-            
+
             body.classList.add('body-overlay'); // add the overlay class to the body
         });
 
-        closeManage.addEventListener('click', function() {
+        closeManage.addEventListener('click', function () {
             categoryForm.style.display = 'none';
             body.classList.remove('body-overlay'); // remove the overlay class to the body
         });
@@ -536,67 +610,30 @@
 
     <!-- sweetalert popup messagebox -->
     <script>
-        $('.mainBtn').on('click', function() {
-            Swal.fire({
-            title: "Add Supply?",
-            text: "",
-            icon: "info",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes",
-            customClass: {
-                popup: 'custom-swal-popup' //to customize the style
-            }
 
-            }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                title: "Success!",
-                text: "Supply successfully added.",
-                icon: "success",
+
+        $('.mainBtn.category').on('click', function () {
+            Swal.fire({
+                title: "Add Category?",
+                text: "",
+                icon: "info",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes",
                 customClass: {
                     popup: 'custom-swal-popup'
                 }
-                });
-            }
-            });
-
-        })
-    </script>
-
-    <script>
-        $('.mainBtn.category').on('click', function() {
-            Swal.fire({
-            title: "Add Category?",
-            text: "",
-            icon: "info",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes",
-            customClass: {
-                popup: 'custom-swal-popup' //to customize the style
-            }
-
             }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                title: "Success!",
-                text: "Category successfully added.",
-                icon: "success",
-                customClass: {
-                    popup: 'custom-swal-popup'
+                if (result.isConfirmed) {
+                    // Submit the form
+                    $('.categoryForm').submit();
                 }
-                });
-            }
             });
+        });
 
-        })
     </script>
 
-    
-    
-    
 </body>
+
 </html>
