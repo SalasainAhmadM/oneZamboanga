@@ -168,7 +168,7 @@
 
   </section>
 
-  <footer class="container"></footer>
+  <!-- <footer class="container"></footer> -->
 
   <button id="backToTop" onclick="scrollToTop()">↑ Back to Top</button>
 
