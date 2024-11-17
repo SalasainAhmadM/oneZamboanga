@@ -105,11 +105,13 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
 
                     <div class="resource-container">
                         <div class="resource-wrapper">
-                            <a href="resourceSupply.php" class="resource-card">
+                            <a href="resourceSupply.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>"
+                                class="resource-card">
                                 Supplies
                             </a>
 
-                            <a href="resourceDistribution.php" class="resource-card">
+                            <a href="resourceDistribution.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>"
+                                class="resource-card">
                                 Distribution
                             </a>
                         </div>

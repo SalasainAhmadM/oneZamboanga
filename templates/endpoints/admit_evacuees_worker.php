@@ -3,8 +3,23 @@ session_start();
 include("../../connection/conn.php");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
-    $admin_id = $_SESSION['user_id'];
+    $worker_id = $_SESSION['user_id'];
 
+    // Retrieve the admin_id associated with the worker
+    $adminIdQuery = "SELECT admin_id FROM worker WHERE id = ?";
+    $adminStmt = $conn->prepare($adminIdQuery);
+    $adminStmt->bind_param("i", $worker_id);
+    $adminStmt->execute();
+    $adminResult = $adminStmt->get_result();
+    $adminData = $adminResult->fetch_assoc();
+    $admin_id = $adminData['admin_id'] ?? null;
+
+    if (!$admin_id) {
+        $_SESSION['message'] = "Admin ID not found for this worker.";
+        $_SESSION['message_type'] = "error";
+        header("Location: ../communityWorker/evacueesForm.php?id=$evacuation_center&worker_id=$worker_id");
+        exit();
+    }
     // Retrieve and sanitize inputs for the main evacuee
     $evacuation_center = $_POST['evacuation_center'];
     $barangay = $_POST['barangay'];
@@ -95,15 +110,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
 
         // Insert into `feeds` table
         $feed_msg = "$first_name $middle_name $last_name admitted to $evacuation_center_name.";
-        $feeds_sql = "INSERT INTO feeds (logged_in_id, user_type, feed_msg, status) VALUES (?, 'admin', ?, 'notify')";
+        $feeds_sql = "INSERT INTO feeds (logged_in_id, user_type, feed_msg, status) VALUES (?, 'worker', ?, 'notify')";
         $feeds_stmt = $conn->prepare($feeds_sql);
-        $feeds_stmt->bind_param("is", $admin_id, $feed_msg);
+        $feeds_stmt->bind_param("is", $worker_id, $feed_msg);
         $feeds_stmt->execute();
 
         // Set session success message
         $_SESSION['message'] = "Evacuees admitted successfully.";
         $_SESSION['message_type'] = "success";
-        header("Location: ../barangay/evacueesForm.php?id=$evacuation_center");
+        header("Location: ../communityWorker/evacueesForm.php?id=$evacuation_center&worker_id=$worker_id");
         exit();
 
     } catch (Exception $e) {
@@ -113,13 +128,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
         // Set session failure message
         $_SESSION['message'] = "Failed to admit evacuee: " . $e->getMessage();
         $_SESSION['message_type'] = "error";
-        header("Location: ../barangay/evacueesForm.php?id=$evacuation_center");
+        header("Location: ../communityWorker/evacueesForm.php?id=$evacuation_center&worker_id=$worker_id");
         exit();
     }
 } else {
     $_SESSION['message'] = "Invalid request.";
     $_SESSION['message_type'] = "error";
-    header("Location: ../barangay/evacueesForm.php?id=$evacuation_center");
+    header("Location: ../communityWorker/evacueesForm.php?id=$evacuation_center&worker_id=$worker_id");
     exit();
 }
 ?>

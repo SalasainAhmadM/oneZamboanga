@@ -1,5 +1,47 @@
+<?php
+session_start();
+include("../../connection/conn.php");
+
+if (isset($_GET['id']) && isset($_GET['worker_id'])) {
+    $evacuationCenterId = intval($_GET['id']);
+} else {
+}
+if (isset($_SESSION['user_id'])) {
+    $worker_id = $_SESSION['user_id'];
+
+    // Fetch the worker's details from the database
+    $sql = "SELECT first_name, middle_name, last_name, extension_name, username, email, image, proof_image, gender, city, barangay, contact, position 
+            FROM worker 
+            WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $worker_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $worker = $result->fetch_assoc();
+        $worker_name = trim($worker['first_name'] . ' ' . $worker['middle_name'] . ' ' . $worker['last_name'] . ' ' . $worker['extension_name']);
+        $barangay = $worker['barangay'];
+    } else {
+        header("Location: ../../login.php");
+        exit;
+    }
+} else {
+    header("Location: ../../login.php");
+    exit;
+}
+// Fetch the evacuation center name
+$evacuationCenterSql = "SELECT name FROM evacuation_center WHERE id = ?";
+$evacuationCenterStmt = $conn->prepare($evacuationCenterSql);
+$evacuationCenterStmt->bind_param("i", $evacuationCenterId);
+$evacuationCenterStmt->execute();
+$evacuationCenterResult = $evacuationCenterStmt->get_result();
+$evacuationCenter = $evacuationCenterResult->fetch_assoc();
+
+?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +52,7 @@
     <link rel="stylesheet" href="../../assets/fontawesome/all.css">
     <link rel="stylesheet" href="../../assets/fontawesome/fontawesome.min.css">
     <!--styles-->
-    
+
     <link rel="stylesheet" href="../../assets/styles/style.css">
     <link rel="stylesheet" href="../../assets/styles/utils/dashboard.css">
     <link rel="stylesheet" href="../../assets/styles/utils/ecenter.css">
@@ -19,7 +61,8 @@
     <link rel="stylesheet" href="../../assets/styles/utils/messagebox.css">
 
     <!-- jquery cdn -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 
     <!-- sweetalert cdn -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -28,10 +71,22 @@
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
-<body>
 
+<body>
+    <?php
+    if (isset($_SESSION['message'])) {
+        echo "<script>
+            Swal.fire({
+                icon: '{$_SESSION['message_type']}',
+                title: '{$_SESSION['message']}'
+            });
+          </script>";
+        unset($_SESSION['message']);
+        unset($_SESSION['message_type']);
+    }
+    ?>
     <div class="container">
-        
+
         <aside class="left-section">
             <special-logo></special-logo>
             <!-- <div class="logo">
@@ -61,14 +116,15 @@
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="viewAssignedEC.php">Tetuan Central School</a>
+                            <a
+                                href="viewAssignedEC.php?id=<?php echo $evacuationCenterId; ?>"><?php echo $evacuationCenter['name']; ?></a>
 
                             <!-- next page -->
                             <i class="fa-solid fa-chevron-right"></i>
                             <a href="#">Add Evacuees</a>
                         </div>
 
-                        
+
 
 
                         <!-- <a class="addBg-admin" href="../admin/addAdmin.php">
@@ -89,44 +145,42 @@
                             <h3>DISASTER ASSITANCE FAMILY ACCESS CARD (DAFAC)</h3>
                         </div>
 
-                        <form action="">
+
+                        <form action="../endpoints/admit_evacuees_worker.php" method="POST"
+                            enctype="multipart/form-data">
                             <div class="ec-info">
                                 <div class="ecInfo">
-                                    <label for="">Evacuation Center</label>
+                                    <label for="evacuation_center">Evacuation Center</label>
                                     <span>:</span>
-                                    <!-- <input type="text" required> -->
-                                    <select name="" id=""> <!--dapat dito ma dropdown lahat ng list of evacuation center-->
-                                        <option value="">Select</option>
-                                        <option value="">Tetuan Central School</option>
-                                        <option value="">Sta Maria Evacuation Center</option>
-                                    </select>
+                                    <input type="text" name="evacuation_center_name" id="evacuation_center_name"
+                                        value="<?php echo htmlspecialchars($evacuationCenter['name']); ?>" readonly>
+                                    <input type="hidden" name="evacuation_center" id="evacuation_center"
+                                        value="<?php echo $evacuationCenterId; ?>">
                                 </div>
+
                                 <div class="ecInfo">
-                                    <label for="">Barangay</label>
+                                    <label for="barangay">Barangay</label>
                                     <span>:</span>
-                                    <select name="" id="" required> <!--dapat dito maka input/type din pra mabilis makapili ng option-->
-                                        <option value="">Select</option>
-                                        <option value="">Tetuan</option>
-                                        <option value="">Tugbungan</option>
-                                    </select>
-                                    <!-- <input type="text" required> -->
+                                    <input type="text" name="barangay" id="barangay"
+                                        value="<?= htmlspecialchars($barangay); ?>" required>
                                 </div>
-                                
+
                                 <div class="ecInfo">
-                                    <label for="">Type of Disaster</label>
+                                    <label for="disaster">Type of Disaster</label>
                                     <span>:</span>
-                                    <select name="disaster" id="dSelect" onchange="toggleInput()" required>
+                                    <select name="disaster" id="dSelect" onchange="toggleInput()">
                                         <option value="">Select</option>
-                                        <option value="flood">Flood Incident</option>
-                                        <option value="fire">Fire Incident</option>
+                                        <option value="Flood">Flood Incident</option>
+                                        <option value="Fire">Fire Incident</option>
                                         <option value="others">Others</option>
                                     </select>
-                                    <input type="text" placeholder="Specify.." id="dInput" style="display: none;">
+                                    <input type="text" name="disaster_specify" placeholder="Specify.." id="dInput"
+                                        style="display: none;">
                                 </div>
                                 <div class="ecInfo">
-                                    <label for="">Date</label>
+                                    <label for="date">Date</label>
                                     <span>:</span>
-                                    <input type="date" required>
+                                    <input name="date" type="date" required>
                                 </div>
                             </div>
 
@@ -134,53 +188,55 @@
                                 <label for="">Name of Family Head:</label>
                                 <div class="details-container">
                                     <div class="headFam-details">
-                                        <input type="text" required>
-                                        <label class="details" for="">Last Name</label>
+                                        <input type="text" name="last_name" id="lastName" required>
+                                        <label class="details" for="last_name">Last Name</label>
                                     </div>
                                     <div class="headFam-details">
-                                        <input type="text" required>
-                                        <label class="details" for="">First Name</label>
+                                        <input type="text" name="first_name" id="firstName" required>
+                                        <label class="details" for="first_name">First Name</label>
                                     </div>
                                     <div class="headFam-details">
-                                        <input type="text" required>
-                                        <label class="details" for="">Middle Name</label>
+                                        <input type="text" name="middle_name" id="middleName" required>
+                                        <label class="details" for="middle_name">Middle Name</label>
                                     </div>
                                     <div class="headFam-details">
-                                        <input type="text" class="age" required>
-                                        <label class="details" for="">Extension</label>
+                                        <input type="text" name="extension_name" class="age" id="extensionName">
+                                        <label class="details" for="extension_name">Extension</label>
                                     </div>
-                                    
                                 </div>
 
                                 <div class="occupation-container">
                                     <div class="headFam-details">
-                                        <input type="date" class="age" required>
-                                        <label class="details" for="">Birthdate</label>
+                                        <input type="date" name="birthday" class="age" required>
+                                        <label class="details" for="birthday">Birthdate</label>
                                     </div>
 
                                     <div class="headFam-details">
-                                        <input type="number" class="age" required>
-                                        <label class="details" for="">Age</label>
+                                        <input type="number" name="age_head" class="age" required>
+                                        <label class="details" for="age_head">Age</label>
                                     </div>
 
                                     <div class="headFam-details">
-                                        <!-- <input type="number" class="age" required> -->
-                                        <select name="" id="" required class="age">
+                                        <select name="gender_head" class="age" required>
                                             <option value="">Select</option>
-                                            <option value="">Male</option>
-                                            <option value="">Female</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
                                         </select>
-                                        <label class="details" for="">Sex</label>
+                                        <label class="details" for="gender_head">Sex</label>
                                     </div>
-
                                     <div class="occupation">
-                                        <label for="">Occupation:</label>
-                                        <input type="text" required>
+                                        <label for="occupation_head">Occupation:</label>
+                                        <input type="text" name="occupation_head" required>
                                     </div>
 
                                     <div class="income">
-                                        <label for="">Total Monthly Income:</label>
-                                        <input type="number" required>
+                                        <label for="monthly_income">Total Monthly Income:</label>
+                                        <input type="number" name="monthly_income" required>
+                                    </div>
+                                    <div class="contact">
+                                        <label for="contact">Contact Number:</label>
+                                        <input type="number" name="contact" id="contact" pattern="[0-9]{10,15}"
+                                            placeholder="e.g., 09123456789" required>
                                     </div>
                                 </div>
 
@@ -189,113 +245,104 @@
                                         <div class="titleStat">
                                             <p>Status of Occupancy:</p>
                                         </div>
-    
                                         <div class="checkbox-info">
-                                            <input type="checkbox">
-                                            <label for="">House Owner</label>
+                                            <input type="checkbox" name="position" value="Owner" id="houseOwnerCheckbox"
+                                                onclick="fillHouseOwner()">
+                                            <label for="position">House Owner</label>
                                         </div>
                                         <div class="checkbox-info">
-                                            <input type="checkbox">
-                                            <label for="">Sharer</label>
+                                            <input type="checkbox" name="position" value="Sharer">
+                                            <label for="position">Sharer</label>
                                         </div>
                                         <div class="checkbox-info">
-                                            <input type="checkbox">
-                                            <label for="">Renter</label>
+                                            <input type="checkbox" name="position" value="Renter">
+                                            <label for="position">Renter</label>
                                         </div>
                                         <div class="checkbox-info">
-                                            <input type="checkbox">
-                                            <label for="">Boarder</label>
+                                            <input type="checkbox" name="position" value="Boarder">
+                                            <label for="position">Boarder</label>
                                         </div>
                                     </div>
-    
+
                                     <div class="damaged">
                                         <div class="titleStat">
                                             <p>Damaged:</p>
                                         </div>
-    
                                         <div class="checkbox-info">
-                                            <input type="checkbox">
-                                            <label for="">Totally Damaged</label>
+                                            <input type="checkbox" name="damage[]" value="totally">
+                                            <label for="damage">Totally Damaged</label>
                                         </div>
                                         <div class="checkbox-info">
-                                            <input type="checkbox">
-                                            <label for="">Partially Damaged</label>
+                                            <input type="checkbox" name="damage[]" value="partially">
+                                            <label for="damage">Partially Damaged</label>
                                         </div>
                                         <div class="checkbox-info">
-                                            <label for="">Estimated Cost of Damaged:</label>
-                                            <input type="number" required>
+                                            <label for="cost_damage">Estimated Cost of Damaged:</label>
+                                            <input type="number" name="cost_damage">
                                         </div>
-                                        
                                     </div>
                                 </div>
 
                                 <div class="owner">
-                                    <label for="">Name of House owner:</label>
-                                    <input type="text" required>
+                                    <label for="house_owner">Name of House owner:</label>
+                                    <input type="text" name="house_owner" id="houseOwner" required>
                                 </div>
                             </div>
 
-                            <div class="addMembers-container">
+                            <div class="addMembers-container" id="addMembersContainer">
                                 <p class="memberTitle">Add Members:</p>
-                                <div class="member-details">
-
+                                <div class="member-details" id="memberDetailsContainer">
                                     <div class="member-input">
-                                        <label for="">Last Name: </label>
-                                        <input type="text">
+                                        <label>Last Name: </label>
+                                        <input type="text" name="lastName[]">
                                     </div>
-
                                     <div class="member-input">
-                                        <label for="">First Name: </label>
-                                        <input type="text">
+                                        <label>First Name: </label>
+                                        <input type="text" name="firstName[]">
                                     </div>
-
                                     <div class="member-input">
-                                        <label for="">Middle Name: </label>
-                                        <input type="text">
+                                        <label>Middle Name: </label>
+                                        <input type="text" name="middleName[]">
                                     </div>
-
                                     <div class="member-input">
-                                        <label for="">Extension: </label>
-                                        <input type="text" placeholder="e.g., Jr.">
+                                        <label>Extension: </label>
+                                        <input type="text" placeholder="e.g., Jr." name="extension[]">
                                     </div>
-
                                     <div class="member-input">
-                                        <label for="">Relation to Family Head:</label>
-                                        <input type="text">
+                                        <label>Relation to Family Head:</label>
+                                        <input type="text" name="relation[]">
                                     </div>
-
                                     <div class="member-input">
-                                        <label for="">Age:</label>
-                                        <input type="number">
+                                        <label>Age:</label>
+                                        <input type="number" name="age[]">
                                     </div>
-
                                     <div class="member-input">
-                                        <label for="">Gender:</label>
-                                        <select name="gender" id="">
+                                        <label>Gender:</label>
+                                        <select name="gender[]">
                                             <option value="">Select</option>
-                                            <option value="male">Male</option>
-                                            <option value="female">Female</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
                                         </select>
                                     </div>
-
                                     <div class="member-input">
-                                        <label for="">Education:</label>
-                                        <input type="text">
+                                        <label>Education:</label>
+                                        <input type="text" name="education[]">
                                     </div>
-
                                     <div class="member-input">
-                                        <label for="">Occupation:</label>
-                                        <input type="text">
+                                        <label>Occupation:</label>
+                                        <input type="text" name="occupation[]">
                                     </div>
                                 </div>
-                                <button class="mainBtn">Add More</button>
                             </div>
 
+                            <div id="membersContainer"></div>
+                            <button onclick="addMemberForm(event)" class="addBtn">Add Member</button>
 
                             <div class="addEvacuees">
-                                <button class="mainBtn" id="create">Admit</button>
+                                <button type="submit" class="mainBtn" id="create">Admit</button>
                             </div>
                         </form>
+
                     </div>
                 </div>
             </div>
@@ -303,6 +350,47 @@
 
     </div>
 
+    <script>
+        function validateForm(event) {
+            event.preventDefault(); // Prevent form submission until validated
+
+            // Validate required fields
+            const evacuationCenter = document.getElementById('evacuation_center').value;
+            const barangay = document.getElementById('barangay').value;
+            const firstName = document.querySelector('input[name="first_name"]').value;
+            const lastName = document.querySelector('input[name="last_name"]').value;
+            const disaster = document.getElementById('dSelect').value;
+
+            if (!evacuationCenter || !barangay || !firstName || !lastName) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Please fill in all required fields.',
+                });
+            } else if (!disaster) { // Check if a disaster type is selected
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Please indicate the type of disaster.',
+                });
+            } else {
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Confirm Submission',
+                    text: 'Are you sure you want to submit this form?',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, submit',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.querySelector('form').submit(); // Submit the form if confirmed
+                    }
+                });
+            }
+        }
+
+        // Attach event listener to the form's submit button
+        document.querySelector('form').addEventListener('submit', validateForm);
+    </script>
 
     <!-- sidebar import js -->
     <script src="../../includes/sidebarWokers.js"></script>
@@ -317,36 +405,47 @@
     <script src="../../assets/src/utils/menu-btn.js"></script>
 
     <script>
-        $('#create').on('click', function() {
-            Swal.fire({
-            title: "Admit Evacuees?",
-            text: "",
-            icon: "info",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes",
-            customClass: {
-                popup: 'custom-swal-popup' //to customize the style
+        let memberCount = 1;
+
+        function addMemberForm(event) {
+            event.preventDefault();
+
+            if (memberCount >= 20) {
+                alert("Maximum of 20 members reached.");
+                return;
             }
 
-            }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                title: "Success!",
-                text: "",
-                icon: "success",
-                customClass: {
-                    popup: 'custom-swal-popup'
-                }
-                });
-            }
-            });
+            // Clone the member form
+            const memberContainer = document.getElementById("memberDetailsContainer");
+            const clone = memberContainer.cloneNode(true);
 
-        })
+            // Create a wrapper div for each member form and add a delete button
+            const memberWrapper = document.createElement("div");
+            memberWrapper.classList.add("member-wrapper");
+
+            // Add the cloned form and delete button to the wrapper
+            memberWrapper.appendChild(clone);
+
+            // Add a delete button with Fssont Awesome icon
+            const deleteButton = document.createElement("button");
+            deleteButton.innerHTML = '<i class="fa-solid fa-xmark"></i> Remove';
+            deleteButton.classList.add("deleteBtn");
+            deleteButton.onclick = function () {
+                memberWrapper.remove();
+                memberCount--;
+            };
+
+            // Append delete button and line break after the form
+            memberWrapper.appendChild(deleteButton);
+            memberWrapper.appendChild(document.createElement("br"));
+
+            // Append the member wrapper to the main container
+            document.getElementById("membersContainer").appendChild(memberWrapper);
+            memberCount++;
+        }
     </script>
-    
-    
+
+
     <!--select to input js-->
     <script>
         function toggleInput() {
@@ -361,8 +460,8 @@
                 input.style.display = 'none';
             }
         }
-        
-        document.addEventListener('click', function(event) {
+
+        document.addEventListener('click', function (event) {
             var input = document.getElementById('dInput');
             var select = document.getElementById('dSelect');
             if (input.style.display === 'inline' && !input.value) {
@@ -374,9 +473,26 @@
                 }
             }
         });
+
+        function fillHouseOwner() {
+            const checkbox = document.getElementById('houseOwnerCheckbox');
+            const lastName = document.getElementById('lastName').value;
+            const firstName = document.getElementById('firstName').value;
+            const middleName = document.getElementById('middleName').value;
+            const extensionName = document.getElementById('extensionName').value;
+            const houseOwnerField = document.getElementById('houseOwner');
+
+            if (checkbox.checked) {
+                houseOwnerField.value = ` ${firstName} ${middleName} ${lastName} ${extensionName}`.trim();
+            } else {
+                houseOwnerField.value = ''; // Clear the field if the checkbox is unchecked
+            }
+        }
     </script>
 
-    
-    
+    <!-- Include SweetAlert library -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </body>
+
 </html>

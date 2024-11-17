@@ -173,7 +173,8 @@ $monthlyEvacueesJson = json_encode(array_values($monthlyEvacuees));
                         <!-- <a class="addBg-admin" href="addEvacuees.php">
                             <i class="fa-solid fa-plus"></i>
                         </a> -->
-                        <button class="addBg-admin" onclick="window.location.href='evacueesForm.php'">
+                        <button class="addBg-admin"
+                            onclick="window.location.href='evacueesForm.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>'">
                             Admit
                             <!-- <i class="fa-solid fa-plus"></i> -->
                         </button>

@@ -115,7 +115,8 @@ $result = $stmt->get_result();
                             <i class="fa-solid fa-plus"></i>
                         </a> -->
 
-                        <button class="addBg-admin" onclick="window.location.href='evacueesForm.php'">
+                        <button class="addBg-admin"
+                            onclick="window.location.href='evacueesForm.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>'">
                             Admit
                             <!-- <i class="fa-solid fa-plus"></i> -->
                         </button>
@@ -228,7 +229,7 @@ $result = $stmt->get_result();
                                     <?php if ($result->num_rows > 0): ?>
                                         <?php while ($row = $result->fetch_assoc()): ?>
                                             <tr
-                                                onclick="window.location.href='viewEvacuees.php?id=<?php echo $row['evacuee_id']; ?>'">
+                                                onclick="window.location.href='viewEvacuees.php?id=<?php echo $row['evacuee_id']; ?>&center_id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>'">
                                                 <td><?php echo htmlspecialchars($row['family_head']); ?></td>
                                                 <td><?php echo htmlspecialchars($row['contact']); ?></td>
                                                 <td class="ecMembers" style="text-align: center;">
@@ -247,7 +248,7 @@ $result = $stmt->get_result();
                                                 </td>
                                                 <td><?php echo htmlspecialchars($row['disaster_type']); ?></td>
                                                 <td style="text-align: center;">
-                                                    <a href="viewEvacuees.php?id=<?php echo $row['evacuee_id']; ?>"
+                                                    <a href="viewEvacuees.php?id=<?php echo $row['evacuee_id']; ?>&center_id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>"
                                                         class="view-action">View</a>
                                                 </td>
                                             </tr>

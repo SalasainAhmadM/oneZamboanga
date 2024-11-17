@@ -1,8 +1,11 @@
 <?php
 require_once '../../connection/conn.php';
 
-// Get the evacuee ID from the URL
-$evacueeId = $_GET['id'];
+if (isset($_GET['id']) && isset($_GET['center_id']) && isset($_GET['worker_id'])) {
+    $evacueeId = intval($_GET['id']);
+    $centerId = intval($_GET['center_id']);
+    $workerId = intval($_GET['worker_id']);
+}
 
 // Fetch the main evacuee details
 $query = "SELECT * FROM evacuees WHERE id = ?";
@@ -103,12 +106,13 @@ $logsResult = $logsStmt->get_result();
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="viewEC.php?id=<?php echo $evacuationCenter['id']; ?>">
+                            <a href="viewAssignedEC.php?id=<?php echo $centerId; ?>&worker_id=<?php echo $workerId; ?>">
                                 <?php echo $evacuationCenter['name']; ?>
                             </a>
                             <!-- next page -->
                             <i class="fa-solid fa-chevron-right"></i>
-                            <a href="evacueesPage.php?id=<?php echo $evacuationCenter['id']; ?>">Evacuees</a>
+                            <a
+                                href="evacueesPage.php?id=<?php echo $centerId; ?>&worker_id=<?php echo $workerId; ?>">Evacuees</a>
 
                             <i class="fa-solid fa-chevron-right"></i>
                             <a href="#">Profile</a>
@@ -375,7 +379,7 @@ $logsResult = $logsStmt->get_result();
         <label for="centerSelect">Select a new evacuation center:</label>
         <select id="centerSelect" class="swal2-select" style="width: 400px;">
             <?php foreach ($otherCenters as $center): ?>
-                                                                            <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
+                                                                                                                            <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
             <?php endforeach; ?>
         </select>
     `,
@@ -419,7 +423,7 @@ $logsResult = $logsStmt->get_result();
                                     confirmButtonText: 'OK'
                                 }).then(() => {
                                     // Redirect to requestTransfer.php
-                                    window.location.href = "requestTransfer.php";
+                                    window.location.href = "evacueesPage.php?id=<?php echo $centerId; ?>&worker_id=<?php echo $workerId; ?>";
                                 });
                             } else {
                                 Swal.fire({
