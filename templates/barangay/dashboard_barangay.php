@@ -79,7 +79,7 @@ while ($row = $centers_result->fetch_assoc()) {
     $total_evacuees_with_members += $total_count;
 }
 
-// Query to get all evacuation centers for this admin
+// Query to get all evacuation centers for this admin for the chart
 $all_centers_sql = "SELECT id, name FROM evacuation_center WHERE admin_id = ?";
 $all_centers_stmt = $conn->prepare($all_centers_sql);
 $all_centers_stmt->bind_param("i", $admin_id);
@@ -407,21 +407,26 @@ $feeds_result = $feeds_stmt->get_result();
 
             <div class="actFeed">
                 <div class="feed-content">
-                    <?php
-                    while ($feed = $feeds_result->fetch_assoc()) {
-                        // Format the date as 'm-d-Y' for consistency
-                        $feed_date = date("m-d-Y", strtotime($feed['created_at']));
-                        ?>
-                        <div class="feeds">
-
-                            <div class="feeds-date">
-                                <p><?php echo $feed_date; ?></p>
-                                <div class="linee"></div>
+                    <?php if ($feeds_result->num_rows > 0): ?>
+                        <?php
+                        while ($feed = $feeds_result->fetch_assoc()) {
+                            // Format the date as 'm-d-Y' for consistency
+                            $feed_date = date("m-d-Y", strtotime($feed['created_at']));
+                            ?>
+                            <div class="feeds">
+                                <div class="feeds-date">
+                                    <p><?php echo $feed_date; ?></p>
+                                    <div class="linee"></div>
+                                </div>
+                                <p class="feed"><?php echo htmlspecialchars($feed['feed_msg']); ?></p>
                             </div>
-
-                            <p class="feed"><?php echo htmlspecialchars($feed['feed_msg']); ?></p>
+                        <?php } ?>
+                    <?php else: ?>
+                        <!-- Display this message if no feeds are available -->
+                        <div class="feeds">
+                            <p class="feed">No activity feeds available.</p>
                         </div>
-                    <?php } ?>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -574,7 +579,7 @@ $feeds_result = $feeds_stmt->get_result();
 
         // Add event listener to the chartShow icon
         chartShowIcon.addEventListener('click', function () {
-            // Hide the right-section
+            // Hide the right-section 
             rightSection.style.display = 'none';
 
             // Show the ecGraphs-container

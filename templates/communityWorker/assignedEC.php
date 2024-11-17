@@ -159,7 +159,7 @@ if (isset($_SESSION['user_id'])) {
                                 }
                                 ?>
                                 <div class="bgEc-cards"
-                                    onclick="window.location.href='viewAssignedEC.php?id=<?php echo $center['id']; ?>'">
+                                    onclick="window.location.href='viewAssignedEC.php?id=<?php echo $center['id']; ?>&worker_id=<?php echo $worker_id; ?>'">
                                     <div class="bgEc-status <?php echo $status_color; ?>"></div>
                                     <img src="<?php echo !empty($center['image']) ? htmlspecialchars($center['image']) : '../../assets/img/evacuation-default.svg'; ?>"
                                         alt="" class="bgEc-img">
@@ -172,6 +172,7 @@ if (isset($_SESSION['user_id'])) {
                                         <li>Total Evacuees: <?php echo $total_evacuees; ?></li>
                                     </ul>
                                 </div>
+
                             <?php endwhile; ?>
                         <?php else: ?>
                             <p>No assigned evacuation centers found for this worker.</p>

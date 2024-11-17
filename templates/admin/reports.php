@@ -1,3 +1,43 @@
+<?php
+session_start();
+include("../../connection/conn.php");
+
+if (isset($_SESSION['user_id'])) {
+    $admin_id = $_SESSION['user_id'];
+
+    // Fetch the admin's details from the database
+    $sql = "SELECT first_name, middle_name, last_name, extension_name, username, email, image FROM admin WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $admin_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $admin = $result->fetch_assoc();
+        $first_name = $admin['first_name'];
+        $middle_name = $admin['middle_name'];
+        $last_name = $admin['last_name'];
+        $extension_name = $admin['extension_name'];
+        $email = $admin['email'];
+        $admin_image = $admin['image'];
+
+        $admin_name = trim($first_name . ' ' . $middle_name . ' ' . $last_name . ' ' . $extension_name);
+    } else {
+        $first_name = $middle_name = $last_name = $extension_name = $email = '';
+    }
+} else {
+    header("Location: ../../login.php");
+    exit;
+}
+$admin_image = !empty($admin_image) ? $admin_image : "../../assets/img/admin.png";
+
+// Fetch evacuation centers
+$sql_centers = "SELECT id, name, location, capacity FROM evacuation_center WHERE admin_id = ?";
+$stmt_centers = $conn->prepare($sql_centers);
+$stmt_centers->bind_param("i", $admin_id);
+$stmt_centers->execute();
+$result_centers = $stmt_centers->get_result();
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -133,109 +173,85 @@
                             <thead>
 
                                 <tr>
-                                    <!-- <th>Id</th> -->
+                                    <th>Evacuation Center</th>
                                     <th>Barangay</th>
-                                    <th>Full Name</th>
-                                    <th>Contact Info</th>
-                                    <th>Email</th>
-                                    <th style="text-align: center;">Role</th>
                                     <th>Status</th>
+                                    <th>Capacity</th>
+                                    <th>Total Families</th>
+                                    <th>Total Evacuees</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
 
-                            <tbody>
+                            <?php
+                            $sql = "
+SELECT 
+    ec.id, 
+    ec.name, 
+    ec.location, 
+    ec.capacity, 
+    ec.image,
+    COUNT(DISTINCT e.id) AS evacuee_count,
+    COUNT(DISTINCT m.id) + COUNT(DISTINCT e.id) AS total_count,
+    CASE 
+        WHEN COUNT(DISTINCT e.id) = 0 THEN 'Inactive' 
+        ELSE 'Active' 
+    END AS status,
+    a.barangay -- Fetch barangay from admin table
+FROM 
+    evacuation_center ec
+LEFT JOIN 
+    evacuees e ON ec.id = e.evacuation_center_id AND e.status = 'Admitted'
+LEFT JOIN 
+    members m ON e.id = m.evacuees_id
+LEFT JOIN 
+    admin a ON ec.admin_id = a.id -- Join evacuation_center with admin to get barangay
+GROUP BY 
+    ec.id
+";
+                            $stmt = $conn->prepare($sql);
+                            $stmt->execute();
+                            $result = $stmt->get_result();
 
-                                <tr onclick="window.location.href='viewProfile.php'">
-                                    <!-- <td>1</td> -->
-                                    <td>
-                                        <!-- <div class="relative">
-                                            <img src="../../assets/img/zambo.png" alt="myImg">Tetuan
-                                            <div class="dotss high"></div>
-                                        </div> -->
-                                        Tetuan
-                                    </td>
-                                    <td>
-                                        <div class="relative">
-                                            <img src="../../assets/img/hero.jpg" alt="myImg">
-                                            Soo Tang Hoon
-                                        </div>
-                                        <!-- Soo Tang Hoon -->
-                                    </td>
-                                    <td>09356234162</td>
-                                    <td>sutanghon@gmail.com</td>
-                                    <td>
-                                        <p class="status role">Admin</p>
-                                    </td>
-                                    <td>
-                                        <p class="status role active">Active</p>
-                                    </td>
-                                    <td><a href="viewProfile.php" class="view-action">View</a></td>
-                                    <!-- <td><a href="#" class="view-action">Edit</a></td> -->
-                                </tr>
+                            if ($result->num_rows > 0) {
+                                while ($row = $result->fetch_assoc()) {
+                                    $id = $row['id'];
+                                    $name = $row['name'];
+                                    $location = $row['location'];
+                                    $capacity = $row['capacity'];
+                                    $image = !empty($row['image']) ? $row['image'] : '../../assets/img/ecDefault.svg';
+                                    $evacuee_count = $row['evacuee_count'];
+                                    $total_count = $row['total_count'];
+                                    $status = $row['status']; // 'Active' or 'Inactive'
+                                    $barangay = $row['barangay']; // Fetch barangay from admin table
+                                    ?>
+                                    <tr onclick="confirmAction(<?= $id; ?>)">
+                                        <td>
+                                            <div class="relative">
+                                                <img src="<?= $image; ?>" alt="Evacuation Center">
+                                                <?= htmlspecialchars($name); ?>
+                                            </div>
+                                        </td>
+                                        <td><?= htmlspecialchars($location); ?> , <?= htmlspecialchars($barangay); ?></td>
 
-                                <tr onclick="window.location.href='viewProfile.php'">
-                                    <!-- <td>1</td> -->
-                                    <td>
-                                        <!-- <div class="relative">
-                                            <img src="../../assets/img/zambo.png" alt="myImg">Tetuan
-                                            <div class="dotss high"></div>
-                                        </div> -->
-                                        Tugbungan
-                                    </td>
-                                    <td>
-                                        <div class="relative">
-                                            <img src="../../assets/img/undraw_male_avatar_g98d.svg" alt="myImg">
-                                            Juan Carlos Yulo
-                                        </div>
-                                    </td>
-                                    <td>09356234162</td>
-                                    <td>sutanghon@gmail.com</td>
-                                    <td>
-                                        <p class="status role">Admin</p>
-                                    </td>
-                                    <td>
-                                        <p class="status role active">Active</p>
-                                    </td>
-                                    <td><a href="viewProfile.php" class="view-action">View</a></td>
-                                    <!-- <td><a href="#" class="view-action">Edit</a></td> -->
-                                </tr>
-
-                                <tr onclick="window.location.href='viewProfile.php'">
-                                    <!-- <td>1</td> -->
-                                    <td>
-                                        <!-- <div class="relative">
-                                            <img src="../../assets/img/zambo.png" alt="myImg">Tetuan
-                                            <div class="dotss high"></div>
-                                        </div> -->
-                                        Guiwan
-                                    </td>
-                                    <td>
-                                        <div class="relative">
-                                            <img src="../../assets/img/undraw_male_avatar_g98d.svg" alt="myImg">
-                                            Jedeh Arpy
-                                        </div>
-                                    </td>
-                                    <td>09356234162</td>
-                                    <td>sutanghon@gmail.com</td>
-                                    <td>
-                                        <p class="status role">Admin</p>
-                                    </td>
-                                    <td>
-                                        <p class="status role inactive">Inactive</p>
-                                    </td>
-                                    <td><a href="viewProfile.php" class="view-action">View</a></td>
-                                    <!-- <td><a href="#" class="view-action">Edit</a></td> -->
-                                </tr>
+                                        <td>
+                                            <p class="status role <?= strtolower($status); ?>">
+                                                <?= htmlspecialchars($status); ?>
+                                            </p>
+                                        </td>
+                                        <td><?= htmlspecialchars($capacity); ?></td>
+                                        <td><?= $evacuee_count; ?></td>
+                                        <td><?= $total_count; ?></td>
+                                        <td><a class="view-action">Print</a></td>
+                                    </tr>
+                                    <?php
+                                }
+                            } else {
+                                echo "<tr><td colspan='8'>No evacuation centers found.</td></tr>";
+                            }
+                            ?>
 
 
-
-
-
-
-
-                            </tbody>
-                        </table>
                     </section>
 
                     <div class="no-match-message">No matching data found</div>
@@ -245,95 +261,33 @@
 
         </main>
 
-        <!-- <aside class="right-section" id="right-section">
-            <div class="top">
-                <i class="fa-regular fa-bell"></i>
-                <div class="profile">
-                    <div class="left">
-                        <img src="/assets/img/hero.jpg">
-                        <div class="user">
-                            <h5>Mark Larenz</h5>
-                            <a href="#">View</a>
-                        </div>
-                    </div>
-                    <button class="close-profile" id="profile-btn-close">
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="separator" id="first">
-                <h4>Level of Criticality</h4>
-            </div>
-
-            <div class="announce">
-                <div class="title">
-                    <div class="line"></div>
-                    <h5>High</h5>
-                </div>
-                <div class="title">
-                    <div class="line"></div>
-                    <h5>Moderate</h5>
-                </div>
-                <div class="title">
-                    <div class="line"></div>
-                    <h5>Low</h5>
-                </div>   
-            </div>
-
-            <div class="separator">
-                <h4>Updates</h4>
-            </div>                              
-
-            <div class="stats">
-                <div class="item">
-                    <div class="top">
-                        <p>Fire Incident at Tetuan Alvarez Drive</p>
-                    </div>
-                    
-                    <div class="bottom">
-                        <div class="line moderate"></div>
-                        <h3>Moderate</h3>
-                    </div>
-                </div>
-                <div class="item">
-                    <div class="top">
-                        <p>Flood at San Jose Gusu Baliwasan</p>
-                    </div>
-                    <div class="bottom">
-                        <div class="line high"></div>
-                        <h3>High</h3>
-                    </div>
-                </div>
-                <div class="item">
-                    <div class="top">
-                        <p>Flood at Guiwan</p>
-                    </div>
-                    <div class="bottom">
-                        <div class="line low"></div>
-                        <h3>Low</h3>
-                    </div>
-                </div>
-                <div class="item">
-                    <div class="top">
-                        <p>Flood at Pasonanca paso pasopaso paso paos paso sadfasd </p>
-                    </div>
-                    <div class="bottom">
-                        <div class="line moderate"></div>
-                        <h3>Moderate</h3>
-                    </div>
-                </div>
-            </div>
-
-            
-        </aside> -->
-
-
 
 
 
     </div>
 
+    <script>
+        function confirmAction(evacuationCenterId) {
+            Swal.fire({
+                title: 'Print Report?',
+                text: "Confirm to print the report for this evacuation center.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Confirm'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    console.log("Action confirmed for ID:", evacuationCenterId);
+                    // Perform action, e.g., redirect to a report page
+                    window.location.href = `../export/export_evacuation_center.php?id=${evacuationCenterId}`;
+                } else {
+                    console.log("Action canceled.");
+                }
+            });
+        }
+
+    </script>
 
     <!-- import sidebar -->
     <script src="../../includes/sidebar.js"></script>

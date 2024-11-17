@@ -1,38 +1,43 @@
 class SpecialNavbar extends HTMLElement {
     connectedCallback() {
-        // Extract the 'id' parameter from the current URL
+        // Extract 'id' and 'worker_id' from the current URL
         const urlParams = new URLSearchParams(window.location.search);
-        const idParam = urlParams.get('id') ? `?id=${urlParams.get('id')}` : '';
+        const idParam = urlParams.get('id') ? `id=${urlParams.get('id')}` : '';
+        const workerIdParam = urlParams.get('worker_id') ? `worker_id=${urlParams.get('worker_id')}` : '';
+
+        // Combine the parameters for use in the URLs
+        const queryParams = [idParam, workerIdParam].filter(Boolean).join('&');
+        const queryString = queryParams ? `?${queryParams}` : '';
 
         this.innerHTML = `
             <div class="ecNavbar">
                 <ul>
                     <div class="navList">
-                        <li><a href="viewAssignedEC.php${idParam}">Overview</a></li>
+                        <li><a href="viewAssignedEC.php${queryString}">Overview</a></li>
                         <div class="indicator"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="evacueesPage.php${idParam}">Evacuees</a></li>
+                        <li><a href="evacueesPage.php${queryString}">Evacuees</a></li>
                         <div class="indicator"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="resources.php${idParam}">Resource Management</a></li>
+                        <li><a href="resources.php${queryString}">Resource Management</a></li>
                         <div class="indicator long"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="personnel.php${idParam}">Team</a></li>
+                        <li><a href="personnel.php${queryString}">Team</a></li>
                         <div class="indicator extrasmall"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="nearEC.php${idParam}">Transfer</a></li>
-                        <div class="indicator small"></div> 
+                        <li><a href="nearEC.php${queryString}">Transfer</a></li>
+                        <div class="indicator small"></div>
                     </div>
                 </ul>
             </div>
         `;
 
         // Highlight the active link based on the current path
-        const currentPath = window.location.pathname.split('/').pop();
+        const currentPath = window.location.pathname.split('/').pop(); 
         const navLists = this.querySelectorAll('.navList');
 
         navLists.forEach(nav => {

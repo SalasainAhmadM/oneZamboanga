@@ -151,7 +151,7 @@ $monthlyEvacueesJson = json_encode(array_values($monthlyEvacuees));
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="#">Tetuan Central School</a>
+                            <a href="#"><?php echo $evacuationCenter['name']; ?></a>
 
                             <!-- next page -->
                             <!-- <i class="fa-solid fa-chevron-right"></i>

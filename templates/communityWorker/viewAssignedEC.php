@@ -2,8 +2,16 @@
 session_start();
 require_once '../../connection/conn.php';
 
-// Get the evacuation center ID from the URL
-$evacuationCenterId = $_GET['id'];
+if (isset($_GET['id']) && isset($_GET['worker_id'])) {
+    $evacuationCenterId = intval($_GET['id']);
+    $workerId = intval($_GET['worker_id']);
+
+    // Proceed with fetching or processing based on $center_id and $worker_id
+} else {
+    // Handle missing parameters
+    // header("Location: ");
+    // exit;
+}
 
 // Query to get evacuation center details along with admin's barangay
 $sqlEvacuationCenter = "
@@ -151,11 +159,12 @@ $monthlyEvacueesJson = json_encode(array_values($monthlyEvacuees));
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="#">Tetuan Central School</a>
+                            <a href="#"><?php echo $evacuationCenter['name']; ?></a>
 
                             <!-- next page -->
                             <i class="fa-solid fa-chevron-right"></i>
-                            <a href="viewAssignedEC.php">Overview</a>
+                            <a
+                                href="viewAssignedEC.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>">Overview</a>
                         </div>
 
 

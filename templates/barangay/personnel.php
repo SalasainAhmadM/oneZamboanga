@@ -1,12 +1,12 @@
 <?php
 require_once '../../connection/conn.php';
 
-$evacuation_center_id = $_GET['id'];  // Get the evacuation center ID from the URL parameter
+$evacuationCenterId = $_GET['id'];  // Get the evacuation center ID from the URL parameter
 
 // Fetch the evacuation center name
 $evacuationCenterSql = "SELECT name FROM evacuation_center WHERE id = ?";
 $evacuationCenterStmt = $conn->prepare($evacuationCenterSql);
-$evacuationCenterStmt->bind_param("i", $evacuation_center_id);
+$evacuationCenterStmt->bind_param("i", $evacuationCenterId);
 $evacuationCenterStmt->execute();
 $evacuationCenterResult = $evacuationCenterStmt->get_result();
 $evacuationCenter = $evacuationCenterResult->fetch_assoc();
@@ -19,7 +19,7 @@ $assignedWorkersSql = "
     WHERE aw.evacuation_center_id = ? AND aw.status = 'assigned'
 ";
 $assignedWorkersStmt = $conn->prepare($assignedWorkersSql);
-$assignedWorkersStmt->bind_param("i", $evacuation_center_id);
+$assignedWorkersStmt->bind_param("i", $evacuationCenterId);
 $assignedWorkersStmt->execute();
 $assignedWorkersResult = $assignedWorkersStmt->get_result();
 $hasWorkers = $assignedWorkersResult->num_rows > 0;
@@ -278,7 +278,7 @@ $uniquePositionsResult = $conn->query($uniquePositionsSql);
     <script src="../../assets/src/utils/menu-btn.js"></script>
 
 
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </body>
 

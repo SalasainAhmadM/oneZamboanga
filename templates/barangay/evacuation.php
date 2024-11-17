@@ -314,7 +314,7 @@ $centers_result = $stmt->get_result();
     <!-- pop up add form -->
     <script src="../../assets/src/utils/addEc-popup.js"></script>
 
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- sweetalert popup messagebox add form-->
 
