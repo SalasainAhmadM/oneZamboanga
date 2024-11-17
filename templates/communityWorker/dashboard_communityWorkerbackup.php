@@ -149,22 +149,22 @@ while ($row = $latest_centers_result->fetch_assoc()) {
 }
 
 
-// Fetch the admin's notifications
+// Fetch the worker's notifications
 $notif_sql = "SELECT notification_msg, created_at 
  FROM notifications 
- WHERE logged_in_id = ? AND user_type = 'admin' 
+ WHERE logged_in_id = ? AND user_type = 'worker' 
  ORDER BY created_at DESC";
 $notif_stmt = $conn->prepare($notif_sql);
-$notif_stmt->bind_param("i", $admin_id);
+$notif_stmt->bind_param("i", $worker_id);
 $notif_stmt->execute();
 $notif_result = $notif_stmt->get_result();
 
 $notif_count = $notif_result->num_rows;
 
-// Check if there are notifications with status 'notify' for the admin
-$notif_check_query = "SELECT COUNT(*) AS unread_count FROM notifications WHERE logged_in_id = ? AND user_type = 'admin' AND status = 'notify'";
+// Check if there are notifications with status 'notify' for the worker
+$notif_check_query = "SELECT COUNT(*) AS unread_count FROM notifications WHERE logged_in_id = ? AND user_type = 'worker' AND status = 'notify'";
 $stmt = $conn->prepare($notif_check_query);
-$stmt->bind_param("i", $admin_id);
+$stmt->bind_param("i", $worker_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $row = $result->fetch_assoc();
@@ -173,16 +173,16 @@ $has_unread_notifications = $row['unread_count'] > 0;
 $bell_icon_class = $has_unread_notifications ? "bell-icon-red" : "bell-icon-gray";
 
 // Retrieve notifications that are not cleared
-$notif_query = "SELECT * FROM notifications WHERE logged_in_id = ? AND user_type = 'admin' AND status != 'cleared'";
+$notif_query = "SELECT * FROM notifications WHERE logged_in_id = ? AND user_type = 'worker' AND status != 'cleared'";
 $notif_stmt = $conn->prepare($notif_query);
-$notif_stmt->bind_param("i", $admin_id);
+$notif_stmt->bind_param("i", $worker_id);
 $notif_stmt->execute();
 $notif_result = $notif_stmt->get_result();
 
 // Retrieve feeds
-$feeds_sql = "SELECT feed_msg, created_at FROM feeds WHERE logged_in_id = ? AND user_type = 'admin' ORDER BY created_at DESC";
+$feeds_sql = "SELECT feed_msg, created_at FROM feeds WHERE logged_in_id = ? AND user_type = 'worker' ORDER BY created_at DESC";
 $feeds_stmt = $conn->prepare($feeds_sql);
-$feeds_stmt->bind_param("i", $admin_id);
+$feeds_stmt->bind_param("i", $worker_id);
 $feeds_stmt->execute();
 $feeds_result = $feeds_stmt->get_result();
 ?>
@@ -508,7 +508,7 @@ $feeds_result = $feeds_stmt->get_result();
                 }
             };
 
-            xhr.send("user_id=<?php echo $admin_id; ?>&user_type=admin");
+            xhr.send("user_id=<?php echo $worker_id; ?>&user_type=worker");
         });
 
 
@@ -547,7 +547,7 @@ $feeds_result = $feeds_stmt->get_result();
                         }
                     };
 
-                    xhr.send("user_id=<?php echo $admin_id; ?>&user_type=admin");
+                    xhr.send("user_id=<?php echo $worker_id; ?>&user_type=worker");
                 }
             });
         });

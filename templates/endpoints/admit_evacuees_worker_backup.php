@@ -110,9 +110,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
 
         // Insert into `feeds` table
         $feed_msg = "$first_name $middle_name $last_name admitted to $evacuation_center_name.";
-        $feeds_sql = "INSERT INTO feeds (logged_in_id, user_type, feed_msg, status) VALUES (?, 'admin', ?, 'notify')";
+        $feeds_sql = "INSERT INTO feeds (logged_in_id, user_type, feed_msg, status) VALUES (?, 'worker', ?, 'notify')";
         $feeds_stmt = $conn->prepare($feeds_sql);
-        $feeds_stmt->bind_param("is", $admin_id, $feed_msg);
+        $feeds_stmt->bind_param("is", $worker_id, $feed_msg);
         $feeds_stmt->execute();
 
         // Set session success message
