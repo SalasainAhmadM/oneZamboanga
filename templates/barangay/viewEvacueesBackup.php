@@ -370,117 +370,80 @@ $logsResult = $logsStmt->get_result();
             event.preventDefault(); // Prevent default anchor action
 
             Swal.fire({
-                title: 'Choose Transfer Type',
-                text: 'Do you want to transfer the evacuee within the Current Barangay or to the Nearest Barangay?',
+                title: 'Transfer Evacuee',
+                html: `
+        <label for="centerSelect">Select a new evacuation center:</label>
+        <select id="centerSelect" class="swal2-select" style="width: 400px;">
+            <?php foreach ($otherCenters as $center): ?>
+                                                                                    <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
+            <?php endforeach; ?>
+        </select>
+    `,
                 showCancelButton: true,
-                confirmButtonText: 'Current Barangay',
-                cancelButtonText: 'Nearest Barangay',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Transfer',
+                cancelButtonText: 'Cancel',
                 customClass: {
-                    htmlContainer: 'fixed-width-container'
+                    htmlContainer: 'fixed-width-container' // Add a custom class to control width
+                },
+                preConfirm: () => {
+                    const centerSelect = document.getElementById('centerSelect');
+                    if (!centerSelect.value) {
+                        Swal.showValidationMessage('Please select an evacuation center.');
+                    }
+                    return centerSelect.value;
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Current Barangay selected
-                    Swal.fire({
-                        title: 'Transfer within Current Barangay',
-                        html: `
-                        <label for="centerSelect">Select a new evacuation center:</label>
-                        <select id="centerSelect" class="swal2-select" style="width: 400px;">
-                            <?php foreach ($otherCenters as $center): ?>
-                                                        <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    `,
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Transfer',
-                        cancelButtonText: 'Cancel',
-                        preConfirm: () => {
-                            const centerSelect = document.getElementById('centerSelect');
-                            if (!centerSelect.value) {
-                                Swal.showValidationMessage('Please select an evacuation center.');
+                    const selectedCenterId = result.value;
+
+                    // Send AJAX request to transfer evacuee
+                    fetch("../endpoints/transfer_evacuee.php", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            evacuee_id: <?= $evacueeId; ?>, // Inject evacuee ID dynamically
+                            center_id: selectedCenterId
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: 'Evacuee successfully transferred to the new center.',
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                }).then(() => {
+                                    // Redirect to requestTransfer.php
+                                    window.location.href = "requestTransfer.php";
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: data.message || 'An error occurred during the transfer.',
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                });
                             }
-                            return centerSelect.value;
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            const selectedCenterId = result.value;
-                            // AJAX request to transfer evacuee
-                            transferEvacuee(<?= $evacueeId; ?>, selectedCenterId);
-                        }
-                    });
-                } else if (result.dismiss === Swal.DismissReason.cancel) {
-                    // Nearest Barangay selected
-                    Swal.fire({
-                        title: 'Transfer to Nearest Barangay',
-                        html: `
-                        <p>Please confirm the transfer to the nearest barangay's evacuation center.</p>
-                    `,
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Confirm',
-                        cancelButtonText: 'Cancel'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            // Handle nearest barangay transfer
-                            transferToNearestBarangay(<?= $evacueeId; ?>);
-                        }
-                    });
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: 'Failed to communicate with the server.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        });
                 }
             });
         });
 
-        // AJAX function for transferring evacuee within the Current Barangay
-        function transferEvacuee(evacueeId, centerId) {
-            fetch("../endpoints/transfer_evacuee.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ evacuee_id: evacueeId, center_id: centerId })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Evacuee successfully transferred to the new center.',
-                            icon: 'success',
-                            confirmButtonText: 'OK'
-                        }).then(() => {
-                            window.location.href = "requestTransfer.php";
-                        });
-                    } else {
-                        Swal.fire('Error!', data.message || 'An error occurred during the transfer.', 'error');
-                    }
-                })
-                .catch(() => Swal.fire('Error!', 'Failed to communicate with the server.', 'error'));
-        }
 
-        function transferToNearestBarangay(evacueeId) {
-            fetch("../endpoints/transfer_to_nearest.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ evacuee_id: evacueeId })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Evacuee successfully transferred to the nearest barangay.',
-                            icon: 'success',
-                            confirmButtonText: 'OK'
-                        }).then(() => {
-                            window.location.href = "requestTransfer.php";
-                        });
-                    } else {
-                        Swal.fire('Error!', data.message || 'An error occurred during the transfer.', 'error');
-                    }
-                })
-                .catch(() => Swal.fire('Error!', 'Failed to communicate with the server.', 'error'));
-        }
-        //
+        // 
         document.getElementById('moveOutBtn').addEventListener('click', function (event) {
             event.preventDefault(); // Prevent default anchor action
 
@@ -539,23 +502,23 @@ $logsResult = $logsStmt->get_result();
         });
         // SweetAlert confirmation for Move out
         // document.getElementById('moveOutBtn').addEventListener('click', function (event) {
-        // event.preventDefault(); // Prevent default anchor action
+        //     event.preventDefault(); // Prevent default anchor action
 
-        // Swal.fire({
-        // title: 'Are you sure?',
-        // text: "This will mark the evacuee as moved out.",
-        // icon: 'warning',
-        // showCancelButton: true,
-        // confirmButtonColor: '#3085d6',
-        // cancelButtonColor: '#d33',
-        // confirmButtonText: 'Confirm!',
-        // cancelButtonText: 'Cancel'
-        // }).then((result) => {
-        // if (result.isConfirmed) {
-        // // Redirect to the move-out handler with evacuees_id
-        // window.location.href = "moveOutHandler.php?id=<?= $evacueeId; ?>";
-        // }
-        // });
+        //     Swal.fire({
+        //         title: 'Are you sure?',
+        //         text: "This will mark the evacuee as moved out.",
+        //         icon: 'warning',
+        //         showCancelButton: true,
+        //         confirmButtonColor: '#3085d6',
+        //         cancelButtonColor: '#d33',
+        //         confirmButtonText: 'Confirm!',
+        //         cancelButtonText: 'Cancel'
+        //     }).then((result) => {
+        //         if (result.isConfirmed) {
+        //             // Redirect to the move-out handler with evacuees_id
+        //             window.location.href = "moveOutHandler.php?id=<?= $evacueeId; ?>";
+        //         }
+        //     });
         // });
 
 
