@@ -164,7 +164,7 @@
     </div>
 
 
-    <span class="footer">2024 One Zamboanga. All rights reserved</span>
+    <!-- <span class="footer">2024 One Zamboanga. All rights reserved</span> -->
 
   </section>
 
