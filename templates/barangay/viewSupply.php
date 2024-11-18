@@ -64,6 +64,26 @@ if ($result->num_rows > 0) {
 
     // Calculate the total quantity (initial + stock)
     $totalQuantity = $quantity + $totalStockQuantity;
+    // Calculate the total distributed quantity
+    // Fetch the total distributed quantity from the distribute table
+    $distributeSumQuery = "
+SELECT SUM(quantity) AS total_distributed_quantity
+FROM distribute
+WHERE supply_id = ?
+";
+    $distributeSumStmt = $conn->prepare($distributeSumQuery);
+    $distributeSumStmt->bind_param("i", $supplyId);
+    $distributeSumStmt->execute();
+    $distributeSumResult = $distributeSumStmt->get_result();
+
+    $totalDistributed = 0;
+    if ($distributeSumResult->num_rows > 0) {
+        $distributeSumRow = $distributeSumResult->fetch_assoc();
+        $totalDistributed = $distributeSumRow['total_distributed_quantity'] ? $distributeSumRow['total_distributed_quantity'] : 0;
+    }
+
+    // Calculate the remaining quantity (for consistency)
+    $remainingQuantity = $totalQuantity - $totalDistributed;
 } else {
     // Handle the case where the supply or evacuation center is not found
     $supplyName = "Supply Not Found";
@@ -378,6 +398,9 @@ $distributeResult = $distributeStmt->get_result();
                                 <li>Quantity: <?php echo htmlspecialchars($totalQuantity); ?>
                                     <?php echo htmlspecialchars($unit); ?>s
                                 </li>
+                                <li>Distributed: <?php echo htmlspecialchars($totalDistributed); ?>
+                                    <?php echo htmlspecialchars($unit); ?>s
+                                </li>
                             </ul>
                         </div>
 
@@ -397,7 +420,7 @@ $distributeResult = $distributeStmt->get_result();
                                             <th>Time Received</th>
                                             <th>Current Quantity</th>
                                             <th>Origin Quanity</th>
-                                            <th>Distributed</th>
+                                            <!-- <th>Distributed</th> -->
                                         </tr>
                                     </thead>
 
@@ -425,7 +448,7 @@ $distributeResult = $distributeStmt->get_result();
                                             echo "<td>" . htmlspecialchars(date("h:i A", strtotime($supplyRow['time']))) . "</td>";
                                             echo "<td>" . htmlspecialchars($supplyRow['quantity'] . " " . $unit . ($supplyRow['quantity'] > 1 ? "s" : "")) . "</td>";
                                             echo "<td>" . htmlspecialchars($supplyRow['original_quantity'] . " " . $unit . ($supplyRow['original_quantity'] > 1 ? "s" : "")) . "</td>";
-                                            echo "<td>" . htmlspecialchars($distributed . " " . $unit . ($distributed > 1 ? "s" : "")) . "</td>";
+                                            // echo "<td>" . htmlspecialchars($distributed . " " . $unit . ($distributed > 1 ? "s" : "")) . "</td>";
                                             echo "</tr>";
                                         } else {
                                             echo "<tr><td colspan='5'>Initial supply data not available.</td></tr>";
@@ -456,7 +479,7 @@ $distributeResult = $distributeStmt->get_result();
                                                 echo "<td>" . htmlspecialchars(date("h:i A", strtotime($historyRow['time']))) . "</td>";
                                                 echo "<td>" . htmlspecialchars($historyRow['quantity'] . " " . $unit . ($historyRow['quantity'] > 1 ? "s" : "")) . "</td>";
                                                 echo "<td>" . htmlspecialchars($historyRow['original_quantity'] . " " . $unit . ($historyRow['original_quantity'] > 1 ? "s" : "")) . "</td>";
-                                                echo "<td>" . htmlspecialchars($distributed . " " . $unit . ($distributed > 1 ? "s" : "")) . "</td>";
+                                                // echo "<td>" . htmlspecialchars($distributed . " " . $unit . ($distributed > 1 ? "s" : "")) . "</td>";
                                                 echo "</tr>";
                                             }
                                         }

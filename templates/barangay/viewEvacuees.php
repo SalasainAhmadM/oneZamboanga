@@ -214,7 +214,7 @@ $logsResult = $logsStmt->get_result();
 
                             <div class="profileInfo-right">
                                 <h3 profile-name>
-                                    <?php echo $evacuee['first_name'] . ' ' . $evacuee['middle_name'] . ' ' . $evacuee['last_name']; ?>
+                                    <?php echo $evacuee['first_name'] . ' ' . $evacuee['middle_name'] . ' ' . $evacuee['last_name'] . ' ' . $evacuee['extension_name']; ?>
                                 </h3>
 
                                 <div class="profile-details">
@@ -375,7 +375,7 @@ $logsResult = $logsStmt->get_result();
         <label for="centerSelect">Select a new evacuation center:</label>
         <select id="centerSelect" class="swal2-select" style="width: 400px;">
             <?php foreach ($otherCenters as $center): ?>
-                                                                    <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
+                                                                            <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
             <?php endforeach; ?>
         </select>
     `,

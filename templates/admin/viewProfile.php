@@ -160,7 +160,7 @@ $notification_result = $notification_stmt->get_result();
 
                             <div class="profileInfo-right">
                                 <h3 profile-name>
-                                    <?php echo htmlspecialchars($admin['first_name'] . ' ' . $admin['last_name']); ?>
+                                    <?php echo htmlspecialchars($admin['first_name'] . ' ' . $admin['middle_name'] . ' ' . $admin['last_name']); ?>
                                 </h3>
 
                                 <div class="profile-details">

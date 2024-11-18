@@ -234,7 +234,7 @@ while ($row = $membersDataResult->fetch_assoc()) {
                                     </div>
                                     <div class="headFam-details">
                                         <input type="text" name="middle_name" id="middleName"
-                                            value="<?= htmlspecialchars($evacueeData['middle_name']); ?>" required>
+                                            value="<?= htmlspecialchars($evacueeData['middle_name']); ?>">
                                         <label class="details" for="middle_name">Middle Name</label>
                                     </div>
                                     <div class="headFam-details">
@@ -246,16 +246,32 @@ while ($row = $membersDataResult->fetch_assoc()) {
 
                                 <div class="occupation-container">
                                     <div class="headFam-details">
-                                        <input type="date" name="birthday" class="age"
+                                        <input type="date" name="birthday" class="age" id="birthday"
                                             value="<?= htmlspecialchars($evacueeData['birthday']); ?>" required>
                                         <label class="details" for="birthday">Birthdate</label>
                                     </div>
 
                                     <div class="headFam-details">
-                                        <input type="number" name="age_head" class="age"
-                                            value="<?= htmlspecialchars($evacueeData['age']); ?>" required>
+                                        <input type="number" name="age_head" class="age" id="age_head"
+                                            value="<?= htmlspecialchars($evacueeData['age']); ?>" readonly required>
                                         <label class="details" for="age_head">Age</label>
                                     </div>
+                                    <script>
+                                        document.getElementById('birthday').addEventListener('change', function () {
+                                            const birthdate = new Date(this.value);
+                                            const today = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' }));
+
+                                            let age = today.getFullYear() - birthdate.getFullYear();
+                                            const monthDiff = today.getMonth() - birthdate.getMonth();
+                                            const dayDiff = today.getDate() - birthdate.getDate();
+
+                                            if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+                                                age--;
+                                            }
+
+                                            document.getElementById('age_head').value = age >= 0 ? age : '';
+                                        });
+                                    </script>
 
                                     <div class="headFam-details">
                                         <select name="gender_head" class="age" required>
@@ -276,12 +292,12 @@ while ($row = $membersDataResult->fetch_assoc()) {
                                         <input type="number" name="monthly_income"
                                             value="<?= htmlspecialchars($evacueeData['monthly_income']); ?>" required>
                                     </div>
-                                    <div class="contact">
+                                    <!-- <div class="contact">
                                         <label for="contact">Contact Number:</label>
                                         <input type="number" name="contact" id="contact" pattern="[0-9]{10,15}"
                                             value="<?= htmlspecialchars($evacueeData['contact']); ?>"
                                             placeholder="e.g., 09123456789" required>
-                                    </div>
+                                    </div> -->
                                 </div>
 
                                 <div class="houseStatus">
@@ -330,6 +346,16 @@ while ($row = $membersDataResult->fetch_assoc()) {
                                             <label for="cost_damage">Estimated Cost of Damaged:</label>
                                             <input type="number" name="cost_damage"
                                                 value="<?= htmlspecialchars($evacueeData['cost_damage']); ?>">
+                                        </div>
+                                    </div>
+                                    <div class="damaged">
+                                        <div class="titleStat">
+                                            <p>Contact Number:</p>
+                                        </div>
+                                        <div class="checkbox-info">
+                                            <input type="number" name="contact" id="contact" pattern="[0-9]{10,15}"
+                                                value="<?= htmlspecialchars($evacueeData['contact']); ?>"
+                                                placeholder="e.g., 09123456789" required>
                                         </div>
                                     </div>
                                 </div>

@@ -2,6 +2,7 @@
 session_start();
 include("../../connection/conn.php");
 
+
 if (isset($_SESSION['user_id'])) {
     $admin_id = $_SESSION['user_id'];
 
@@ -184,7 +185,7 @@ $admin_result = $admin_stmt->get_result();
                                 <?php while ($admin = $admin_result->fetch_assoc()): ?>
                                     <tr data-status="<?php echo htmlspecialchars($admin['status']); ?>"
                                         data-barangay="<?php echo htmlspecialchars($admin['barangay']); ?>"
-                                        data-name="<?php echo htmlspecialchars($admin['first_name'] . ' ' . $admin['last_name']); ?>"
+                                        data-name="<?php echo htmlspecialchars($admin['first_name'] . ' ' . $admin['middle_name'] . ' ' . $admin['last_name']); ?>"
                                         data-email="<?php echo htmlspecialchars($admin['email']); ?>"
                                         onclick="window.location.href='viewProfile.php?id=<?php echo urlencode($admin['id']); ?>'">
                                         <td><?php echo htmlspecialchars($admin['barangay']); ?></td>
@@ -192,7 +193,7 @@ $admin_result = $admin_stmt->get_result();
                                             <div class="relative">
                                                 <img src="<?php echo htmlspecialchars($admin['image'] ?: '../../assets/img/undraw_male_avatar_g98d.svg'); ?>"
                                                     alt="Profile Image">
-                                                <?php echo htmlspecialchars($admin['first_name'] . ' ' . $admin['last_name']); ?>
+                                                <?php echo htmlspecialchars($admin['first_name'] . ' ' . $admin['middle_name'] . ' ' . $admin['last_name']); ?>
                                             </div>
                                         </td>
                                         <td><?php echo htmlspecialchars($admin['contact']); ?></td>

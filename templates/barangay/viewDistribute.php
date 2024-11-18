@@ -65,21 +65,28 @@ if ($result->num_rows > 0) {
     // Calculate the total quantity (initial + stock)
     $totalQuantity = $quantity + $totalStockQuantity;
 
-    // Fetch evacuees for the evacuation center
+    // Fetch evacuees who have not been distributed this supply
     $evacueesQuery = "
-        SELECT 
-            e.id AS evacuee_id,
-            CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
-            e.status
-        FROM 
-            evacuees e
-        WHERE 
-            e.evacuation_center_id = ?
-    ";
+SELECT 
+    e.id AS evacuee_id,
+    CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
+    e.status
+FROM 
+    evacuees e
+WHERE 
+    e.evacuation_center_id = ? 
+    AND NOT EXISTS (
+        SELECT 1 
+        FROM distribute d 
+        WHERE d.evacuees_id = e.id 
+          AND d.supply_id = ?
+    )
+";
     $evacueesStmt = $conn->prepare($evacueesQuery);
-    $evacueesStmt->bind_param("i", $evacuationCenterId);
+    $evacueesStmt->bind_param("ii", $evacuationCenterId, $supplyId);
     $evacueesStmt->execute();
     $evacueesResult = $evacueesStmt->get_result();
+
 } else {
     // Handle the case where the supply or evacuation center is not found
     $supplyName = "Supply Not Found";
@@ -95,7 +102,7 @@ $evacueeQuery = "
     SELECT 
         distribute.id AS distribute_id,
         distribute.evacuees_id,
-        CONCAT(evacuees.first_name, ' ', evacuees.middle_name, ' ', evacuees.last_name) AS family_head,
+        CONCAT(evacuees.first_name, ' ', evacuees.middle_name, ' ', evacuees.last_name, ' ', evacuees.extension_name) AS family_head,
         DATE_FORMAT(distribute.date, '%m-%d-%Y') AS date_received,
         DATE_FORMAT(distribute.date, '%h:%i %p') AS time_received,
         CONCAT(distribute.quantity, ' pack') AS quantity,
@@ -109,40 +116,26 @@ $evacueeStmt->bind_param("i", $supplyId);
 $evacueeStmt->execute();
 $evacueeResult = $evacueeStmt->get_result();
 
-$evacueeData = [];
-while ($evacueeRow = $evacueeResult->fetch_assoc()) {
-    $evacueeId = $evacueeRow['evacuees_id'];
+$distributedQuery = "
+    SELECT 
+        distribute.id AS distribute_id,
+        distribute.evacuees_id,
+        CONCAT(evacuees.first_name, ' ', evacuees.middle_name, ' ', evacuees.last_name, ' ', evacuees.extension_name) AS family_head,
+        DATE_FORMAT(distribute.date, '%m-%d-%Y') AS date_received,
+        DATE_FORMAT(distribute.date, '%h:%i %p') AS time_received,
+        distribute.quantity,
+        evacuees.status,
+        supply.unit AS supply_unit
+    FROM distribute
+    LEFT JOIN evacuees ON distribute.evacuees_id = evacuees.id
+    LEFT JOIN supply ON distribute.supply_id = supply.id
+    WHERE distribute.supply_id = ?
+";
 
-    $memberQuery = "
-        SELECT CONCAT(first_name, ' ', middle_name, ' ', last_name, IF(extension_name != '', CONCAT(' ', extension_name), '')) AS member_name
-        FROM members
-        WHERE evacuees_id = ?
-    ";
-    $memberStmt = $conn->prepare($memberQuery);
-    $memberStmt->bind_param("i", $evacueeId);
-    $memberStmt->execute();
-    $memberResult = $memberStmt->get_result();
-
-    $members = [];
-    while ($memberRow = $memberResult->fetch_assoc()) {
-        $members[] = $memberRow['member_name'];
-    }
-    $memberCount = count($members);
-
-    $evacueeData[] = [
-        'distribute_id' => $evacueeRow['distribute_id'],
-        'family_head' => $evacueeRow['family_head'],
-        'member_count' => $memberCount,
-        'members' => $members,
-        'status' => $evacueeRow['status'],
-        'date_received' => $evacueeRow['date_received'],
-        'time_received' => $evacueeRow['time_received'],
-        'quantity' => $evacueeRow['quantity'],
-    ];
-
-    $memberStmt->close();
-}
-$evacueeStmt->close();
+$distributedStmt = $conn->prepare($distributedQuery);
+$distributedStmt->bind_param("i", $supplyId);
+$distributedStmt->execute();
+$distributedResult = $distributedStmt->get_result();
 ?>
 <script>
     const evacuationCenterId = <?= json_encode($evacuationCenterId) ?>;
@@ -321,8 +314,8 @@ $evacueeStmt->close();
                                         </tbody>
                                     </table>
                                     <div class="distributeBtn-container">
-                                        <button type="button" class="distributeBtn" onclick="selectAll()">Select
-                                            All</button>
+                                        <button type="button" id="selectAllBtn" class="distributeBtn"
+                                            onclick="selectAll()">Select All</button>
                                         <button type="button" class="distributeBtn"
                                             onclick="confirmDistribute()">Distribute</button>
                                     </div>
@@ -334,65 +327,107 @@ $evacueeStmt->close();
                                         <thead>
                                             <tr>
                                                 <th>Family Head</th>
-                                                <th style="text-align: center;">Number of members</th>
+                                                <th style="text-align: center;">Number of Members</th>
                                                 <th>Status</th>
                                                 <th>Date Received</th>
                                                 <th>Time Received</th>
                                                 <th>Quantity</th>
                                             </tr>
                                         </thead>
-
                                         <tbody>
-                                            <?php foreach ($evacueeData as $evacuee): ?>
-                                                <tr onclick="toggleCheckboxRe(this)">
-                                                    <td class="selectName">
-                                                        <input type="checkbox" id="donate"
-                                                            value="<?= htmlspecialchars($evacuee['distribute_id']); ?>">
-                                                        <?= htmlspecialchars($evacuee['family_head']); ?>
-                                                    </td>
-                                                    <td class="ecMembers" style="text-align: center;">
-                                                        <?= $evacuee['member_count']; ?>
-                                                        <ul class="viewMembers" style="text-align: left;">
-                                                            <?php foreach ($evacuee['members'] as $member): ?>
-                                                                <li><?= htmlspecialchars($member); ?></li>
-                                                            <?php endforeach; ?>
-                                                        </ul>
-                                                    </td>
-                                                    <td><?= htmlspecialchars($evacuee['status']); ?></td>
-                                                    <td><?= htmlspecialchars($evacuee['date_received']); ?></td>
-                                                    <td><?= htmlspecialchars($evacuee['time_received']); ?></td>
-                                                    <td><?= htmlspecialchars($evacuee['quantity']); ?>s</td>
+                                            <?php if ($distributedResult && $distributedResult->num_rows > 0): ?>
+                                                <?php while ($distributed = $distributedResult->fetch_assoc()): ?>
+                                                    <?php
+                                                    // Fetch and count the number of members for each distributed evacuee
+                                                    $membersQuery = "
+                        SELECT CONCAT(m.first_name, ' ', m.middle_name, ' ', m.last_name, ' ', m.extension_name) AS member_name
+                        FROM members m
+                        WHERE m.evacuees_id = ?
+                    ";
+                                                    $membersStmt = $conn->prepare($membersQuery);
+                                                    $membersStmt->bind_param("i", $distributed['evacuees_id']);
+                                                    $membersStmt->execute();
+                                                    $membersResult = $membersStmt->get_result();
+                                                    $memberCount = $membersResult->num_rows;
+
+                                                    // Adjust unit display based on quantity
+                                                    $displayUnit = ($distributed['quantity'] > 1) ? $distributed['supply_unit'] . 's' : $distributed['supply_unit'];
+                                                    ?>
+                                                    <tr onclick="toggleCheckboxRe(this)">
+                                                        <td class="selectName" style="text-align: center;">
+                                                            <input type="checkbox" name="evacuee_ids[]"
+                                                                value="<?php echo $distributed['evacuees_id']; ?>"
+                                                                data-name="<?php echo htmlspecialchars($distributed['family_head']); ?>">
+                                                            <?php echo htmlspecialchars($distributed['family_head']); ?>
+                                                        </td>
+                                                        <td style="text-align: center;"><?php echo $memberCount; ?></td>
+                                                        <td style="text-align: center;">
+                                                            <?php echo htmlspecialchars($distributed['status']); ?>
+                                                        </td>
+                                                        <td style="text-align: center;">
+                                                            <?php echo htmlspecialchars($distributed['date_received']); ?>
+                                                        </td>
+                                                        <td style="text-align: center;">
+                                                            <?php echo htmlspecialchars($distributed['time_received']); ?>
+                                                        </td>
+                                                        <td style="text-align: center;">
+                                                            <?php echo htmlspecialchars($distributed['quantity']); ?>
+                                                            <?php echo htmlspecialchars($displayUnit); ?>
+                                                        </td>
+                                                    </tr>
+                                                <?php endwhile; ?>
+                                            <?php else: ?>
+                                                <tr>
+                                                    <td colspan="6" style="text-align: center;">No Distributed Records
+                                                        Found.</td>
                                                 </tr>
-                                            <?php endforeach; ?>
+                                            <?php endif; ?>
                                         </tbody>
                                     </table>
                                     <div class="receiveBtn-container">
-                                        <button class="redistributeBtn" onclick="selectAllRedistribute()">Select
-                                            All</button>
-                                        <button class="redistributeBtn" onclick="confirmRedistribute()">Return
-                                            Supplies</button>
+                                        <button type="button" id="selectAllRedistributeBtn" class="redistributeBtn"
+                                            onclick="selectAllRedistribute()">Select All</button>
+                                        <button class="redistributeBtn"
+                                            onclick="confirmRedistribute()">Redistribute</button>
                                     </div>
                                 </form>
 
                                 <script>
-                                    // redistribute 
+
+
                                     // const supplyId = <?php echo json_encode($supplyId); ?>;
 
                                     function toggleCheckboxRe(row) {
                                         const checkbox = row.querySelector('input[type="checkbox"]');
                                         checkbox.checked = !checkbox.checked;
+                                        updateSelectAllRedistributeButtonText();
                                     }
 
                                     function selectAllRedistribute() {
-                                        const checkboxes = document.querySelectorAll('.receivedTable input[type="checkbox"]');
-                                        checkboxes.forEach(checkbox => checkbox.checked = !checkbox.checked);
+                                        const checkboxes = document.querySelectorAll('input[name="evacuee_ids[]"]');
+                                        const selectAllRedistributeBtn = document.getElementById('selectAllRedistributeBtn');
+                                        const allSelected = Array.from(checkboxes).every(checkbox => checkbox.checked);
+
+                                        checkboxes.forEach(checkbox => checkbox.checked = !allSelected);
+
+                                        // Toggle button text
+                                        selectAllRedistributeBtn.textContent = allSelected ? 'Select All' : 'Unselect All';
+                                    }
+
+                                    function updateSelectAllRedistributeButtonText() {
+                                        const checkboxes = document.querySelectorAll('input[name="evacuee_ids[]"]');
+                                        const selectAllRedistributeBtn = document.getElementById('selectAllRedistributeBtn');
+                                        const allSelected = Array.from(checkboxes).every(checkbox => checkbox.checked);
+
+                                        // Update button text based on current selection state
+                                        selectAllRedistributeBtn.textContent = allSelected ? 'Unselect All' : 'Select All';
                                     }
 
                                     function confirmRedistribute() {
-                                        const selectedEvacuees = Array.from(document.querySelectorAll('.receivedTable input[type="checkbox"]:checked'))
+                                        const selectedEvacuees = Array.from(document.querySelectorAll('input[name="evacuee_ids[]"]:checked'))
                                             .map(checkbox => ({
-                                                distribute_id: checkbox.value,
-                                                name: checkbox.closest('tr').querySelector('.selectName').textContent.trim()
+                                                id: checkbox.value,
+                                                name: checkbox.getAttribute('data-name')
                                             }));
 
                                         if (selectedEvacuees.length === 0) {
@@ -407,58 +442,54 @@ $evacueeStmt->close();
 
                                         const quantityInputs = selectedEvacuees.map(evacuee =>
                                             `<div>
-                <label>${evacuee.name}: </label>
-                <input type="number" id="quantity_${evacuee.distribute_id}" placeholder="Enter quantity" required>
-            </div>`
+            <label>${evacuee.name}: </label>
+            <input type="number" id="quantity_${evacuee.id}" placeholder="Enter quantity" required>
+        </div>`
                                         ).join('');
 
                                         Swal.fire({
-                                            title: 'Confirm Returning of Supplies',
+                                            title: 'Confirm Redistribution',
                                             html: `<div>${quantityInputs}</div>`,
                                             showCancelButton: true,
-                                            confirmButtonText: 'Return',
+                                            confirmButtonText: 'Redistribute',
                                             preConfirm: () => {
-                                                return selectedEvacuees.map(evacuee => {
-                                                    const quantity = document.getElementById(`quantity_${evacuee.distribute_id}`).value;
-                                                    if (!quantity) {
-                                                        Swal.showValidationMessage("Please enter all quantities");
-                                                        return false;
-                                                    }
-                                                    return {
-                                                        distribute_id: evacuee.distribute_id,
-                                                        quantity: quantity
-                                                    };
-                                                });
+                                                return selectedEvacuees.map(evacuee => ({
+                                                    evacuee_id: evacuee.id,
+                                                    quantity: document.getElementById(`quantity_${evacuee.id}`).value
+                                                }));
                                             }
                                         }).then((result) => {
                                             if (result.isConfirmed) {
-                                                const redistributionData = {
+                                                const distributionData = {
                                                     evacuee_data: result.value,
                                                     supply_id: supplyId
                                                 };
 
-                                                fetch('../endpoints/return_supply.php', {
+                                                fetch('../endpoints/redistribute_supply.php', {
                                                     method: 'POST',
                                                     headers: { 'Content-Type': 'application/json' },
-                                                    body: JSON.stringify(redistributionData)
+                                                    body: JSON.stringify(distributionData)
                                                 })
                                                     .then(response => response.json())
                                                     .then(data => {
                                                         if (data.success) {
-                                                            Swal.fire("Success", "Supplies returned successfully!", "success")
-                                                                .then(() => location.reload());
+                                                            Swal.fire("Success", "Supplies redistributed successfully!", "success")
+                                                                .then(() => {
+                                                                    location.reload();
+                                                                });
                                                         } else {
-                                                            Swal.fire("Error", data.message || "Error in returning.", "error");
+                                                            Swal.fire("Error", "Not Enough Supplies.", "error");
                                                         }
                                                     })
-                                                    .catch(error => {
-                                                        console.error('Error:', error);
-                                                        Swal.fire("Error", "An error occurred. Check console for details.", "error");
-                                                    });
+                                                    .catch(error => console.error('Error:', error));
                                             }
                                         });
                                     }
+
+
+
                                 </script>
+
 
                             </div>
 
@@ -482,11 +513,36 @@ $evacueeStmt->close();
         function toggleCheckbox(row) {
             const checkbox = row.querySelector('input[type="checkbox"]');
             checkbox.checked = !checkbox.checked;
+            updateSelectAllButtonText();
+        }
+        function selectAll() {
+            const checkboxes = document.querySelectorAll('input[name="evacuee_ids[]"]');
+            const selectAllBtn = document.getElementById('selectAllBtn');
+            const allSelected = Array.from(checkboxes).every(checkbox => checkbox.checked);
+
+            checkboxes.forEach(checkbox => checkbox.checked = !allSelected);
+
+            // Toggle button text
+            selectAllBtn.textContent = allSelected ? 'Select All' : 'Unselect All';
+        }
+        function updateSelectAllButtonText() {
+            const checkboxes = document.querySelectorAll('input[name="evacuee_ids[]"]');
+            const selectAllBtn = document.getElementById('selectAllBtn');
+            const allSelected = Array.from(checkboxes).every(checkbox => checkbox.checked);
+
+            // Update button text based on current selection state
+            selectAllBtn.textContent = allSelected ? 'Unselect All' : 'Select All';
         }
 
         function selectAll() {
             const checkboxes = document.querySelectorAll('input[name="evacuee_ids[]"]');
-            checkboxes.forEach(checkbox => checkbox.checked = !checkbox.checked);
+            const selectAllBtn = document.getElementById('selectAllBtn');
+            const allSelected = Array.from(checkboxes).every(checkbox => checkbox.checked);
+
+            checkboxes.forEach(checkbox => checkbox.checked = !allSelected);
+
+            // Toggle button text
+            selectAllBtn.textContent = allSelected ? 'Select All' : 'Unselect All';
         }
 
         function confirmDistribute() {
@@ -555,7 +611,6 @@ $evacueeStmt->close();
                 }
             });
         }
-
 
         // Get the elements
         const distributeBtn = document.querySelector('.showDistributed');

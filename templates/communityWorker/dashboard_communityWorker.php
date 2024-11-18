@@ -173,7 +173,11 @@ $has_unread_notifications = $row['unread_count'] > 0;
 $bell_icon_class = $has_unread_notifications ? "bell-icon-red" : "bell-icon-gray";
 
 // Retrieve notifications that are not cleared
-$notif_query = "SELECT * FROM notifications WHERE logged_in_id = ? AND user_type = 'admin' AND status != 'cleared'";
+$notif_query = "SELECT * FROM notifications 
+                WHERE logged_in_id = ? 
+                AND user_type = 'admin' 
+                AND status != 'cleared' 
+                ORDER BY created_at DESC";
 $notif_stmt = $conn->prepare($notif_query);
 $notif_stmt->bind_param("i", $admin_id);
 $notif_stmt->execute();

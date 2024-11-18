@@ -13,8 +13,8 @@ if (!$evacueeId || !$centerId) {
     exit;
 }
 
-// Retrieve the evacuation center's name and admin_id
-$centerQuery = "SELECT name, admin_id FROM evacuation_center WHERE id = ?";
+// Retrieve the evacuation center's name
+$centerQuery = "SELECT name FROM evacuation_center WHERE id = ?";
 $centerStmt = $conn->prepare($centerQuery);
 $centerStmt->bind_param("i", $centerId);
 $centerStmt->execute();
@@ -23,27 +23,7 @@ if ($centerResult->num_rows === 0) {
     echo json_encode(['success' => false, 'message' => 'Evacuation center not found.']);
     exit;
 }
-$centerData = $centerResult->fetch_assoc();
-$centerName = $centerData['name'];
-$adminId = $centerData['admin_id'];
-
-// Retrieve evacuee's full name components
-$evacueeQuery = "SELECT first_name, middle_name, last_name, extension_name FROM evacuees WHERE id = ?";
-$evacueeStmt = $conn->prepare($evacueeQuery);
-$evacueeStmt->bind_param("i", $evacueeId);
-$evacueeStmt->execute();
-$evacueeResult = $evacueeStmt->get_result();
-if ($evacueeResult->num_rows === 0) {
-    echo json_encode(['success' => false, 'message' => 'Evacuee not found.']);
-    exit;
-}
-$evacueeData = $evacueeResult->fetch_assoc();
-$evacueeFullName = trim(
-    $evacueeData['first_name'] . ' ' .
-    $evacueeData['middle_name'] . ' ' .
-    $evacueeData['last_name'] . ' ' .
-    $evacueeData['extension_name']
-);
+$centerName = $centerResult->fetch_assoc()['name'];
 
 // Update evacuee's center and status
 $updateQuery = "UPDATE evacuees SET evacuation_center_id = ?, status = 'Transfer' WHERE id = ?";
@@ -68,7 +48,7 @@ if ($updateStmt->affected_rows > 0) {
     $notificationStmt->bind_param("iss", $adminId, $notificationMsg, $notificationStatus);
     $notificationStmt->execute();
 
-    echo json_encode(['success' => true, 'message' => 'Evacuee successfully transferred and notification sent.']);
+    echo json_encode(['success' => true, 'message' => 'Evacuee successfully transferred.']);
 } else {
     echo json_encode(['success' => false, 'message' => 'Failed to transfer evacuee.']);
 }

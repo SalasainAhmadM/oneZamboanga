@@ -133,40 +133,32 @@ $result = $stmt->get_result();
                             <!-- <div class="filter-popup">
                                 <i class="fa-solid fa-filter"></i>
                             </div> -->
-
                             <div class="filter-popup">
                                 <label for="modal-toggle" class="modal-button">
                                     <i class="fa-solid fa-filter"></i>
                                 </label>
                                 <input type="checkbox" name="" id="modal-toggle" class="modal-toggle">
 
-                                <!-- the modal or filter popup-->
+                                <!-- The modal or filter popup -->
                                 <div class="modal">
                                     <div class="modal-content">
-                                        <!-- <label for="modal-toggle" class="close">
-                                            <i class="fa-solid fa-xmark"></i>
-                                        </label> -->
                                         <div class="filter-option">
                                             <div class="option-content">
-                                                <input type="checkbox" name="evacuees" id="admit">
+                                                <input type="checkbox" name="evacuees" id="admit"
+                                                    class="filter-checkbox" data-filter="Admitted">
                                                 <label for="admit">Admitted</label>
                                             </div>
                                             <div class="option-content">
-                                                <input type="checkbox" name="evacuees" id="moveout">
+                                                <input type="checkbox" name="evacuees" id="moveout"
+                                                    class="filter-checkbox" data-filter="Moved-out">
                                                 <label for="moveout">Moved-out</label>
                                             </div>
                                             <div class="option-content">
-                                                <input type="checkbox" name="evacuees" id="transfer">
+                                                <input type="checkbox" name="evacuees" id="transfer"
+                                                    class="filter-checkbox" data-filter="Transferred">
                                                 <label for="transfer">Transferred</label>
                                             </div>
-                                            <!-- <div class="option-content">
-                                                <input type="checkbox" name="barangay" id="tugbungan">
-                                                <label for="tugbungan">Tugbungan</label>
-                                            </div> -->
-
-
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
@@ -197,12 +189,10 @@ $result = $stmt->get_result();
                                         <th style="text-align: center;">Action</th>
                                     </tr>
                                 </thead>
-
                                 <tbody>
                                     <?php if ($result->num_rows > 0): ?>
                                         <?php while ($row = $result->fetch_assoc()): ?>
-                                            <tr
-                                                onclick="window.location.href='viewEvacuees.php?id=<?php echo $row['evacuee_id']; ?>'">
+                                            <tr data-status="<?php echo htmlspecialchars($row['status']); ?>">
                                                 <td><?php echo htmlspecialchars($row['family_head']); ?></td>
                                                 <td><?php echo htmlspecialchars($row['contact']); ?></td>
                                                 <td class="ecMembers" style="text-align: center;">
@@ -243,6 +233,65 @@ $result = $stmt->get_result();
 
     </div>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const filterCheckboxes = document.querySelectorAll(".filter-checkbox");
+            const tableRows = document.querySelectorAll("#mainTable tbody tr");
+
+            function filterTable() {
+                const activeFilters = Array.from(filterCheckboxes)
+                    .filter(checkbox => checkbox.checked)
+                    .map(checkbox => checkbox.getAttribute("data-filter"));
+
+                tableRows.forEach(row => {
+                    const rowStatus = row.getAttribute("data-status");
+                    if (activeFilters.length === 0 || activeFilters.includes(rowStatus)) {
+                        row.style.display = ""; // Show row
+                    } else {
+                        row.style.display = "none"; // Hide row
+                    }
+                });
+            }
+
+            // Add event listeners to checkboxes
+            filterCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener("change", filterTable);
+            });
+        });
+        document.addEventListener("DOMContentLoaded", function () {
+            const filterCheckboxes = document.querySelectorAll(".filter-checkbox");
+            const searchInput = document.querySelector(".input_group input[type='search']");
+            const tableRows = document.querySelectorAll("#mainTable tbody tr");
+
+            function filterTable() {
+                const searchQuery = searchInput.value.toLowerCase();
+                const activeFilters = Array.from(filterCheckboxes)
+                    .filter(checkbox => checkbox.checked)
+                    .map(checkbox => checkbox.getAttribute("data-filter"));
+
+                tableRows.forEach(row => {
+                    const rowStatus = row.getAttribute("data-status");
+                    const familyHead = row.querySelector("td:first-child").textContent.toLowerCase();
+
+                    const matchesSearch = familyHead.includes(searchQuery);
+                    const matchesFilter = activeFilters.length === 0 || activeFilters.includes(rowStatus);
+
+                    if (matchesSearch && matchesFilter) {
+                        row.style.display = ""; // Show row
+                    } else {
+                        row.style.display = "none"; // Hide row
+                    }
+                });
+            }
+
+            // Add event listeners to checkboxes and search input
+            filterCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener("change", filterTable);
+            });
+
+            searchInput.addEventListener("keyup", filterTable);
+        });
+    </script>
 
     <!-- sidebar import js -->
     <script src="../../includes/bgSidebar.js"></script>
