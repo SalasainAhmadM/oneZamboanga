@@ -17,7 +17,6 @@ if (isset($_SESSION['user_id'])) {
     if ($result->num_rows > 0) {
         $admin = $result->fetch_assoc();
         $admin_name = trim($admin['first_name'] . ' ' . $admin['middle_name'] . ' ' . $admin['last_name'] . ' ' . $admin['extension_name']);
-        $barangay = $admin['barangay'];
     } else {
         header("Location: ../../login.php");
         exit;
@@ -37,6 +36,20 @@ $evacuationCenterStmt->execute();
 $evacuationCenterResult = $evacuationCenterStmt->get_result();
 $evacuationCenter = $evacuationCenterResult->fetch_assoc();
 
+// Fetch the barangay associated with the evacuation center
+$sql = "
+    SELECT ec.name AS evacuation_center_name, a.barangay 
+    FROM evacuation_center ec
+    JOIN admin a ON ec.admin_id = a.id
+    WHERE ec.id = ?
+";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $evacuationCenterId);
+$stmt->execute();
+$result = $stmt->get_result();
+$data = $result->fetch_assoc();
+
+$barangay = $data['barangay'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -156,13 +169,13 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
                                     <input type="hidden" name="evacuation_center" id="evacuation_center"
                                         value="<?php echo $evacuationCenterId; ?>">
                                 </div>
-
                                 <div class="ecInfo">
                                     <label for="barangay">Barangay</label>
                                     <span>:</span>
                                     <input type="text" name="barangay" id="barangay"
-                                        value="<?= htmlspecialchars($barangay); ?>" required>
+                                        value="<?php echo htmlspecialchars($barangay); ?>" required>
                                 </div>
+
 
                                 <div class="ecInfo">
                                     <label for="disaster">Type of Disaster</label>

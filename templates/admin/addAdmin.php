@@ -353,28 +353,28 @@ session_start();
                                                     .then(data => {
                                                         // Generate a table for barangays
                                                         let tableHtml = `
-    <table border="1" style="width: 100%; text-align: left; border-collapse: collapse;">
-        <thead>
-            <tr>
-                <th style="display: none">ID</th>
-                <th>Name</th>
-                <th style="width: 100px; text-align: center;">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${data.map(barangay => `
-                <tr>
-                    <td style="display: none">${barangay.id}</td>
-                    <td>${barangay.name}</td>
-                    <td style="text-align: center; padding: 8px;">
-                        <button class="edit-btn" data-id="${barangay.id}" title="Edit" style="padding: 4px;">✏️</button>
-                        <button class="delete-btn" data-id="${barangay.id}" title="Delete" style="padding: 4px;">🗑️</button>
-                    </td>
-                </tr>
-            `).join('')}
-        </tbody>
-    </table>
-`;
+                                                        <table border="1" style="width: 100%; text-align: left; border-collapse: collapse;">
+                                                        <thead>
+                                                        <tr>
+                                                        <th style="display: none">ID</th>
+                                                        <th>Name</th>
+                                                        <th style="width: 100px; text-align: center;">Actions</th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        ${data.map(barangay => `
+                                                        <tr>
+                                                        <td style="display: none">${barangay.id}</td>
+                                                        <td>${barangay.name}</td>
+                                                        <td style="text-align: center; padding: 8px;">
+                                                        <button class="edit-btn" data-id="${barangay.id}" title="Edit" style="padding: 4px;">✏️</button>
+                                                        <button class="delete-btn" data-id="${barangay.id}" title="Delete" style="padding: 4px;">🗑️</button>
+                                                        </td>
+                                                        </tr>
+                                                        `).join('')}
+                                                        </tbody>
+                                                        </table>
+                                                        `;
 
 
                                                         Swal.fire({
