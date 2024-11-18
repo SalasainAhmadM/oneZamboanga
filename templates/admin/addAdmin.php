@@ -286,8 +286,17 @@ session_start();
                                             input: 'text',
                                             inputLabel: 'Barangay Name',
                                             inputPlaceholder: 'Enter barangay name',
-                                            showCancelButton: true,
+                                            showCancelButton: false, // Hide default cancel button
+                                            showConfirmButton: true,
+                                            showDenyButton: true, // Adds a second button
                                             confirmButtonText: 'Add',
+                                            denyButtonText: 'Manage',
+                                            allowOutsideClick: false,
+                                            customClass: {
+                                                container: 'swal-custom-container',
+                                                confirmButton: 'swal2-confirm',
+                                                denyButton: 'swal2-manage'
+                                            },
                                             preConfirm: (barangayName) => {
                                                 if (!barangayName) {
                                                     Swal.showValidationMessage('Please enter a barangay name');
@@ -315,12 +324,6 @@ session_start();
                                                                 timer: 2000,
                                                                 showConfirmButton: false
                                                             });
-
-                                                            // Update local barangay list
-                                                            barangays.push({ name: barangayName });
-
-                                                            // Optionally, update the dropdown
-                                                            populateDropdown(barangays, barangayInput.value);
                                                         } else if (data.error === 'Barangay already exists') {
                                                             Swal.fire({
                                                                 icon: 'error',
@@ -343,10 +346,120 @@ session_start();
                                                             text: 'An error occurred. Please try again.'
                                                         });
                                                     });
+                                            } else if (result.isDenied) {
+                                                // Fetch and display barangays when "Manage" is clicked
+                                                fetch('../endpoints/fetch_barangays.php')
+                                                    .then(response => response.json())
+                                                    .then(data => {
+                                                        // Generate a table for barangays
+                                                        let tableHtml = `
+    <table border="1" style="width: 100%; text-align: left; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th style="display: none">ID</th>
+                <th>Name</th>
+                <th style="width: 100px; text-align: center;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${data.map(barangay => `
+                <tr>
+                    <td style="display: none">${barangay.id}</td>
+                    <td>${barangay.name}</td>
+                    <td style="text-align: center; padding: 8px;">
+                        <button class="edit-btn" data-id="${barangay.id}" title="Edit" style="padding: 4px;">✏️</button>
+                        <button class="delete-btn" data-id="${barangay.id}" title="Delete" style="padding: 4px;">🗑️</button>
+                    </td>
+                </tr>
+            `).join('')}
+        </tbody>
+    </table>
+`;
+
+
+                                                        Swal.fire({
+                                                            title: 'Manage Barangays',
+                                                            html: tableHtml,
+                                                            width: '600px',
+                                                            showCloseButton: true,
+                                                            showCancelButton: false,
+                                                            confirmButtonText: 'Close',
+                                                            didOpen: () => {
+                                                                // Add event listeners for Edit and Delete buttons
+                                                                document.querySelectorAll(".edit-btn").forEach(btn => {
+                                                                    btn.addEventListener("click", function () {
+                                                                        const barangayId = this.dataset.id;
+                                                                        Swal.fire({
+                                                                            title: 'Edit Barangay',
+                                                                            input: 'text',
+                                                                            inputLabel: 'Barangay Name',
+                                                                            inputValue: data.find(b => b.id == barangayId).name,
+                                                                            showCancelButton: true,
+                                                                            confirmButtonText: 'Save',
+                                                                            preConfirm: (newName) => {
+                                                                                if (!newName) {
+                                                                                    Swal.showValidationMessage('Please enter a barangay name');
+                                                                                } else {
+                                                                                    return fetch('../endpoints/edit_barangay.php', {
+                                                                                        method: 'POST',
+                                                                                        headers: { 'Content-Type': 'application/json' },
+                                                                                        body: JSON.stringify({ id: barangayId, name: newName })
+                                                                                    })
+                                                                                        .then(response => response.json())
+                                                                                        .then(result => {
+                                                                                            if (result.success) {
+                                                                                                Swal.fire('Saved!', '', 'success');
+                                                                                            } else {
+                                                                                                Swal.showValidationMessage('Error saving barangay');
+                                                                                            }
+                                                                                        });
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                    });
+                                                                });
+
+                                                                document.querySelectorAll(".delete-btn").forEach(btn => {
+                                                                    btn.addEventListener("click", function () {
+                                                                        const barangayId = this.dataset.id;
+                                                                        Swal.fire({
+                                                                            title: 'Are you sure?',
+                                                                            text: 'This action cannot be undone.',
+                                                                            icon: 'warning',
+                                                                            showCancelButton: true,
+                                                                            confirmButtonText: 'Delete',
+                                                                            preConfirm: () => {
+                                                                                return fetch('../endpoints/delete_barangay.php', {
+                                                                                    method: 'POST',
+                                                                                    headers: { 'Content-Type': 'application/json' },
+                                                                                    body: JSON.stringify({ id: barangayId })
+                                                                                })
+                                                                                    .then(response => response.json())
+                                                                                    .then(result => {
+                                                                                        if (result.success) {
+                                                                                            Swal.fire('Deleted!', '', 'success');
+                                                                                        } else {
+                                                                                            Swal.showValidationMessage('Error deleting barangay');
+                                                                                        }
+                                                                                    });
+                                                                            }
+                                                                        });
+                                                                    });
+                                                                });
+                                                            }
+                                                        });
+                                                    })
+                                                    .catch(error => {
+                                                        console.error("Error fetching barangays:", error);
+                                                        Swal.fire({
+                                                            icon: 'error',
+                                                            title: 'Error',
+                                                            text: 'Failed to load barangays. Please try again.'
+                                                        });
+                                                    });
                                             }
                                         });
                                     });
-
                                 });
                             </script>
 
