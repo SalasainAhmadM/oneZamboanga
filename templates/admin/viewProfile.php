@@ -172,7 +172,7 @@ $notification_result = $notification_stmt->get_result();
                                     <p class="details-profile">Address:
                                         <?php echo htmlspecialchars($admin['city']); ?>
                                     </p>
-                                    <p class="details-profile">Gender: <?php echo htmlspecialchars($admin['gender']); ?>
+                                    <p class="details-profile">Sex: <?php echo htmlspecialchars($admin['gender']); ?>
                                     </p>
                                     <p class="details-profile">Position:
                                         <?php echo htmlspecialchars($admin['position']); ?>
