@@ -157,7 +157,7 @@ if (isset($_SESSION['user_id'])) {
                             </div>
 
                             <div class="admin-input">
-                                <label for="gender">Gender</label>
+                                <label for="gender">Sex</label>
                                 <select id="gender" name="gender" class="input-gender" required>
                                     <option value="">Select</option>
                                     <option value="Male">Male</option>
