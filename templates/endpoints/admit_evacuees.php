@@ -44,10 +44,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
 
     try {
         // Insert into `evacuees` table including `evacuation_center`
-        $sql = "INSERT INTO evacuees (first_name, middle_name, last_name, extension_name, gender, disaster_type, barangay, birthday, age, occupation, contact, monthly_income, damage, cost_damage, position, house_owner, admin_id, evacuation_center_id) 
+        $sql = "INSERT INTO evacuees (first_name, middle_name, last_name, extension_name, gender, disaster_type, barangay, birthday, age, occupation, contact, monthly_income, damage, cost_damage, position, house_owner, admin_id, evacuation_center_id, origin_evacuation_center_id) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssssssssisisisssii", $first_name, $middle_name, $last_name, $extension_name, $gender, $disaster_type, $barangay, $birthday, $age, $occupation, $contact, $monthly_income, $damage, $cost_damage, $position, $house_owner, $admin_id, $evacuation_center);
+        $stmt->bind_param("ssssssssisisisssiii", $first_name, $middle_name, $last_name, $extension_name, $gender, $disaster_type, $barangay, $birthday, $age, $occupation, $contact, $monthly_income, $damage, $cost_damage, $position, $house_owner, $admin_id, $evacuation_center, $evacuation_center);
         $stmt->execute();
         $evacuees_id = $stmt->insert_id;
 
