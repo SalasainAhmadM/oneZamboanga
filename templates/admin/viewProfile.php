@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once '../../connection/conn.php';
+require_once '../../connection/auth.php';
+validateSession('superadmin');
 
 // Check if the 'id' parameter is set in the URL
 if (isset($_GET['id'])) {

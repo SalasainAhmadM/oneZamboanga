@@ -1,3 +1,9 @@
+<?php
+session_start();
+require_once '../../connection/auth.php';
+validateSession('worker');
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 

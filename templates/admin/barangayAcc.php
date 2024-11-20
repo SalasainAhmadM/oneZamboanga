@@ -1,6 +1,8 @@
 <?php
 session_start();
 include("../../connection/conn.php");
+require_once '../../connection/auth.php';
+validateSession('superadmin');
 
 
 if (isset($_SESSION['user_id'])) {

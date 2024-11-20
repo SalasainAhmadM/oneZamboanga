@@ -1,6 +1,7 @@
 <?php
 require_once '../../connection/conn.php';
-
+require_once '../../connection/auth.php';
+validateSession('admin');
 // Get the supply ID from the URL parameter
 $supplyId = $_GET['id'];
 

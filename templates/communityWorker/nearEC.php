@@ -1,5 +1,7 @@
 <?php
 require_once '../../connection/conn.php';
+require_once '../../connection/auth.php';
+validateSession('worker');
 
 if (isset($_GET['id']) && isset($_GET['worker_id'])) {
     $evacuationCenterId = intval($_GET['id']);

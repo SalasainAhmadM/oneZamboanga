@@ -1,5 +1,7 @@
 <?php
 require_once '../../connection/conn.php';
+require_once '../../connection/auth.php';
+validateSession('superadmin');
 
 // Get the evacuation center ID from the URL
 $evacuationCenterId = $_GET['id'];
@@ -60,21 +62,35 @@ if ($resultEvacuationCenter->num_rows > 0) {
 // Array to store evacuee count per month
 $monthlyEvacuees = array_fill(1, 12, 0); // Fill with 0 for each month initially
 
-// Query to count evacuees per month and their members
+// Set the timezone to Asia/Manila
+date_default_timezone_set('Asia/Manila');
+
+// Fetch the current year dynamically based on today's date
+$currentYear = date("Y");
+
+// Fetch the selected year from the GET parameter or default to the current year
+$selectedYear = isset($_GET['year']) ? $_GET['year'] : $currentYear;
+
+// Generate years for the dropdown (past 5 years + current year)
+$pastYears = range($currentYear - 5, $currentYear);
+
+
+// Query to count evacuees per month filtered by year and their members
 $sqlMonthlyEvacuees = "
     SELECT 
         MONTH(e.date) as month, 
         COUNT(e.id) as evacuees_count,
         (SELECT COUNT(m.id) FROM members m WHERE m.evacuees_id = e.id) as members_count
     FROM evacuees e
-    WHERE e.evacuation_center_id = ?
+    WHERE e.evacuation_center_id = ? AND YEAR(e.date) = ?
     GROUP BY MONTH(e.date)";
 $stmtMonthlyEvacuees = $conn->prepare($sqlMonthlyEvacuees);
-$stmtMonthlyEvacuees->bind_param("i", $evacuationCenterId);
+$stmtMonthlyEvacuees->bind_param("ii", $evacuationCenterId, $selectedYear);
 $stmtMonthlyEvacuees->execute();
 $resultMonthlyEvacuees = $stmtMonthlyEvacuees->get_result();
 
 // Populate evacuee count per month
+$monthlyEvacuees = array_fill(1, 12, 0); // Fill with 0 for each month initially
 while ($row = $resultMonthlyEvacuees->fetch_assoc()) {
     $month = $row['month'];
     $evacueesCount = $row['evacuees_count'];
@@ -84,6 +100,7 @@ while ($row = $resultMonthlyEvacuees->fetch_assoc()) {
 
 // Convert PHP array to JSON for JavaScript
 $monthlyEvacueesJson = json_encode(array_values($monthlyEvacuees));
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -116,6 +133,30 @@ $monthlyEvacueesJson = json_encode(array_values($monthlyEvacuees));
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+<style>
+    .year-select {
+        padding: 10px;
+        font-size: 12px;
+        color: #0056b3;
+        background-color: #e8f4fc;
+        border: 1px solid #0056b3;
+        border-radius: 5px;
+        cursor: pointer;
+        outline: none;
+        margin-bottom: 20px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .year-select:hover {
+        background-color: #cdeafc;
+    }
+
+    .year-select option {
+        padding: 10px;
+        background-color: #ffffff;
+        color: #0056b3;
+    }
+</style>
 
 <body>
 
@@ -189,8 +230,16 @@ $monthlyEvacueesJson = json_encode(array_values($monthlyEvacuees));
                         </div>
 
                         <div class="chart">
+                            <select id="yearFilter" class="year-select">
+                                <?php foreach ($pastYears as $year): ?>
+                                    <option value="<?php echo $year; ?>" <?php echo $year == $selectedYear ? 'selected' : ''; ?>>
+                                        <?php echo $year; ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                             <canvas id="myChart"></canvas>
                         </div>
+
                     </div>
 
 
@@ -258,15 +307,18 @@ $monthlyEvacueesJson = json_encode(array_values($monthlyEvacuees));
     <!-- graphs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.5/dist/chart.umd.min.js"></script>
 
-
-
-
-
     <script>
-        // Convert JSON data to JavaScript array
+        document.getElementById('yearFilter').addEventListener('change', function () {
+            const selectedYear = this.value;
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('year', selectedYear); // Update the year parameter in the URL
+            window.location.search = urlParams.toString(); // Reload the page with the selected year
+        });
+
+
+        // Chart rendering logic
         const monthlyEvacueesData = <?php echo $monthlyEvacueesJson; ?>;
 
-        // Render the chart
         const ctx = document.getElementById('myChart').getContext('2d');
         new Chart(ctx, {
             type: 'bar',
@@ -289,6 +341,7 @@ $monthlyEvacueesJson = json_encode(array_values($monthlyEvacuees));
             }
         });
     </script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </body>

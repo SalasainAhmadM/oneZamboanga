@@ -1,6 +1,7 @@
 <?php
 require_once '../../connection/conn.php';
-
+require_once '../../connection/auth.php';
+validateSession('admin');
 // Get the evacuee ID from the URL
 $evacueeId = $_GET['id'];
 
@@ -30,6 +31,7 @@ $otherCenters = [];
 while ($center = $centersResult->fetch_assoc()) {
     $otherCenters[] = $center;
 }
+
 // Fetch household members
 $membersQuery = "SELECT * FROM members WHERE evacuees_id = ?";
 $membersStmt = $conn->prepare($membersQuery);
@@ -43,8 +45,29 @@ $logsStmt = $conn->prepare($logsQuery);
 $logsStmt->bind_param("i", $evacueeId);
 $logsStmt->execute();
 $logsResult = $logsStmt->get_result();
-?>
 
+// Fetch all admins and their barangays
+$adminsQuery = "SELECT id, barangay FROM admin WHERE id != ?";
+$adminsStmt = $conn->prepare($adminsQuery);
+$adminsStmt->bind_param("i", $evacuee['admin_id']);
+$adminsStmt->execute();
+$adminsResult = $adminsStmt->get_result();
+$admins = [];
+while ($admin = $adminsResult->fetch_assoc()) {
+    $admins[] = $admin;
+}
+
+// Fetch evacuation centers not managed by the current admin
+$otherCentersQuery = "SELECT id, name FROM evacuation_center WHERE admin_id != ?";
+$otherCentersStmt = $conn->prepare($otherCentersQuery);
+$otherCentersStmt->bind_param("i", $evacuee['admin_id']);
+$otherCentersStmt->execute();
+$otherCentersResult = $otherCentersStmt->get_result();
+$allOtherCenters = [];
+while ($center = $otherCentersResult->fetch_assoc()) {
+    $allOtherCenters[] = $center;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -330,23 +353,17 @@ $logsResult = $logsStmt->get_result();
 
     </div>
     <style>
-        /* Set a fixed width for the SweetAlert select container */
         .swal2-container .swal2-select {
             width: 100%;
-            /* Full width within the modal */
             max-width: 380px;
-            /* Set fixed width to 400px */
             box-sizing: border-box;
-            /* Ensures padding doesn't affect width */
         }
 
-        /* Ensure the dropdown options take the same width */
         .swal2-container .swal2-select option {
             width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            /* Keep the text in one line with ellipsis if needed */
         }
     </style>
     <script>
@@ -367,35 +384,31 @@ $logsResult = $logsStmt->get_result();
         });
 
         document.getElementById('transferBtn').addEventListener('click', function (event) {
-            event.preventDefault(); // Prevent default anchor action
+            event.preventDefault();
 
             Swal.fire({
                 title: 'Choose Transfer Type',
                 text: 'Do you want to transfer the evacuee within the Current Barangay or to the Nearest Barangay?',
                 showCancelButton: true,
                 confirmButtonText: 'Current Barangay',
-                cancelButtonText: 'Nearest Barangay',
+                cancelButtonText: 'Other Barangay',
                 customClass: {
                     htmlContainer: 'fixed-width-container'
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Current Barangay selected
                     Swal.fire({
                         title: 'Transfer within Current Barangay',
                         html: `
-                        <label for="centerSelect">Select a new evacuation center:</label>
-                        <select id="centerSelect" class="swal2-select" style="width: 400px;">
-                            <?php foreach ($otherCenters as $center): ?>
-                                                        <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    `,
+                    <label for="centerSelect">Select a new evacuation center:</label>
+                    <select id="centerSelect" class="swal2-select" style="width: 400px;">
+                        <?php foreach ($otherCenters as $center): ?>
+                                                    <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                `,
                         showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
                         confirmButtonText: 'Transfer',
-                        cancelButtonText: 'Cancel',
                         preConfirm: () => {
                             const centerSelect = document.getElementById('centerSelect');
                             if (!centerSelect.value) {
@@ -405,32 +418,60 @@ $logsResult = $logsStmt->get_result();
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            const selectedCenterId = result.value;
-                            // AJAX request to transfer evacuee
-                            transferEvacuee(<?= $evacueeId; ?>, selectedCenterId);
+                            transferEvacuee(<?= $evacueeId; ?>, result.value);
                         }
                     });
                 } else if (result.dismiss === Swal.DismissReason.cancel) {
-                    // Nearest Barangay selected
                     Swal.fire({
-                        title: 'Transfer to Nearest Barangay',
+                        title: 'Transfer to Other Barangay',
                         html: `
-                        <p>Please confirm the transfer to the nearest barangay's evacuation center.</p>
-                    `,
+                    <label for="adminSelect">Select an Admin:</label>
+                    <select id="adminSelect" class="swal2-select" style="width: 400px;">
+                        <?php foreach ($admins as $admin): ?>
+                                                    <option value="<?= $admin['id']; ?>"><?= htmlspecialchars($admin['barangay']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <label for="centerSelect">Select an Evacuation Center:</label>
+                    <select id="centerSelect" class="swal2-select" style="width: 400px;">
+                        <?php foreach ($allOtherCenters as $center): ?>
+                                                    <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                `,
                         showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Confirm',
-                        cancelButtonText: 'Cancel'
+                        confirmButtonText: 'Transfer',
+                        preConfirm: () => {
+                            const adminSelect = document.getElementById('adminSelect').value;
+                            const centerSelect = document.getElementById('centerSelect').value;
+
+                            if (!adminSelect || !centerSelect) {
+                                Swal.showValidationMessage('Please select both an admin and an evacuation center.');
+                            }
+                            return { adminId: adminSelect, centerId: centerSelect };
+                        }
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            // Handle nearest barangay transfer
-                            transferToNearestBarangay(<?= $evacueeId; ?>);
+                            const { adminId, centerId } = result.value;
+                            transferToOtherBarangay(<?= $evacueeId; ?>, adminId, centerId);
                         }
                     });
                 }
             });
         });
+
+        function transferToOtherBarangay(evacueeId, adminId, centerId) {
+            fetch("../endpoints/transfer_to_other_barangay.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ evacuee_id: evacueeId, admin_id: adminId, center_id: centerId })
+            }).then(response => response.json()).then(data => {
+                if (data.success) {
+                    Swal.fire('Success!', 'Evacuee successfully transferred to the new barangay.', 'success');
+                } else {
+                    Swal.fire('Error!', data.message, 'error');
+                }
+            });
+        }
 
         // AJAX function for transferring evacuee within the Current Barangay
         function transferEvacuee(evacueeId, centerId) {
@@ -457,30 +498,7 @@ $logsResult = $logsStmt->get_result();
                 .catch(() => Swal.fire('Error!', 'Failed to communicate with the server.', 'error'));
         }
 
-        function transferToNearestBarangay(evacueeId) {
-            fetch("../endpoints/transfer_to_nearest.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ evacuee_id: evacueeId })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Evacuee successfully transferred to the nearest barangay.',
-                            icon: 'success',
-                            confirmButtonText: 'OK'
-                        }).then(() => {
-                            window.location.href = "requestTransfer.php";
-                        });
-                    } else {
-                        Swal.fire('Error!', data.message || 'An error occurred during the transfer.', 'error');
-                    }
-                })
-                .catch(() => Swal.fire('Error!', 'Failed to communicate with the server.', 'error'));
-        }
-        //
+
         document.getElementById('moveOutBtn').addEventListener('click', function (event) {
             event.preventDefault(); // Prevent default anchor action
 

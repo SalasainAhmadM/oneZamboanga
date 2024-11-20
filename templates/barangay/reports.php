@@ -1,3 +1,10 @@
+<?php
+session_start();
+require_once '../../connection/conn.php';
+require_once '../../connection/auth.php';
+validateSession('admin');
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 

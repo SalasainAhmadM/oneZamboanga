@@ -1,6 +1,7 @@
 <?php
 require_once '../../connection/conn.php';
-
+require_once '../../connection/auth.php';
+validateSession('admin');
 // Get the evacuee ID from the URL
 $evacueeId = $_GET['id'];
 

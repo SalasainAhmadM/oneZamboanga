@@ -1,5 +1,8 @@
 <?php
 require_once '../../connection/conn.php';
+require_once '../../connection/auth.php';
+validateSession('superadmin');
+
 if (isset($_GET['admin_id'])) {
     $admin_id = $_GET['admin_id'];
 

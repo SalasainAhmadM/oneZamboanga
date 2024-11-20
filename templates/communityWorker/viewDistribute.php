@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once '../../connection/conn.php';
+require_once '../../connection/auth.php';
+validateSession('worker');
 
 if (isset($_GET['id']) && isset($_GET['center_id']) && isset($_GET['worker_id'])) {
     $supplyId = intval($_GET['id']);
@@ -71,20 +73,21 @@ if ($result->num_rows > 0) {
 
     // Fetch evacuees who have not been distributed this supply
     $evacueesQuery = "
-SELECT 
-    e.id AS evacuee_id,
-    CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
-    e.status
-FROM 
-    evacuees e
-WHERE 
-    e.evacuation_center_id = ? 
-    AND NOT EXISTS (
-        SELECT 1 
-        FROM distribute d 
-        WHERE d.evacuees_id = e.id 
-          AND d.supply_id = ?
-    )
+    SELECT 
+        e.id AS evacuee_id,
+        CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
+        e.status
+    FROM 
+        evacuees e
+    WHERE 
+        e.evacuation_center_id = ? 
+        AND e.status != 'Moved-out' 
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM distribute d 
+            WHERE d.evacuees_id = e.id 
+              AND d.supply_id = ?
+        )
 ";
     $evacueesStmt = $conn->prepare($evacueesQuery);
     $evacueesStmt->bind_param("ii", $evacuationCenterId, $supplyId);
@@ -509,6 +512,44 @@ $distributedResult = $distributedStmt->get_result();
 
     </div>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const searchInput = document.querySelector(".searchFilter input");
+            const statusFilter = document.querySelector(".statusFilter .showStatus");
+            const tables = document.querySelectorAll("table");
+
+            // Apply filters
+            function applyFilters() {
+                const searchValue = searchInput.value.toLowerCase();
+                const activeStatuses = Array.from(statusFilter.querySelectorAll("p.active")).map(status => status.textContent.trim());
+
+                tables.forEach(table => {
+                    const rows = table.querySelectorAll("tbody tr");
+                    rows.forEach(row => {
+                        const familyHead = row.querySelector(".selectName")?.textContent.toLowerCase() || '';
+                        const status = row.querySelector("td:nth-child(3)")?.textContent.trim() || '';
+
+                        const matchesSearch = familyHead.includes(searchValue);
+                        const matchesStatus = activeStatuses.length === 0 || activeStatuses.includes(status);
+
+                        // Show row if it matches both search and status
+                        row.style.display = matchesSearch && matchesStatus ? "" : "none";
+                    });
+                });
+            }
+
+            // Toggle status selection
+            statusFilter.addEventListener("click", event => {
+                if (event.target.tagName === "P") {
+                    event.target.classList.toggle("active");
+                    applyFilters();
+                }
+            });
+
+            // Search input listener
+            searchInput.addEventListener("input", applyFilters);
+        });
+    </script>
     <!-- the checkbox will be checked when the tr is clicked -->
     <script>
         const supplyId = <?php echo json_encode($supplyId); ?>;

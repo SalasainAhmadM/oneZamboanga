@@ -1,6 +1,8 @@
 <?php
 session_start();
 include("../../connection/conn.php");
+require_once '../../connection/auth.php';
+validateSession('superadmin');
 
 // $query = "SELECT * FROM admin WHERE role = 'admin'";
 // $result = $conn->query($query);

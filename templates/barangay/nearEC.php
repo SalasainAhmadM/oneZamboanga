@@ -1,5 +1,7 @@
 <?php
 require_once '../../connection/conn.php';
+require_once '../../connection/auth.php';
+validateSession('admin');
 
 $evacuationCenterId = $_GET['id']; // Get the evacuation center ID from the URL parameter
 

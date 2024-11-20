@@ -12,6 +12,7 @@
 
   <link rel="icon" href="assets/img/zambo.png">
 
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="assets/styles/style.css">
   <link rel="stylesheet" href="assets/styles/home.css">
 

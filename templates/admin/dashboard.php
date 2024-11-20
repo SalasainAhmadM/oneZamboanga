@@ -1,6 +1,9 @@
 <?php
 session_start();
 include("../../connection/conn.php");
+require_once '../../connection/auth.php';
+validateSession('superadmin');
+
 
 if (isset($_SESSION['user_id'])) {
     $admin_id = $_SESSION['user_id'];
@@ -41,14 +44,23 @@ $evacuation_center_sql = "SELECT COUNT(*) AS total_centers FROM evacuation_cente
 $evacuation_center_result = $conn->query($evacuation_center_sql);
 $total_centers = ($evacuation_center_result->num_rows > 0) ? $evacuation_center_result->fetch_assoc()['total_centers'] : 0;
 
-// Query to get the total number of evacuees and their members
 $evacuees_and_members_sql = "
     SELECT 
-        (SELECT COUNT(*) FROM evacuees) +
-        (SELECT COUNT(*) FROM members) AS total_evacuees_with_members
+        (SELECT COUNT(*) 
+         FROM evacuees 
+         WHERE status != 'Moved-out') +
+        (SELECT COUNT(*) 
+         FROM members 
+         WHERE evacuees_id IN (
+             SELECT id 
+             FROM evacuees 
+             WHERE status != 'Moved-out'
+         )) AS total_evacuees_with_members
 ";
 $evacuees_and_members_result = $conn->query($evacuees_and_members_sql);
-$total_evacuees_with_members = ($evacuees_and_members_result->num_rows > 0) ? $evacuees_and_members_result->fetch_assoc()['total_evacuees_with_members'] : 0;
+$total_evacuees_with_members = ($evacuees_and_members_result->num_rows > 0)
+    ? $evacuees_and_members_result->fetch_assoc()['total_evacuees_with_members']
+    : 0;
 
 // Fetch the admin's notifications
 $notif_sql = "SELECT notification_msg, created_at 
@@ -62,12 +74,18 @@ $notif_result = $notif_stmt->get_result();
 
 $notif_count = $notif_result->num_rows;
 
-// Retrieve notifications that are not cleared
-$notif_query = "SELECT * FROM notifications WHERE logged_in_id = ? AND user_type = 'admin' AND status != 'cleared'";
+// Retrieve notifications that are not cleared, ordered by latest
+$notif_query = "SELECT * FROM notifications 
+                WHERE logged_in_id = ? 
+                AND user_type = 'admin' 
+                AND status != 'cleared' 
+                ORDER BY created_at DESC";
+
 $notif_stmt = $conn->prepare($notif_query);
 $notif_stmt->bind_param("i", $admin_id);
 $notif_stmt->execute();
 $notif_result = $notif_stmt->get_result();
+
 
 $latest_admins_sql = "
     SELECT 

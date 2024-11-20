@@ -1,6 +1,8 @@
 <?php
 session_start();
 include("../../connection/conn.php");
+require_once '../../connection/auth.php';
+validateSession('worker');
 
 if (isset($_SESSION['user_id'])) {
     $worker_id = $_SESSION['user_id'];

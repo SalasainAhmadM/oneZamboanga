@@ -1,6 +1,8 @@
 <?php
 session_start();
 include("../../connection/conn.php");
+require_once '../../connection/auth.php';
+validateSession('admin');
 
 if (isset($_GET['id']) && isset($_SESSION['user_id'])) {
     $center_id = $_GET['id'];

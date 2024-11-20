@@ -1,6 +1,7 @@
 <?php
 require_once '../../connection/conn.php';
-
+require_once '../../connection/auth.php';
+validateSession('admin');
 // Get the supply ID from the URL parameter
 $supplyId = $_GET['id'];
 
@@ -65,23 +66,24 @@ if ($result->num_rows > 0) {
     // Calculate the total quantity (initial + stock)
     $totalQuantity = $quantity + $totalStockQuantity;
 
-    // Fetch evacuees who have not been distributed this supply
     $evacueesQuery = "
-SELECT 
-    e.id AS evacuee_id,
-    CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
-    e.status
-FROM 
-    evacuees e
-WHERE 
-    e.evacuation_center_id = ? 
-    AND NOT EXISTS (
-        SELECT 1 
-        FROM distribute d 
-        WHERE d.evacuees_id = e.id 
-          AND d.supply_id = ?
-    )
+    SELECT 
+        e.id AS evacuee_id,
+        CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
+        e.status
+    FROM 
+        evacuees e
+    WHERE 
+        e.evacuation_center_id = ? 
+        AND e.status != 'Moved-out' 
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM distribute d 
+            WHERE d.evacuees_id = e.id 
+              AND d.supply_id = ?
+        )
 ";
+
     $evacueesStmt = $conn->prepare($evacueesQuery);
     $evacueesStmt->bind_param("ii", $evacuationCenterId, $supplyId);
     $evacueesStmt->execute();
@@ -262,6 +264,28 @@ $distributedResult = $distributedStmt->get_result();
                                 <form action="javascript:void(0);">
                                     <table class="distributedTable donate">
                                         <thead>
+                                            <div class="distributeSearch" style="display: none;">
+                                                <input type="text" placeholder="Search...">
+                                                <label for="distributeSearch"><i
+                                                        class="fa-solid fa-magnifying-glass"></i></label>
+                                            </div>
+
+                                            <div class="filterStatus">
+                                                <div class="statusFilter">
+                                                    <label for="statusEC"><i class="fa-solid fa-filter"></i></label>
+                                                    <input type="checkbox" id="statusEC" class="statusEC">
+
+                                                    <div class="showStatus">
+                                                        <p>Admitted</p>
+                                                        <p>Transferred</p>
+                                                    </div>
+                                                </div>
+
+                                                <div class="searchFilter">
+                                                    <input type="text" placeholder="Search...">
+                                                    <label for=""><i class="fa-solid fa-magnifying-glass"></i></label>
+                                                </div>
+                                            </div>
                                             <tr>
                                                 <th>Family Head</th>
                                                 <th style="text-align: center;">Number of Members</th>
@@ -274,10 +298,10 @@ $distributedResult = $distributedStmt->get_result();
                                                     <?php
                                                     // Fetch family members for each evacuee
                                                     $membersQuery = "
-                        SELECT CONCAT(m.first_name, ' ', m.middle_name, ' ', m.last_name, ' ', m.extension_name) AS member_name
-                        FROM members m
-                        WHERE m.evacuees_id = ?
-                    ";
+                SELECT CONCAT(m.first_name, ' ', m.middle_name, ' ', m.last_name, ' ', m.extension_name) AS member_name
+                FROM members m
+                WHERE m.evacuees_id = ?
+            ";
                                                     $membersStmt = $conn->prepare($membersQuery);
                                                     $membersStmt->bind_param("i", $evacuee['evacuee_id']);
                                                     $membersStmt->execute();
@@ -312,6 +336,7 @@ $distributedResult = $distributedStmt->get_result();
                                                 </tr>
                                             <?php endif; ?>
                                         </tbody>
+
                                     </table>
                                     <div class="distributeBtn-container">
                                         <button type="button" id="selectAllBtn" class="distributeBtn"
@@ -325,6 +350,7 @@ $distributedResult = $distributedStmt->get_result();
                                 <form action="javascript:void(0);">
                                     <table class="receivedTable sent">
                                         <thead>
+
                                             <tr>
                                                 <th>Family Head</th>
                                                 <th style="text-align: center;">Number of Members</th>
@@ -505,6 +531,46 @@ $distributedResult = $distributedStmt->get_result();
         </main>
 
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const searchInput = document.querySelector(".searchFilter input");
+            const statusFilter = document.querySelector(".statusFilter .showStatus");
+            const tables = document.querySelectorAll("table");
+
+            // Apply filters
+            function applyFilters() {
+                const searchValue = searchInput.value.toLowerCase();
+                const activeStatuses = Array.from(statusFilter.querySelectorAll("p.active")).map(status => status.textContent.trim());
+
+                tables.forEach(table => {
+                    const rows = table.querySelectorAll("tbody tr");
+                    rows.forEach(row => {
+                        const familyHead = row.querySelector(".selectName")?.textContent.toLowerCase() || '';
+                        const status = row.querySelector("td:nth-child(3)")?.textContent.trim() || '';
+
+                        const matchesSearch = familyHead.includes(searchValue);
+                        const matchesStatus = activeStatuses.length === 0 || activeStatuses.includes(status);
+
+                        // Show row if it matches both search and status
+                        row.style.display = matchesSearch && matchesStatus ? "" : "none";
+                    });
+                });
+            }
+
+            // Toggle status selection
+            statusFilter.addEventListener("click", event => {
+                if (event.target.tagName === "P") {
+                    event.target.classList.toggle("active");
+                    applyFilters();
+                }
+            });
+
+            // Search input listener
+            searchInput.addEventListener("input", applyFilters);
+        });
+    </script>
+
 
     <!-- the checkbox will be checked when the tr is clicked -->
     <script>
