@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once '../../connection/conn.php';
 require_once '../../connection/auth.php';
 validateSession('worker');
@@ -381,7 +382,7 @@ $logsResult = $logsStmt->get_result();
         <label for="centerSelect">Select a new evacuation center:</label>
         <select id="centerSelect" class="swal2-select" style="width: 400px;">
             <?php foreach ($otherCenters as $center): ?>
-                                                                                                                                            <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
+                                                                                                                                                <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
             <?php endforeach; ?>
         </select>
     `,
