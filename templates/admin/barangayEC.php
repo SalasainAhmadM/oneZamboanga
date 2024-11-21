@@ -7,15 +7,26 @@ validateSession('superadmin');
 if (isset($_GET['admin_id'])) {
     $admin_id = $_GET['admin_id'];
 
-}
+    // Fetch evacuation centers for this admin_id
+    $sql = "SELECT id, name, location, capacity, image, created_at FROM evacuation_center WHERE admin_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $admin_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $centers_found = ($result->num_rows > 0);
 
-// Fetch evacuation centers for this admin_id
-$sql = "SELECT id, name, location, capacity, image, created_at FROM evacuation_center WHERE admin_id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $admin_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$centers_found = ($result->num_rows > 0);
+    // Fetch the barangay value for this admin_id
+    $barangay_query = "SELECT barangay FROM admin WHERE id = ?";
+    $barangay_stmt = $conn->prepare($barangay_query);
+    $barangay_stmt->bind_param("i", $admin_id);
+    $barangay_stmt->execute();
+    $barangay_result = $barangay_stmt->get_result();
+
+    // Assign barangay value to a variable
+    $barangay = $barangay_result->num_rows > 0 ? $barangay_result->fetch_assoc()['barangay'] : 'Unknown Barangay';
+} else {
+    $barangay = 'Unknown Barangay';
+}
 ?>
 
 <!DOCTYPE html>
@@ -72,7 +83,7 @@ $centers_found = ($result->num_rows > 0);
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="barangayStatus.php">Barangay Tetuan</a>
+                            <a href="barangayStatus.php">Barangay <?= htmlspecialchars($barangay) ?></a>
                             <i class="fa-solid fa-chevron-right"></i>
                             <a href="#">Evacuation Centers</a>
                         </div>
