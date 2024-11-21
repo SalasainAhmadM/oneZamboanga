@@ -404,7 +404,7 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                     <label for="centerSelect">Select a new evacuation center:</label>
                     <select id="centerSelect" class="swal2-select" style="width: 400px;">
                         <?php foreach ($otherCenters as $center): ?>
-                                                        <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
+                                                            <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 `,
@@ -429,13 +429,13 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                     <label for="adminSelect">Select an Admin:</label>
                     <select id="adminSelect" class="swal2-select" style="width: 400px;">
                         <?php foreach ($admins as $admin): ?>
-                                                        <option value="<?= $admin['id']; ?>"><?= htmlspecialchars($admin['barangay']); ?></option>
+                                                            <option value="<?= $admin['id']; ?>"><?= htmlspecialchars($admin['barangay']); ?></option>
                         <?php endforeach; ?>
                     </select>
                     <label for="centerSelect">Select an Evacuation Center:</label>
                     <select id="centerSelect" class="swal2-select" style="width: 400px;">
                         <?php foreach ($allOtherCenters as $center): ?>
-                                                        <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
+                                                            <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 `,
