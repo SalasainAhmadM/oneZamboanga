@@ -65,7 +65,8 @@ while ($row = $centers_result->fetch_assoc()) {
         SELECT 
             (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
             (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-                (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
+                (SELECT id FROM evacuees WHERE evacuation_center_id = ?
+                AND status NOT IN ('Transfer', 'Moved-out'))
             ) AS total_count
     ";
     $count_total_stmt = $conn->prepare($count_total_sql);
@@ -98,7 +99,8 @@ while ($row = $all_centers_result->fetch_assoc()) {
         SELECT 
             (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
             (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-                (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
+                (SELECT id FROM evacuees WHERE evacuation_center_id = ?
+                AND status NOT IN ('Transfer', 'Moved-out'))
             ) AS total_count
     ";
     $count_total_stmt = $conn->prepare($count_total_sql);

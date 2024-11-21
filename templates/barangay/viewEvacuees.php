@@ -404,7 +404,7 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                     <label for="centerSelect">Select a new evacuation center:</label>
                     <select id="centerSelect" class="swal2-select" style="width: 400px;">
                         <?php foreach ($otherCenters as $center): ?>
-                                                            <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
+                                                                        <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 `,
@@ -426,29 +426,65 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                     Swal.fire({
                         title: 'Transfer to Other Barangay',
                         html: `
-                    <label for="adminSelect">Select an Admin:</label>
-                    <select id="adminSelect" class="swal2-select" style="width: 400px;">
-                        <?php foreach ($admins as $admin): ?>
-                                                            <option value="<?= $admin['id']; ?>"><?= htmlspecialchars($admin['barangay']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <label for="centerSelect">Select an Evacuation Center:</label>
-                    <select id="centerSelect" class="swal2-select" style="width: 400px;">
-                        <?php foreach ($allOtherCenters as $center): ?>
-                                                            <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                `,
+            <label for="barangaySelect">Select a Barangay:</label>
+            <select id="barangaySelect" class="swal2-select" style="width: 400px;">
+                <option value="" disabled selected>Select a Barangay</option>
+                <?php foreach ($admins as $admin): ?>
+                                <option value="<?= $admin['id']; ?>"><?= htmlspecialchars($admin['barangay']); ?></option>
+                <?php endforeach; ?>
+            </select>
+            <label for="centerSelect">Select an Evacuation Center:</label>
+            <select id="centerSelect" class="swal2-select" style="width: 400px;" disabled>
+                <option value="" disabled selected>Select a Barangay first</option>
+            </select>
+        `,
                         showCancelButton: true,
                         confirmButtonText: 'Transfer',
                         preConfirm: () => {
-                            const adminSelect = document.getElementById('adminSelect').value;
+                            const barangaySelect = document.getElementById('barangaySelect').value;
                             const centerSelect = document.getElementById('centerSelect').value;
 
-                            if (!adminSelect || !centerSelect) {
-                                Swal.showValidationMessage('Please select both an admin and an evacuation center.');
+                            if (!barangaySelect || !centerSelect) {
+                                Swal.showValidationMessage('Please select both a barangay and an evacuation center.');
                             }
-                            return { adminId: adminSelect, centerId: centerSelect };
+                            return { adminId: barangaySelect, centerId: centerSelect };
+                        },
+                        didOpen: () => {
+                            // Fetch evacuation centers when a barangay is selected
+                            const barangaySelect = document.getElementById('barangaySelect');
+                            const centerSelect = document.getElementById('centerSelect');
+
+                            barangaySelect.addEventListener('change', () => {
+                                const adminId = barangaySelect.value;
+
+                                if (adminId) {
+                                    fetch("../endpoints/fetch_centers_by_barangay.php", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ admin_id: adminId })
+                                    })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.success) {
+                                                centerSelect.innerHTML = `<option value="" disabled selected>Select an Evacuation Center</option>`;
+                                                data.centers.forEach(center => {
+                                                    const option = document.createElement('option');
+                                                    option.value = center.id;
+                                                    option.textContent = center.name;
+                                                    centerSelect.appendChild(option);
+                                                });
+                                                centerSelect.disabled = false;
+                                            } else {
+                                                centerSelect.innerHTML = `<option value="" disabled>${data.message}</option>`;
+                                                centerSelect.disabled = true;
+                                            }
+                                        })
+                                        .catch(() => {
+                                            centerSelect.innerHTML = `<option value="" disabled>Error fetching centers</option>`;
+                                            centerSelect.disabled = true;
+                                        });
+                                }
+                            });
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {

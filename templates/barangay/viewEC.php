@@ -24,7 +24,9 @@ if ($resultEvacuationCenter->num_rows > 0) {
     $imageSrc = !empty($evacuationCenter['image']) ? "../../assets/img/" . $evacuationCenter['image'] : "../../assets/img/ecDeaultPhoto.svg";
 
     // Query to count total families (evacuees) for this evacuation center
-    $sqlTotalFamilies = "SELECT COUNT(*) as total_families FROM evacuees WHERE evacuation_center_id = ?";
+    $sqlTotalFamilies = "SELECT COUNT(*) as total_families FROM evacuees 
+    WHERE evacuation_center_id = ?
+    AND status NOT IN ('Transfer', 'Moved-out')";
     $stmtTotalFamilies = $conn->prepare($sqlTotalFamilies);
     $stmtTotalFamilies->bind_param("i", $evacuationCenterId);
     $stmtTotalFamilies->execute();
@@ -33,11 +35,21 @@ if ($resultEvacuationCenter->num_rows > 0) {
 
     // Query to count total evacuees and members for this evacuation center
     $sqlTotalEvacuees = "
-        SELECT 
-            (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) + 
-            (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-                (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
-            ) AS total_evacuees";
+    SELECT 
+        (SELECT COUNT(*) 
+         FROM evacuees 
+         WHERE evacuation_center_id = ? 
+         AND status NOT IN ('Transfer', 'Moved-out')
+        ) + 
+        (SELECT COUNT(*) 
+         FROM members 
+         WHERE evacuees_id IN (
+             SELECT id 
+             FROM evacuees 
+             WHERE evacuation_center_id = ? 
+             AND status NOT IN ('Transfer', 'Moved-out')
+         )
+        ) AS total_evacuees";
     $stmtTotalEvacuees = $conn->prepare($sqlTotalEvacuees);
     $stmtTotalEvacuees->bind_param("ii", $evacuationCenterId, $evacuationCenterId);
     $stmtTotalEvacuees->execute();
@@ -69,20 +81,25 @@ date_default_timezone_set('Asia/Manila');
 $currentYear = date("Y");
 
 // Fetch the selected year from the GET parameter or default to the current year
-$selectedYear = isset($_GET['year']) ? $_GET['year'] : $currentYear;
+$selectedYear = isset($_GET['year']) ? intval($_GET['year']) : $currentYear;
 
 // Generate years for the dropdown (past 5 years + current year)
 $pastYears = range($currentYear - 5, $currentYear);
 
-
-// Query to count evacuees per month filtered by year and their members
+// Query to count evacuees per month filtered by year and their members, excluding certain statuses
 $sqlMonthlyEvacuees = "
     SELECT 
         MONTH(e.date) as month, 
         COUNT(e.id) as evacuees_count,
-        (SELECT COUNT(m.id) FROM members m WHERE m.evacuees_id = e.id) as members_count
+        (
+            SELECT COUNT(m.id) 
+            FROM members m 
+            WHERE m.evacuees_id = e.id
+        ) as members_count
     FROM evacuees e
-    WHERE e.evacuation_center_id = ? AND YEAR(e.date) = ?
+    WHERE e.evacuation_center_id = ? 
+      AND YEAR(e.date) = ?
+      AND e.status NOT IN ('Transfer', 'Moved-out')
     GROUP BY MONTH(e.date)";
 $stmtMonthlyEvacuees = $conn->prepare($sqlMonthlyEvacuees);
 $stmtMonthlyEvacuees->bind_param("ii", $evacuationCenterId, $selectedYear);
@@ -100,7 +117,6 @@ while ($row = $resultMonthlyEvacuees->fetch_assoc()) {
 
 // Convert PHP array to JSON for JavaScript
 $monthlyEvacueesJson = json_encode(array_values($monthlyEvacuees));
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
