@@ -156,26 +156,42 @@ $centers_result = $stmt->get_result();
                                         $center_id = $center['id'];
                                         $capacity = (int) $center['capacity'];
 
-                                        $family_count_sql = "SELECT COUNT(*) AS total_families FROM evacuees WHERE evacuation_center_id = ?";
+                                        // Count total families in the evacuation center, excluding Transfer and Moved-out
+                                        $family_count_sql = "
+                        SELECT COUNT(*) AS total_families 
+                        FROM evacuees 
+                        WHERE evacuation_center_id = ? 
+                        AND status NOT IN ('Transfer', 'Moved-out')
+                    ";
                                         $family_count_stmt = $conn->prepare($family_count_sql);
                                         $family_count_stmt->bind_param("i", $center_id);
                                         $family_count_stmt->execute();
                                         $family_count_result = $family_count_stmt->get_result();
                                         $total_families = ($family_count_result->num_rows > 0) ? $family_count_result->fetch_assoc()['total_families'] : 0;
 
+                                        // Count total evacuees and their members, excluding Transfer and Moved-out
                                         $evacuees_count_sql = "
-                                SELECT 
-                                (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
-                                (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-                                (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
-                                 ) AS total_evacuees
-                                ";
+                        SELECT 
+                        (SELECT COUNT(*) 
+                         FROM evacuees 
+                         WHERE evacuation_center_id = ? 
+                         AND status NOT IN ('Transfer', 'Moved-out')) +
+                        (SELECT COUNT(*) 
+                         FROM members 
+                         WHERE evacuees_id IN 
+                             (SELECT id 
+                              FROM evacuees 
+                              WHERE evacuation_center_id = ? 
+                              AND status NOT IN ('Transfer', 'Moved-out'))
+                        ) AS total_evacuees
+                    ";
                                         $evacuees_count_stmt = $conn->prepare($evacuees_count_sql);
                                         $evacuees_count_stmt->bind_param("ii", $center_id, $center_id);
                                         $evacuees_count_stmt->execute();
                                         $evacuees_count_result = $evacuees_count_stmt->get_result();
                                         $total_evacuees = ($evacuees_count_result->num_rows > 0) ? $evacuees_count_result->fetch_assoc()['total_evacuees'] : 0;
 
+                                        // Determine status color based on occupancy percentage
                                         if ($total_families === 0) {
                                             $status_color = "grey";
                                         } else {
@@ -211,6 +227,7 @@ $centers_result = $stmt->get_result();
                             </div>
                         </div>
                     </div>
+
 
                     <!-- add evacuaton form -->
                     <div class="addEC-container">

@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $barangay = $admin['barangay'];
 
             // Fetch existing evacuee details for logging origin evacuation center
-            $fetchQuery = "SELECT evacuation_center_id, first_name, last_name FROM evacuees WHERE id = ?";
+            $fetchQuery = "SELECT evacuation_center_id, first_name, middle_name, last_name FROM evacuees WHERE id = ?";
             $fetchStmt = $conn->prepare($fetchQuery);
             $fetchStmt->bind_param("i", $evacuee_id);
             $fetchStmt->execute();
@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($fetchResult->num_rows > 0) {
                 $evacuee = $fetchResult->fetch_assoc();
                 $origin_evacuation_center_id = $evacuee['evacuation_center_id'];
-                $evacueeFullName = $evacuee['first_name'] . ' ' . $evacuee['last_name'];
+                $evacueeFullName = $evacuee['first_name'] . ' ' . $evacuee['middle_name'] . ' ' . $evacuee['last_name'];
 
                 // Fetch the name of the selected evacuation center
                 $centerQuery = "SELECT name FROM evacuation_center WHERE id = ?";

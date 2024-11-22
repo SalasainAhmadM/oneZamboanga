@@ -227,7 +227,6 @@ CREATE TABLE `evacuees` (
   `house_owner` varchar(255) NOT NULL,
   `admin_id` int(11) NOT NULL,
   `evacuation_center_id` int(11) NOT NULL,
-  `origin_evacuation_center_id` int(11) DEFAULT NULL,
   `date` date DEFAULT curdate(),
   `status` enum('Admitted','Transfer','Transferred','Moved-out') NOT NULL DEFAULT 'Admitted'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

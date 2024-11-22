@@ -60,13 +60,21 @@ while ($row = $centers_result->fetch_assoc()) {
     $center_id = $row['id'];
     $center_name = $row['name'];
 
-    // Count evacuees and their members for each center
+    // Count evacuees and their members for each center, excluding 'Transfer' and 'Moved-out'
     $count_total_sql = "
         SELECT 
-            (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
-            (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-                (SELECT id FROM evacuees WHERE evacuation_center_id = ?
-                AND status NOT IN ('Transfer', 'Moved-out'))
+            (SELECT COUNT(*) 
+             FROM evacuees 
+             WHERE evacuation_center_id = ? 
+             AND status NOT IN ('Transfer', 'Moved-out')
+            ) +
+            (SELECT COUNT(*) 
+             FROM members 
+             WHERE evacuees_id IN 
+                 (SELECT id 
+                  FROM evacuees 
+                  WHERE evacuation_center_id = ? 
+                  AND status NOT IN ('Transfer', 'Moved-out'))
             ) AS total_count
     ";
     $count_total_stmt = $conn->prepare($count_total_sql);
@@ -74,6 +82,7 @@ while ($row = $centers_result->fetch_assoc()) {
     $count_total_stmt->execute();
     $total_result = $count_total_stmt->get_result();
     $total_count = ($total_result->num_rows > 0) ? $total_result->fetch_assoc()['total_count'] : 0;
+
     $centers[] = [
         'name' => $center_name,
         'evacuees' => $total_count
@@ -94,13 +103,21 @@ while ($row = $all_centers_result->fetch_assoc()) {
     $center_id = $row['id'];
     $center_name = $row['name'];
 
-    // Count evacuees and their members for each center
+    // Count evacuees and their members for each center, excluding 'Transfer' and 'Moved-out'
     $count_total_sql = "
         SELECT 
-            (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
-            (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-                (SELECT id FROM evacuees WHERE evacuation_center_id = ?
-                AND status NOT IN ('Transfer', 'Moved-out'))
+            (SELECT COUNT(*) 
+             FROM evacuees 
+             WHERE evacuation_center_id = ? 
+             AND status NOT IN ('Transfer', 'Moved-out')
+            ) +
+            (SELECT COUNT(*) 
+             FROM members 
+             WHERE evacuees_id IN 
+                 (SELECT id 
+                  FROM evacuees 
+                  WHERE evacuation_center_id = ? 
+                  AND status NOT IN ('Transfer', 'Moved-out'))
             ) AS total_count
     ";
     $count_total_stmt = $conn->prepare($count_total_sql);
@@ -115,6 +132,7 @@ while ($row = $all_centers_result->fetch_assoc()) {
         'evacuees' => $total_count
     ];
 }
+
 
 // Query to get the latest 4 evacuation centers for "Evacuation Center Overview"
 $latest_centers_sql = "
@@ -340,23 +358,27 @@ $feeds_result = $feeds_stmt->get_result();
                 </div>
                 <!-- <input type="date" value="2024-11-09"> -->
             </div>
-
             <div class="ecenter">
-                <?php foreach ($latest_centers as $center): ?>
-                    <div class="item">
-                        <div class="left">
-                            <div class="icon">
-                                <i class="fa-solid fa-person-shelter"></i>
+                <?php if (!empty($latest_centers)): ?>
+                    <?php foreach ($latest_centers as $center): ?>
+                        <div class="item">
+                            <div class="left">
+                                <div class="icon">
+                                    <i class="fa-solid fa-person-shelter"></i>
+                                </div>
+                                <div class="details">
+                                    <h5><?php echo htmlspecialchars($center['name']); ?></h5>
+                                    <p><?php echo $center['evacuees']; ?> Evacuees</p>
+                                </div>
                             </div>
-                            <div class="details">
-                                <h5><?php echo htmlspecialchars($center['name']); ?></h5>
-                                <p><?php echo $center['evacuees']; ?> Evacuees</p>
-                            </div>
+                            <a href="viewEC.php?id=<?php echo $center['id']; ?>"><i class="fa-solid fa-chevron-right"></i></a>
                         </div>
-                        <a href="viewEC.php?id=<?php echo $center['id']; ?>"><i class="fa-solid fa-chevron-right"></i></a>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p class="empty-message">No evacuation center with evacuees</p>
+                <?php endif; ?>
             </div>
+
         </main>
 
         <div class="ecGraphs-container">
