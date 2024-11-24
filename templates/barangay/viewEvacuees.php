@@ -252,6 +252,9 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                                     <p class="details-profile">Occupation: <?php echo $evacuee['occupation']; ?></p>
                                     <p class="details-profile">Status of Occupancy: <?php echo $evacuee['status']; ?>
                                     </p>
+                                    <p class="details-profile">Calamity:
+                                        <?php echo ucfirst($evacuee['disaster_type']); ?>
+                                    </p>
                                     <p class="details-profile">Damaged: <?php echo ucfirst($evacuee['damage']); ?></p>
                                     <p class="details-profile">Cost of damaged: <?php echo $evacuee['cost_damage']; ?>
                                     </p>
@@ -404,7 +407,7 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                     <label for="centerSelect">Select a new evacuation center:</label>
                     <select id="centerSelect" class="swal2-select" style="width: 400px;">
                         <?php foreach ($otherCenters as $center): ?>
-                                                                        <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
+                                                                                    <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 `,
@@ -430,7 +433,7 @@ while ($center = $otherCentersResult->fetch_assoc()) {
             <select id="barangaySelect" class="swal2-select" style="width: 400px;">
                 <option value="" disabled selected>Select a Barangay</option>
                 <?php foreach ($admins as $admin): ?>
-                                <option value="<?= $admin['id']; ?>"><?= htmlspecialchars($admin['barangay']); ?></option>
+                                            <option value="<?= $admin['id']; ?>"><?= htmlspecialchars($admin['barangay']); ?></option>
                 <?php endforeach; ?>
             </select>
             <label for="centerSelect">Select an Evacuation Center:</label>

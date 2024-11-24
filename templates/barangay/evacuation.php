@@ -250,10 +250,16 @@ $centers_result = $stmt->get_result();
                                 </div>
 
                                 <div class="addEC-input">
-                                    <label for="location">Location</label>
+                                    <label for="location">Street</label>
                                     <input type="text" id="location" class="evacuation-center-location" name="location"
                                         required>
                                 </div>
+                                <div class="addEC-input">
+                                    <label for="barangay">Barangay</label>
+                                    <input type="text" id="barangay" class="evacuation-center-barangay" name="barangay"
+                                        value=" <?php echo htmlspecialchars($barangay); ?>" required>
+                                </div>
+
 
                                 <div class="addEC-input">
                                     <label for="capacity">Capacity (per family)</label>

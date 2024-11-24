@@ -29,6 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = mysqli_real_escape_string($conn, $_POST['email']);
     $gender = mysqli_real_escape_string($conn, $_POST['gender']);
     $age = mysqli_real_escape_string($conn, $_POST['age']);
+    $birthday = mysqli_real_escape_string($conn, $_POST['birthday']);
     $position = mysqli_real_escape_string($conn, $_POST['position']);
     $city = mysqli_real_escape_string($conn, $_POST['city']);
     $barangay = mysqli_real_escape_string($conn, $_POST['barangay']);
@@ -79,11 +80,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Insert into the database, including the admin_id
     $sql = "INSERT INTO worker (
-        first_name, middle_name, last_name, extension_name, email, username, password, image, gender, age,
+        first_name, middle_name, last_name, extension_name, email, username, password, image, gender, age, birthday,
         position, city, barangay, contact, proof_image, verification_code, admin_id
     ) VALUES (
         '$firstName', '$middleName', '$lastName', '$extensionName', '$email', '$username', '$hashedPassword',
-        '$profileImage', '$gender', '$age', '$position', '$city', '$barangay', '$contact', 
+        '$profileImage', '$gender', '$age', '$birthday', '$position', '$city', '$barangay', '$contact', 
         '$proofImage', '$verificationCode', '$admin_id'
     )";
 

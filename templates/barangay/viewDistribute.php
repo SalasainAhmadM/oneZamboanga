@@ -176,6 +176,18 @@ $distributedResult = $distributedStmt->get_result();
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+<style>
+    .status-indicator {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        border: 2px solid white;
+
+    }
+</style>
 
 <body>
 
@@ -242,7 +254,25 @@ $distributedResult = $distributedStmt->get_result();
                     <div class="viewSupply-container" style="box-shadow: none;">
 
 
-                        <div class="supplyTop itemDonate">
+
+                        <?php
+                        // Determine status color based on quantity and original quantity
+                        if ($totalQuantity == 0) {
+                            $statusColor = "red";
+                        } elseif ($totalQuantity <= 0.3 * $quantityOrig) {
+                            $statusColor = "yellow";
+                        } elseif ($totalQuantity >= 0.7 * $quantityOrig) {
+                            $statusColor = "green";
+                        } else {
+                            $statusColor = "yellow";
+                        }
+                        ?>
+
+                        <div class="supplyTop itemDonate" style="position: relative;">
+                            <!-- Status color indicator -->
+                            <div class="status-indicator" style="background-color: <?php echo $statusColor; ?>;"></div>
+
+                            <!-- Supply details -->
                             <img src="<?php echo htmlspecialchars($image ? $image : '../../assets/img/supplies.png'); ?>"
                                 alt="">
                             <ul class="supplyDetails">
@@ -387,6 +417,14 @@ $distributedResult = $distributedStmt->get_result();
                                                                 data-name="<?php echo htmlspecialchars($distributed['family_head']); ?>">
                                                             <?php echo htmlspecialchars($distributed['family_head']); ?>
                                                         </td>
+                                                        <td class="ecMembers" style="text-align: center;">
+                                                            <?php echo $memberCount; ?>
+                                                            <ul class="viewMembers" style="text-align: left;">
+                                                                <?php while ($member = $membersResult->fetch_assoc()): ?>
+                                                                    <li><?php echo htmlspecialchars($member['member_name']); ?></li>
+                                                                <?php endwhile; ?>
+                                                            </ul>
+                                                        </td>
                                                         <td style="text-align: center;"><?php echo $memberCount; ?></td>
                                                         <td style="text-align: center;">
                                                             <?php echo htmlspecialchars($distributed['status']); ?>
@@ -470,7 +508,7 @@ $distributedResult = $distributedStmt->get_result();
                                         const quantityInputs = selectedEvacuees.map(evacuee =>
                                             `<div>
             <label>${evacuee.name}: </label>
-            <input type="number" id="quantity_${evacuee.id}" placeholder="Enter quantity" required>
+            <input type="number" id="quantity_${evacuee.id}" value="1" min="1" placeholder="Enter quantity" required>
         </div>`
                                         ).join('');
 
@@ -632,7 +670,7 @@ $distributedResult = $distributedStmt->get_result();
             const quantityInputs = selectedEvacuees.map(evacuee =>
                 `<div>
             <label>${evacuee.name}: </label>
-            <input type="number" id="quantity_${evacuee.id}" placeholder="Enter quantity" required>
+            <input type="number" id="quantity_${evacuee.id}" value="1" min="1" placeholder="Enter quantity" required>
         </div>`
             ).join('');
 

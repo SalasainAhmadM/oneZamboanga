@@ -52,6 +52,12 @@ $notification_stmt = $conn->prepare($notification_query);
 $notification_stmt->bind_param("i", $admin_id);
 $notification_stmt->execute();
 $notification_result = $notification_stmt->get_result();
+
+$query = "SELECT status FROM admin WHERE id = $admin_id";
+$result = mysqli_query($conn, $query);
+$row = mysqli_fetch_assoc($result);
+$admin_status = $row['status'];
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -140,10 +146,15 @@ $notification_result = $notification_stmt->get_result();
 
                         <div class="cta-modal">
                             <div class="cta-options">
-                                <a href="javascript:void(0);"
-                                    onclick="confirmDelete(<?php echo $admin_id; ?>)">Delete</a>
+                                <?php if ($admin_status === 'inactive') { ?>
+                                    <a href="javascript:void(0);"
+                                        onclick="confirmDelete(<?php echo $admin_id; ?>)">Delete</a>
+                                <?php } else { ?>
+                                    <a href="javascript:void(0);" onclick="showActiveAdminWarning()">Delete</a>
+                                <?php } ?>
                             </div>
                         </div>
+
                     </div>
 
                     <!-- left content -->
@@ -313,6 +324,18 @@ $notification_result = $notification_stmt->get_result();
     <script src="../../assets/src/utils/menu-btn.js"></script>
 
     <script>
+        // SweetAlert for active admins
+        function showActiveAdminWarning() {
+            Swal.fire({
+                title: "Can't Delete Active Admin",
+                text: "You cannot delete an active admin.",
+                icon: 'warning',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'OK'
+            });
+        }
+
+        // SweetAlert for confirming deletion
         function confirmDelete(adminId) {
             Swal.fire({
                 title: 'Are you sure?',
@@ -353,6 +376,7 @@ $notification_result = $notification_stmt->get_result();
                 }
             });
         }
+
 
         document.addEventListener('DOMContentLoaded', function () {
             const personelHeader = document.querySelector('.personel-header');

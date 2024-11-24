@@ -81,12 +81,14 @@ date_default_timezone_set('Asia/Manila');
 $currentYear = date("Y");
 
 // Fetch the selected year from the GET parameter or default to the current year
-$selectedYear = isset($_GET['year']) ? intval($_GET['year']) : $currentYear;
+$selectedYear = isset($_GET['year']) ? $_GET['year'] : $currentYear;
 
-// Generate years for the dropdown (past 5 years + current year)
+// Determine whether the "All" option is selected
+$isAllYears = $selectedYear === "All";
+
+// Generate years for the dropdown (past 5 years + current year + "All")
 $pastYears = range($currentYear - 5, $currentYear);
 
-// Query to count evacuees per month filtered by year and their members, excluding certain statuses
 $sqlMonthlyEvacuees = "
     SELECT 
         MONTH(e.date) as month, 
@@ -98,11 +100,16 @@ $sqlMonthlyEvacuees = "
         ) as members_count
     FROM evacuees e
     WHERE e.evacuation_center_id = ? 
-      AND YEAR(e.date) = ?
-      AND e.status NOT IN ('Transfer', 'Moved-out')
-    GROUP BY MONTH(e.date)";
+      AND e.status NOT IN ('Transfer', 'Moved-out')"
+    . (!$isAllYears ? " AND YEAR(e.date) = ?" : "") .
+    " GROUP BY MONTH(e.date)";
+
 $stmtMonthlyEvacuees = $conn->prepare($sqlMonthlyEvacuees);
-$stmtMonthlyEvacuees->bind_param("ii", $evacuationCenterId, $selectedYear);
+if ($isAllYears) {
+    $stmtMonthlyEvacuees->bind_param("i", $evacuationCenterId);
+} else {
+    $stmtMonthlyEvacuees->bind_param("ii", $evacuationCenterId, $selectedYear);
+}
 $stmtMonthlyEvacuees->execute();
 $resultMonthlyEvacuees = $stmtMonthlyEvacuees->get_result();
 
@@ -277,6 +284,7 @@ $monthlyEvacueesJson = json_encode(array_values($monthlyEvacuees));
 
                         <div class="chart">
                             <select id="yearFilter" class="year-select">
+                                <option value="All" <?php echo $selectedYear === "All" ? 'selected' : ''; ?>>All</option>
                                 <?php foreach ($pastYears as $year): ?>
                                     <option value="<?php echo $year; ?>" <?php echo $year == $selectedYear ? 'selected' : ''; ?>>
                                         <?php echo $year; ?>
@@ -415,10 +423,9 @@ $monthlyEvacueesJson = json_encode(array_values($monthlyEvacuees));
         document.getElementById('yearFilter').addEventListener('change', function () {
             const selectedYear = this.value;
             const urlParams = new URLSearchParams(window.location.search);
-            urlParams.set('year', selectedYear); // Update the year parameter in the URL
-            window.location.search = urlParams.toString(); // Reload the page with the selected year
+            urlParams.set('year', selectedYear);
+            window.location.search = urlParams.toString();
         });
-
 
         // Chart rendering logic
         const monthlyEvacueesData = <?php echo $monthlyEvacueesJson; ?>;

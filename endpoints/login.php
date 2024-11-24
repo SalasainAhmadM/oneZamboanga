@@ -89,17 +89,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_role'] = $user['role'];
             $_SESSION['login_success'] = true;
 
-            // Update last_login and set status to 'active' for the current user
-            $updateQuery = "UPDATE admin SET last_login = NOW(), status = 'active' WHERE id = ?";
-            $updateStmt = $conn->prepare($updateQuery);
-            $updateStmt->bind_param("i", $user['id']);
-            $updateStmt->execute();
+            // Check if the admin has associated evacuation centers with evacuees
+            $adminId = $user['id'];
 
-            // Set other users as 'inactive' if they haven't logged in for over a week
-            $updateInactiveQuery = "UPDATE admin SET status = 'inactive' WHERE last_login < DATE_SUB(NOW(), INTERVAL 7 DAY) AND id != ?";
+            // Query to check if admin has evacuation centers with evacuees
+            $checkEvacuationCentersQuery = "
+    SELECT ec.id 
+    FROM evacuation_center ec
+    JOIN evacuees e ON ec.id = e.evacuation_center_id
+    WHERE ec.admin_id = ? AND e.status = 'Admitted'
+    LIMIT 1
+";
+            $checkStmt = $conn->prepare($checkEvacuationCentersQuery);
+            $checkStmt->bind_param("i", $adminId);
+            $checkStmt->execute();
+            $checkStmt->store_result();
+
+            // Activate only if there is at least one evacuation center with evacuees
+            if ($checkStmt->num_rows > 0) {
+                // Update last_login and set status to 'active' for the current user
+                $updateQuery = "UPDATE admin SET last_login = NOW(), status = 'active' WHERE id = ?";
+                $updateStmt = $conn->prepare($updateQuery);
+                $updateStmt->bind_param("i", $adminId);
+                $updateStmt->execute();
+            } else {
+                // Ensure status remains inactive if no evacuation centers with evacuees
+                $updateQuery = "UPDATE admin SET status = 'inactive' WHERE id = ?";
+                $updateStmt = $conn->prepare($updateQuery);
+                $updateStmt->bind_param("i", $adminId);
+                $updateStmt->execute();
+            }
+
+            // Optionally, deactivate other admins inactive for over a week
+            $updateInactiveQuery = "
+    UPDATE admin 
+    SET status = 'inactive' 
+    WHERE last_login < DATE_SUB(NOW(), INTERVAL 7 DAY) AND id != ?
+";
             $updateInactiveStmt = $conn->prepare($updateInactiveQuery);
-            $updateInactiveStmt->bind_param("i", $user['id']);
+            $updateInactiveStmt->bind_param("i", $adminId);
             $updateInactiveStmt->execute();
+
 
             // Redirect based on the user role
             if ($user['role'] === 'admin') {

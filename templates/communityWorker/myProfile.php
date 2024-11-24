@@ -8,7 +8,7 @@ if (isset($_SESSION['user_id'])) {
     $worker_id = $_SESSION['user_id'];
 
     // Fetch the worker's details from the database
-    $sql = "SELECT first_name, middle_name, last_name, extension_name, username, email, image, proof_image, gender, city, barangay, contact, position 
+    $sql = "SELECT first_name, middle_name, last_name, extension_name, username, age, birthday, email, image, proof_image, gender, city, barangay, contact, position 
     FROM worker 
     WHERE id = ?";
     $stmt = $conn->prepare($sql);
@@ -25,6 +25,8 @@ if (isset($_SESSION['user_id'])) {
         $email = $worker['email'];
         $worker_image = $worker['image'];
         $gender = $worker['gender'];
+        $birthday = $worker['birthday'];
+        $age = $worker['age'];
         $city = $worker['city'];
         $barangay = $worker['barangay'];
         $contact = $worker['contact'];
@@ -247,6 +249,43 @@ $proof_image = !empty($worker['proof_image']) ? $worker['proof_image'] : "../../
                                 </div>
 
                                 <div class="inputProfile">
+                                    <label for="birthday">Birthday</label>
+                                    <input type="date" id="birthday" class="birthday" name="birthday"
+                                        value="<?php echo htmlspecialchars($worker['birthday']); ?>">
+                                </div>
+
+                                <div class="inputProfile">
+                                    <label for="age">Age</label>
+                                    <input type="number" name="age" id="age" class="age"
+                                        value="<?php echo htmlspecialchars($worker['age']); ?>" placeholder="Enter Age"
+                                        required>
+                                </div>
+                                <script>
+
+                                    document.getElementById('birthday').addEventListener('change', function () {
+                                        const birthday = new Date(this.value);
+
+                                        // Get the current date in Asia/Manila timezone
+                                        const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+
+                                        if (birthday > now) {
+                                            document.getElementById('age').value = 0;
+                                            return;
+                                        }
+
+                                        let age = now.getFullYear() - birthday.getFullYear();
+                                        const isBirthdayPassedThisYear =
+                                            now.getMonth() > birthday.getMonth() ||
+                                            (now.getMonth() === birthday.getMonth() && now.getDate() >= birthday.getDate());
+
+                                        if (!isBirthdayPassedThisYear) {
+                                            age--;
+                                        }
+
+                                        document.getElementById('age').value = age > 0 ? age : 0;
+                                    });
+                                </script>
+                                <div class="inputProfile">
                                     <label for="gender">Gender</label>
                                     <select name="gender" id="gender" class="gender">
                                         <option value="" <?php echo empty($worker['gender']) ? 'selected' : ''; ?>>
@@ -366,6 +405,8 @@ $proof_image = !empty($worker['proof_image']) ? $worker['proof_image'] : "../../
                     formData.append('last_name', document.getElementById('last_name').value);
                     formData.append('extension_name', document.getElementById('extension_name').value);
                     formData.append('gender', document.getElementById('gender').value);
+                    formData.append('birthday', document.getElementById('birthday').value);
+                    formData.append('age', document.getElementById('age').value);
                     formData.append('city', document.getElementById('city').value);
                     formData.append('barangay', document.getElementById('barangay').value);
                     formData.append('contact', document.getElementById('contact').value);

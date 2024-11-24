@@ -28,6 +28,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $extensionName = mysqli_real_escape_string($conn, $_POST['extensionName']);
     $email = mysqli_real_escape_string($conn, $_POST['email']);
     $gender = mysqli_real_escape_string($conn, $_POST['gender']);
+    $age = mysqli_real_escape_string($conn, $_POST['age']);
+    $birthday = mysqli_real_escape_string($conn, $_POST['birthday']);
     $position = mysqli_real_escape_string($conn, $_POST['position']);
     $city = mysqli_real_escape_string($conn, $_POST['city']);
     $barangay = mysqli_real_escape_string($conn, $_POST['barangay']);
@@ -91,11 +93,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Insert into the database
     $sql = "INSERT INTO admin (
-        first_name, middle_name, last_name, extension_name, email, username, password, image, gender,
-        position, city, barangay, barangay_logo, contact, role, proof_image, verification_code
+        first_name, middle_name, last_name, extension_name, email, username, password, image, gender, age, birthday,
+        position, city, barangay, barangay_logo, contact, role, proof_image, verification_code, status
     ) VALUES (
         '$firstName', '$middleName', '$lastName', '$extensionName', '$email', '$username', '$hashedPassword',
-        '$profileImage', '$gender', '$position', '$city', '$barangay', '$barangayLogo', '$contact', '$role', '$proofImage', '$verificationCode'
+        '$profileImage', '$gender', '$age', '$birthday', '$position', '$city', '$barangay', '$barangayLogo', '$contact', '$role', '$proofImage', '$verificationCode' , 'inactive'
     )";
 
     if (mysqli_query($conn, $sql)) {

@@ -12,6 +12,8 @@ if (isset($_SESSION['user_id'])) {
         $last_name = $_POST['last_name'];
         $extension_name = $_POST['extension_name'];
         $gender = $_POST['gender'];
+        $birthday = $_POST['birthday'];
+        $age = $_POST['age'];
         $city = $_POST['city'];
         $barangay = $_POST['barangay'];
         $contact = $_POST['contact'];
@@ -69,9 +71,9 @@ if (isset($_SESSION['user_id'])) {
         }
 
         // Update the database with new values
-        $sql = "UPDATE worker SET first_name = ?, middle_name = ?, last_name = ?, extension_name = ?, gender = ?, city = ?, barangay = ?, contact = ?, email = ?, position = ?, image = ?, proof_image = ? WHERE id = ?";
+        $sql = "UPDATE worker SET first_name = ?, middle_name = ?, last_name = ?, extension_name = ?, gender = ?, birthday = ?, age = ?, city = ?, barangay = ?, contact = ?, email = ?, position = ?, image = ?, proof_image = ? WHERE id = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssssssssssssi", $first_name, $middle_name, $last_name, $extension_name, $gender, $city, $barangay, $contact, $email, $position, $image_path, $proof_image_path, $worker_id);
+        $stmt->bind_param("ssssssisssssssi", $first_name, $middle_name, $last_name, $extension_name, $gender, $birthday, $age, $city, $barangay, $contact, $email, $position, $image_path, $proof_image_path, $worker_id);
 
         if ($stmt->execute()) {
             echo json_encode(['success' => true]);

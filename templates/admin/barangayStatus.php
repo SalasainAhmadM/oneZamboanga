@@ -53,6 +53,55 @@ $result = $conn->query($query);
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+<style>
+    .ecList {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .ecDot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .ecName {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ecDot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: grey;
+        /* Default */
+    }
+
+    .ecDot.red {
+        background-color: red;
+    }
+
+    .ecDot.yellow {
+        background-color: yellow;
+    }
+
+    .ecDot.green {
+        background-color: green;
+    }
+
+    .ecDot.grey {
+        background-color: grey;
+    }
+
+    .statusCard {
+        position: relative;
+        /* Required for absolute positioning of ecDot */
+    }
+</style>
 
 <body>
 
@@ -116,11 +165,54 @@ $result = $conn->query($query);
                             $center_ids = $admin['evacuation_center_ids'] ? explode(',', $admin['evacuation_center_ids']) : [];
                             $center_names = $admin['evacuation_center_names'] ? explode(',', $admin['evacuation_center_names']) : [];
                             $center_capacities = $admin['evacuation_center_capacities'] ? explode(',', $admin['evacuation_center_capacities']) : [];
-                            $center_locations = $admin['evacuation_center_locations'] ? explode(',', $admin['evacuation_center_locations']) : [];
                             $center_images = $admin['evacuation_center_images'] ? explode(',', $admin['evacuation_center_images']) : [];
+
+                            $overall_status_color = "grey"; // Default if no evacuation centers exist
+                            $status_colors = [];
+
+                            // Determine evacuation center statuses
+                            if (!empty($center_ids)) {
+                                foreach ($center_ids as $index => $center_id) {
+                                    $center_id = (int) $center_id;
+                                    $capacity = (int) $center_capacities[$index];
+
+                                    // Calculate total families
+                                    $family_count_sql = "SELECT COUNT(*) AS total_families FROM evacuees WHERE evacuation_center_id = ?";
+                                    $family_count_stmt = $conn->prepare($family_count_sql);
+                                    $family_count_stmt->bind_param("i", $center_id);
+                                    $family_count_stmt->execute();
+                                    $family_count_result = $family_count_stmt->get_result();
+                                    $total_families = ($family_count_result->num_rows > 0) ? $family_count_result->fetch_assoc()['total_families'] : 0;
+
+                                    // Determine status color based on occupancy
+                                    if ($total_families === 0) {
+                                        $status_colors[] = "grey";
+                                    } else {
+                                        $occupancy_percentage = ($total_families / $capacity) * 100;
+                                        $status_colors[] = $occupancy_percentage < 70 ? "green" : ($occupancy_percentage < 100 ? "yellow" : "red");
+                                    }
+                                }
+
+                                // Determine overall status based on evacuation center statuses
+                                if (!in_array("green", $status_colors)) {
+                                    if (array_unique($status_colors) === ["red"]) {
+                                        $overall_status_color = "red"; // All centers are red
+                                    } elseif (in_array("yellow", $status_colors)) {
+                                        $overall_status_color = "yellow"; // Mix of red and yellow
+                                    } else {
+                                        $overall_status_color = "grey"; // All grey
+                                    }
+                                } else {
+                                    $overall_status_color = "green"; // At least one green center
+                                }
+                            }
                             ?>
                             <div class="statusCard"
                                 onclick="window.location.href='barangayEC.php?barangay=<?php echo urlencode($admin['barangay']); ?>&admin_id=<?php echo $admin_id; ?>'">
+                                <!-- Upper-left ecDot -->
+                                <div class="ecDot <?php echo $overall_status_color; ?>"
+                                    style="position: absolute; top: 10px; left: 10px;"></div>
+
                                 <img class="barangayLogo"
                                     src="<?php echo htmlspecialchars($admin['barangay_logo'] ?: '../../assets/img/zambo.png'); ?>"
                                     alt="Barangay Logo">
@@ -143,47 +235,15 @@ $result = $conn->query($query);
                                         <?php if ($admin['evacuation_center_count'] == 0): ?>
                                             <p class="noEcMessage">No Evacuation Center</p>
                                         <?php else: ?>
-                                            <?php for ($i = 0; $i < count($center_ids); $i++):
-                                                $center_id = (int) $center_ids[$i];
-                                                $capacity = (int) $center_capacities[$i];
-                                                $center_name = htmlspecialchars($center_names[$i]);
-                                                $location = htmlspecialchars($center_locations[$i]);
-                                                $image = !empty($center_images[$i]) ? htmlspecialchars($center_images[$i]) : '../../assets/img/evacuation-default.svg';
-
-                                                // Calculate total families
-                                                $family_count_sql = "SELECT COUNT(*) AS total_families FROM evacuees WHERE evacuation_center_id = ?";
-                                                $family_count_stmt = $conn->prepare($family_count_sql);
-                                                $family_count_stmt->bind_param("i", $center_id);
-                                                $family_count_stmt->execute();
-                                                $family_count_result = $family_count_stmt->get_result();
-                                                $total_families = ($family_count_result->num_rows > 0) ? $family_count_result->fetch_assoc()['total_families'] : 0;
-
-                                                // Calculate total evacuees
-                                                $evacuees_count_sql = "
-                                SELECT 
-                                    (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
-                                    (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-                                    (SELECT id FROM evacuees WHERE evacuation_center_id = ?)) AS total_evacuees
-                            ";
-                                                $evacuees_count_stmt = $conn->prepare($evacuees_count_sql);
-                                                $evacuees_count_stmt->bind_param("ii", $center_id, $center_id);
-                                                $evacuees_count_stmt->execute();
-                                                $evacuees_count_result = $evacuees_count_stmt->get_result();
-                                                $total_evacuees = ($evacuees_count_result->num_rows > 0) ? $evacuees_count_result->fetch_assoc()['total_evacuees'] : 0;
-
-                                                // Determine status color based on occupancy
-                                                if ($total_families === 0) {
-                                                    $status_color = "grey";
-                                                } else {
-                                                    $occupancy_percentage = ($total_families / $capacity) * 100;
-                                                    $status_color = $occupancy_percentage < 70 ? "green" : ($occupancy_percentage < 100 ? "yellow" : "red");
-                                                }
+                                            <?php foreach ($center_ids as $index => $center_id):
+                                                $center_name = htmlspecialchars($center_names[$index]);
+                                                $status_color = $status_colors[$index];
                                                 ?>
                                                 <div class="ecList">
                                                     <div class="ecDot <?php echo $status_color; ?>"></div>
                                                     <p class="ecName"><?php echo $center_name; ?></p>
                                                 </div>
-                                            <?php endfor; ?>
+                                            <?php endforeach; ?>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -196,6 +256,8 @@ $result = $conn->query($query);
                             </div>
                         <?php endwhile; ?>
                     </div>
+
+
                 </div>
             </div>
             <!-- <div class="main-wrapper">

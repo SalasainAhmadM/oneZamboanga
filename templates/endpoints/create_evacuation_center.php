@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Collect and sanitize input data
     $name = mysqli_real_escape_string($conn, $_POST['evacuationCenterName']);
     $location = mysqli_real_escape_string($conn, $_POST['location']);
+    $barangay = mysqli_real_escape_string($conn, $_POST['barangay']);
     $capacity = mysqli_real_escape_string($conn, $_POST['capacity']);
     $admin_id = $_POST['admin_id'];
     $logged_in_id = $admin_id;
@@ -62,8 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         // Insert new evacuation center if not already created
-        $query = "INSERT INTO evacuation_center (name, location, image, capacity, admin_id) 
-                  VALUES ('$name', '$location', '$imagePath', '$capacity', '$admin_id')";
+        $query = "INSERT INTO evacuation_center (name, location, barangay, image, capacity, admin_id) 
+                  VALUES ('$name', '$location', '$barangay', '$imagePath', '$capacity', '$admin_id')";
 
         if (mysqli_query($conn, $query)) {
             $_SESSION['message'] = "Evacuation Center created successfully!";

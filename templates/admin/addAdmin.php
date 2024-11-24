@@ -141,6 +141,44 @@ validateSession('superadmin');
                             </div>
 
                             <div class="admin-input">
+                                <label for="birthday">Birthday</label>
+                                <input type="date" id="birthday" name="birthday" class="input-birthday"
+                                    placeholder="Select Birthday" required>
+                            </div>
+
+                            <div class="admin-input">
+                                <label for="age">Age</label>
+                                <input type="number" id="age" name="age" class="input-age" placeholder="Input Age"
+                                    required readonly>
+                            </div>
+
+                            <script>
+
+                                document.getElementById('birthday').addEventListener('change', function () {
+                                    const birthday = new Date(this.value);
+
+                                    // Get the current date in Asia/Manila timezone
+                                    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+
+                                    if (birthday > now) {
+                                        document.getElementById('age').value = 0;
+                                        return;
+                                    }
+
+                                    let age = now.getFullYear() - birthday.getFullYear();
+                                    const isBirthdayPassedThisYear =
+                                        now.getMonth() > birthday.getMonth() ||
+                                        (now.getMonth() === birthday.getMonth() && now.getDate() >= birthday.getDate());
+
+                                    if (!isBirthdayPassedThisYear) {
+                                        age--;
+                                    }
+
+                                    document.getElementById('age').value = age > 0 ? age : 0;
+                                });
+                            </script>
+
+                            <div class="admin-input">
                                 <label for="city">City/Province</label>
                                 <input type="text" id="city" name="city" class="input-city" placeholder=""
                                     value="Zamboanga City" required>

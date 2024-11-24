@@ -235,6 +235,9 @@ $logsResult = $logsStmt->get_result();
                                     <p class="details-profile">Occupation: <?php echo $evacuee['occupation']; ?></p>
                                     <p class="details-profile">Status of Occupancy: <?php echo $evacuee['status']; ?>
                                     </p>
+                                    <p class="details-profile">Calamity:
+                                        <?php echo ucfirst($evacuee['disaster_type']); ?>
+                                    </p>
                                     <p class="details-profile">Damaged: <?php echo ucfirst($evacuee['damage']); ?></p>
                                     <p class="details-profile">Cost of damaged: <?php echo $evacuee['cost_damage']; ?>
                                     </p>
@@ -382,7 +385,7 @@ $logsResult = $logsStmt->get_result();
         <label for="centerSelect">Select a new evacuation center:</label>
         <select id="centerSelect" class="swal2-select" style="width: 400px;">
             <?php foreach ($otherCenters as $center): ?>
-                                                                                                                                                <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
+                                                                                                                                                        <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
             <?php endforeach; ?>
         </select>
     `,

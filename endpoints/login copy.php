@@ -89,21 +89,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_role'] = $user['role'];
             $_SESSION['login_success'] = true;
 
-            // Generate a unique token for the session
-            $token = bin2hex(random_bytes(16));
-            $_SESSION['session_token'] = $token;
-
             // Update last_login and set status to 'active' for the current user
             $updateQuery = "UPDATE admin SET last_login = NOW(), status = 'active' WHERE id = ?";
             $updateStmt = $conn->prepare($updateQuery);
             $updateStmt->bind_param("i", $user['id']);
             $updateStmt->execute();
 
-            // Redirect based on the user role with the token in the URL
+            // Set other users as 'inactive' if they haven't logged in for over a week
+            $updateInactiveQuery = "UPDATE admin SET status = 'inactive' WHERE last_login < DATE_SUB(NOW(), INTERVAL 7 DAY) AND id != ?";
+            $updateInactiveStmt = $conn->prepare($updateInactiveQuery);
+            $updateInactiveStmt->bind_param("i", $user['id']);
+            $updateInactiveStmt->execute();
+
+            // Redirect based on the user role
             if ($user['role'] === 'admin') {
-                header("Location: ../templates/barangay/dashboard_barangay.php?token=$token");
+                header("Location: ../templates/barangay/dashboard_barangay.php");
             } elseif ($user['role'] === 'superadmin') {
-                header("Location: ../templates/admin/dashboard.php?token=$token");
+                header("Location: ../templates/admin/dashboard.php");
             }
             exit();
         } else {

@@ -61,6 +61,69 @@ if (isset($_SESSION['user_id'])) {
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+<style>
+    .dropdown-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-barangay {
+        width: 100%;
+        padding: 8px 32px 8px 8px;
+        box-sizing: border-box;
+    }
+
+    .add-icon {
+        position: absolute;
+        right: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        color: #fff;
+        background-color: var(--clr-slate600);
+        border: 1px solid #ccc;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .add-icon:hover {
+        background-color: #000;
+        color: #fff;
+    }
+
+    .dropdown-list {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        max-height: 150px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+
+    .dropdown-list li {
+        padding: 8px;
+        cursor: pointer;
+    }
+
+    .dropdown-list li:hover {
+        background-color: #f0f0f0;
+    }
+</style>
 
 <body>
     <?php
@@ -165,78 +228,50 @@ if (isset($_SESSION['user_id'])) {
                                 </select>
                             </div>
                             <div class="admin-input">
+                                <label for="birthday">Birthday</label>
+                                <input type="date" id="birthday" name="birthday" class="input-birthday"
+                                    placeholder="Select Birthday" required>
+                            </div>
+
+                            <div class="admin-input">
                                 <label for="age">Age</label>
                                 <input type="number" id="age" name="age" class="input-age" placeholder="Input Age"
-                                    required>
+                                    required readonly>
                             </div>
+
+                            <script>
+
+                                document.getElementById('birthday').addEventListener('change', function () {
+                                    const birthday = new Date(this.value);
+
+                                    // Get the current date in Asia/Manila timezone
+                                    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+
+                                    if (birthday > now) {
+                                        document.getElementById('age').value = 0;
+                                        return;
+                                    }
+
+                                    let age = now.getFullYear() - birthday.getFullYear();
+                                    const isBirthdayPassedThisYear =
+                                        now.getMonth() > birthday.getMonth() ||
+                                        (now.getMonth() === birthday.getMonth() && now.getDate() >= birthday.getDate());
+
+                                    if (!isBirthdayPassedThisYear) {
+                                        age--;
+                                    }
+
+                                    document.getElementById('age').value = age > 0 ? age : 0;
+                                });
+                            </script>
+
+
                             <div class="admin-input">
                                 <label for="city">City/Province</label>
                                 <input type="text" id="city" name="city" class="input-city" placeholder=""
                                     value="Zamboanga City" required>
                             </div>
-                            <style>
-                                .dropdown-container {
-                                    position: relative;
-                                    display: flex;
-                                    align-items: center;
-                                }
 
-                                .input-barangay {
-                                    width: 100%;
-                                    padding: 8px 32px 8px 8px;
-                                    box-sizing: border-box;
-                                }
-
-                                .add-icon {
-                                    position: absolute;
-                                    right: 8px;
-                                    cursor: pointer;
-                                    font-size: 16px;
-                                    font-weight: bold;
-                                    color: #fff;
-                                    background-color: var(--clr-slate600);
-                                    border: 1px solid #ccc;
-                                    border-radius: 50%;
-                                    width: 24px;
-                                    height: 24px;
-                                    display: flex;
-                                    justify-content: center;
-                                    align-items: center;
-                                    z-index: 10;
-                                    transition: background-color 0.3s, color 0.3s;
-                                }
-
-                                .add-icon:hover {
-                                    background-color: #000;
-                                    color: #fff;
-                                }
-
-                                .dropdown-list {
-                                    list-style-type: none;
-                                    margin: 0;
-                                    padding: 0;
-                                    position: absolute;
-                                    top: 100%;
-                                    left: 0;
-                                    right: 0;
-                                    background: white;
-                                    border: 1px solid #ccc;
-                                    border-radius: 4px;
-                                    max-height: 150px;
-                                    overflow-y: auto;
-                                    z-index: 1000;
-                                    display: none;
-                                }
-
-                                .dropdown-list li {
-                                    padding: 8px;
-                                    cursor: pointer;
-                                }
-
-                                .dropdown-list li:hover {
-                                    background-color: #f0f0f0;
-                                }
-                            </style>
                             <div class="admin-input">
                                 <label for="barangay">Barangay</label>
                                 <div class="dropdown-container">

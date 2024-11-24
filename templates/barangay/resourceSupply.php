@@ -30,7 +30,7 @@ while ($row = $categoryResult->fetch_assoc()) {
 
 // Fetch supplies associated with the evacuation center, including the dynamic `quantity` calculation
 $supplySql = "
-    SELECT s.id, s.name, s.description, s.unit, s.image, s.category_id,
+    SELECT s.id, s.name, s.description, s.quantity, s.original_quantity, s.unit, s.image, s.category_id,
            (s.quantity + COALESCE(SUM(st.quantity), 0)) AS total_quantity
     FROM supply s
     LEFT JOIN stock st ON s.id = st.supply_id
@@ -74,10 +74,108 @@ $supplyResult = $supplyStmt->get_result();
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+<style>
+    /* select quantity category */
+    .selectQuantity {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        width: 100%;
+    }
+
+    .perPiece,
+    .perPack {
+        background-color: var(--clr-slate600);
+        color: var(--clr-white);
+        padding-inline: .5em;
+        border-radius: .5em;
+        font-size: var(--size-sm);
+        transition: .3s;
+        cursor: pointer;
+
+        &:hover {
+            background-color: var(--clr-dark);
+        }
+    }
+
+    .piece {
+        display: none;
+    }
+
+    .pack {
+        display: none;
+    }
+
+
+
+    /* manage category */
+    .categoryCTA {
+        background-color: var(--clr-slate600);
+        color: var(--clr-white);
+        border: none;
+        outline: none;
+        padding: .2em;
+        transition: .3s;
+        cursor: pointer;
+
+        &:hover {
+            background-color: var(--clr-dark);
+        }
+    }
+
+    .listCategory {
+        position: relative;
+        display: none;
+    }
+
+    .closeManage {
+        display: none;
+        border: none;
+        outline: none;
+        background-color: transparent;
+
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 9;
+
+        i {
+            font-size: var(--size-lg);
+            font-weight: 600;
+            color: var(--clr-slate600);
+            cursor: pointer;
+
+            &:hover {
+                color: var(--clr-dark);
+            }
+        }
+    }
+
+    .supply-card {
+        position: relative;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+        margin: 10px;
+    }
+
+    .status-indicator {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        border: 1px solid #fff;
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+</style>
 
 <body>
     <?php
-    session_start();
     if (isset($_SESSION['message'])) {
         echo "<script>
     Swal.fire({
@@ -303,22 +401,38 @@ $supplyResult = $supplyStmt->get_result();
 
 
                     </div>
-
                     <div class="supply-wrapper">
                         <?php if ($supplyResult->num_rows > 0): ?>
                             <?php while ($supply = $supplyResult->fetch_assoc()): ?>
+                                <?php
+                                $currentQuantity = $supply['quantity'];
+                                $originalQuantity = $supply['original_quantity'];
+
+                                // Determine color status
+                                if ($currentQuantity == 0) {
+                                    $statusColor = "red";
+                                } elseif ($currentQuantity <= 0.3 * $originalQuantity) {
+                                    $statusColor = "yellow";
+                                } elseif ($currentQuantity >= 0.7 * $originalQuantity) {
+                                    $statusColor = "green";
+                                } else {
+                                    $statusColor = "yellow";
+                                }
+
+                                $imagePath = !empty($supply['image']) ? "../../assets/img/" . htmlspecialchars($supply['image']) : "../../assets/img/supplies.png";
+                                ?>
                                 <div class="supply-card" data-category="<?php echo htmlspecialchars($supply['category_id']); ?>"
                                     data-name="<?php echo strtolower(htmlspecialchars($supply['name'])); ?>">
 
-                                    <?php
-                                    $imagePath = !empty($supply['image']) ? "../../assets/img/" . htmlspecialchars($supply['image']) : "../../assets/img/supplies.png";
-                                    ?>
+                                    <!-- Status Indicator -->
+                                    <div class="status-indicator" style="background-color: <?php echo $statusColor; ?>;"></div>
+
                                     <img class="supply-img" src="<?php echo $imagePath; ?>" alt="">
                                     <ul class="supply-info">
                                         <li>Name: <?php echo htmlspecialchars($supply['name']); ?></li>
                                         <li>Description: <?php echo htmlspecialchars($supply['description']); ?></li>
                                         <li>Quantity:
-                                            <?php echo htmlspecialchars($supply['total_quantity']) . ' ' . htmlspecialchars($supply['unit']); ?>s
+                                            <?php echo htmlspecialchars($supply['quantity']) . ' ' . htmlspecialchars($supply['unit']); ?>s
                                         </li>
                                     </ul>
                                     <a href="viewSupply.php?id=<?php echo htmlspecialchars($supply['id']); ?>"

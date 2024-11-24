@@ -170,6 +170,17 @@ $distributeResult = $distributeStmt->get_result();
         .pack {
             display: none;
         }
+
+        .status-indicator {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            border: 2px solid #4b5563;
+
+        }
     </style>
 
 
@@ -371,9 +382,26 @@ $distributeResult = $distributeStmt->get_result();
 
 
 
-                        <div class="supplyTop">
+                        <?php
+                        // Determine status color based on quantity and original quantity
+                        if ($totalQuantity == 0) {
+                            $statusColor = "red";
+                        } elseif ($totalQuantity <= 0.3 * $quantityOrig) {
+                            $statusColor = "yellow";
+                        } elseif ($totalQuantity >= 0.7 * $quantityOrig) {
+                            $statusColor = "green";
+                        } else {
+                            $statusColor = "yellow";
+                        }
+                        ?>
+
+                        <div class="supplyTop" style="position: relative;">
+                            <!-- Status color indicator -->
+                            <div class="status-indicator" style="background-color: <?php echo $statusColor; ?>;"></div>
+
+                            <!-- Supply details -->
                             <img src="<?php echo htmlspecialchars($image ? $image : '../../assets/img/supplies.png'); ?>"
-                                alt="Supply Image">
+                                alt="">
                             <ul class="supplyDetails">
                                 <li>Supply Name: <?php echo htmlspecialchars($supplyName); ?></li>
                                 <li>Category: <?php echo htmlspecialchars($categoryName); ?></li>
@@ -383,6 +411,7 @@ $distributeResult = $distributeStmt->get_result();
                                 </li>
                             </ul>
                         </div>
+
 
 
                         <div class="supplyBot">
