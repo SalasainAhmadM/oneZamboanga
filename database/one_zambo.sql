@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 24, 2024 at 05:25 PM
+-- Generation Time: Nov 24, 2024 at 07:19 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -57,15 +57,15 @@ CREATE TABLE `admin` (
 --
 
 INSERT INTO `admin` (`id`, `first_name`, `middle_name`, `last_name`, `extension_name`, `email`, `username`, `password`, `image`, `birthday`, `age`, `gender`, `position`, `city`, `barangay`, `barangay_logo`, `contact`, `role`, `proof_image`, `status`, `last_login`, `verification_code`) VALUES
-(1, 'Mitsuyoshi', 'D.', 'Anzai', 'II', 'superadmin@gmail.com', 'superadmin12', '$2y$10$SvIjuJHT3AGOT6dvh2VG1uuxjsDtIiWoTQ/Lhjp0Ycgtecv.UHAiS', '../../assets/uploads/profiles/Mitsuyoshi Anzai.jpg', '', 0, '', '', '', '', NULL, '0', 'superadmin', '', 'inactive', '2024-11-24 22:53:17', NULL),
-(2, 'Hanamichi', 'D.', 'Sakuragi', '', 'admin@gmail.com', 'admin123', '$2y$10$SvIjuJHT3AGOT6dvh2VG1uuxjsDtIiWoTQ/Lhjp0Ycgtecv.UHAiS', '../../assets/uploads/profiles/sakuragi.png', '2004-10-25', 20, 'Male', 'Captain', 'Zamboanga', 'Guiwan', NULL, '2147483647', 'admin', '../../assets/uploads/appointments/journal format.png', 'active', '2024-11-24 23:51:52', ''),
+(1, 'Mitsuyoshi', 'D.', 'Anzai', 'II', 'superadmin@gmail.com', 'superadmin12', '$2y$10$SvIjuJHT3AGOT6dvh2VG1uuxjsDtIiWoTQ/Lhjp0Ycgtecv.UHAiS', '../../assets/uploads/profiles/Mitsuyoshi Anzai.jpg', '0000-00-00', 0, '', '', '', '', NULL, '0', 'superadmin', '', 'inactive', '2024-11-24 22:53:17', NULL),
+(2, 'Hanamichi', 'D.', 'Sakuragi', '', 'admin@gmail.com', 'admin123', '$2y$10$SvIjuJHT3AGOT6dvh2VG1uuxjsDtIiWoTQ/Lhjp0Ycgtecv.UHAiS', '../../assets/uploads/profiles/sakuragi.png', '2004-10-25', 20, 'Male', 'Captain', 'Zamboanga', 'Guiwan', NULL, '2147483647', 'admin', '../../assets/uploads/appointments/journal format.png', 'active', '2024-11-25 02:15:34', ''),
 (3, 'Kaede', 'D', 'Rukawa', '', 'binimaloi@gmail.com', 'RukawaAdmin', '$2y$10$SvIjuJHT3AGOT6dvh2VG1uuxjsDtIiWoTQ/Lhjp0Ycgtecv.UHAiS', '../../assets/uploads/profiles/rukawa.jpg', '1994-10-25', 30, 'Male', 'Ace Player', 'Zamboanga City', 'Shohoku', NULL, '2147483647', 'admin', '../../assets/uploads/appointments/bini.jpg', 'inactive', '2024-11-04 22:36:44', ''),
 (4, 'Maloi', 'D', 'Ricalde', '', 'kaizoku@gmail.com', 'RicaldeAdmin', '$2y$10$.cQt6NadI2oLMwFn3Ne2T.gvb.fUGwA0A06ICcgeOpvmqvX2s4Obm', '../../assets/uploads/profiles/bini_maloi.png', '2004-10-25', 20, 'Female', 'Main Vocalist', 'Zamboanga City', 'Kasanyangan', NULL, '09551078233', 'admin', '../../assets/uploads/appointments/69ce7c36886481c490338f7465e00bd9.png', 'inactive', '2024-11-08 23:02:03', NULL),
 (5, 'Aiah', 'D', 'Arceta', '', 'masterjho@gmail.com', 'ArcetaAdmin', '$2y$10$t8XryzbGRzJaEa6PW4Zz6e/fopHBGky8oTRhaN/sbgMI21EdM49q.', '', '1994-10-25', 30, 'Female', 'Main Visual', 'Zamboanga City', 'Talon-talon', NULL, '123456789', 'admin', '../../assets/uploads/appointments/69ce7c36886481c490338f7465e00bd9.png', 'inactive', '2024-11-08 23:27:32', NULL),
 (6, 'Mikha', 'D', 'Lim', '', 'samcena@gmail.com', 'LimAdmin', '$2y$10$0K8XeBqdvMj0I.iaEF4hSOId39U7kYlZCTgF1LJHOyOUUdhJTAKda', '../../assets/uploads/profiles/bini_mikha.png', '2004-10-25', 20, 'Female', 'Main Rapper', 'Zamboanga City', 'Sta.Maria', '', '09881078332', 'admin', '../../assets/uploads/appointments/1.png', 'inactive', '2024-11-08 23:36:17', NULL),
 (7, 'Colet', 'D', 'Vergara', '', 'binimaloi2@gmail.com', 'VergaraAdmin', '$2y$10$QcOe1IvngDYKv4TJB6EdQOqgLcYOvfG3C3FBGws.gowDxrdbZLGg.', '../../assets/uploads/profiles/bini_colet.png', '1994-10-25', 30, 'Female', 'Lead Vocalist', 'Zamboanga City', 'San Roque', '../../assets/uploads/barangay/3.png', '0988106322', 'admin', '../../assets/uploads/appointments/bini.jpg', 'active', NULL, ''),
 (8, 'Mark', 'D', 'Tabotabo', '', 'binimaloi27@gmail.com', 'TabotaboAdmin', '$2y$10$hZ3pXCLp9WKaC.O25J2BAuCznkwudGOwUr.hDmS74LlCWU7nnYo9e', '../../assets/uploads/profiles/archi.jpg', '2004-10-25', 20, 'Male', 'Programmer', 'Zamboanga City', 'Kasanyangan', '../../assets/uploads/barangay/govlimball.png', '0955107334', 'admin', '../../assets/uploads/appointments/1232342112.jpg', 'inactive', '2024-11-22 19:50:29', NULL),
-(9, 'Chinatsu', '', 'Kano', '', 'binimaloi352@gmail.com', 'KanoAdmin', '$2y$10$hZ3pXCLp9WKaC.O25J2BAuCznkwudGOwUr.hDmS74LlCWU7nnYo9e', '', '1994-10-25', 30, 'Male', 'Basketball Player', 'Zamboanga City', 'Talon-Talon', '../../assets/uploads/barangay/admin.png', '123', 'admin', '../../assets/uploads/appointments/canton.png', 'inactive', '2024-11-24 23:12:23', NULL);
+(9, 'Chinatsu', '', 'Kano', '', 'chinatsukano@gmail.com', 'KanoAdmin', '$2y$10$hZ3pXCLp9WKaC.O25J2BAuCznkwudGOwUr.hDmS74LlCWU7nnYo9e', '', '1994-10-25', 30, 'Male', 'Basketball Player', 'Zamboanga City', 'Talon-Talon', '../../assets/uploads/barangay/admin.png', '123', 'admin', '../../assets/uploads/appointments/canton.png', 'inactive', '2024-11-24 23:12:23', NULL);
 
 -- --------------------------------------------------------
 
@@ -172,7 +172,8 @@ INSERT INTO `distribute` (`id`, `supply_name`, `date`, `evacuees_id`, `supply_id
 (85, 'Magi', '2024-11-18 11:14:12', 10, 3, 26, 2, 'admin'),
 (88, 'Cat Food', '2024-11-18 11:43:06', 13, 4, 2, 2, 'admin'),
 (89, 'Cat Food', '2024-11-18 11:43:31', 10, 4, 2, 2, 'admin'),
-(92, 'Magi', '2024-11-18 13:36:22', 14, 3, 9, 2, 'admin');
+(92, 'Magi', '2024-11-18 13:36:22', 14, 3, 9, 2, 'admin'),
+(93, 'Ahmad M. Salasain ', '2024-11-25 01:19:23', 2, 20, 1, 2, 'admin');
 
 -- --------------------------------------------------------
 
@@ -184,6 +185,7 @@ CREATE TABLE `evacuation_center` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `location` varchar(255) NOT NULL,
+  `barangay` varchar(255) NOT NULL,
   `capacity` varchar(255) NOT NULL,
   `admin_id` int(11) NOT NULL,
   `image` varchar(255) NOT NULL,
@@ -194,15 +196,16 @@ CREATE TABLE `evacuation_center` (
 -- Dumping data for table `evacuation_center`
 --
 
-INSERT INTO `evacuation_center` (`id`, `name`, `location`, `capacity`, `admin_id`, `image`, `created_at`) VALUES
-(1, 'Don Gems', 'Grandline', '122', 2, '../../assets/uploads/evacuation_centers/spirited_away_by_snatti89_ddj15iy.jpg', '2024-11-10 11:18:41'),
-(2, 'Zamboanga City High School Main', 'Grandline', '122', 2, '', '2024-11-06 11:18:41'),
-(3, 'Avengers Tower', 'New York', '4', 2, '../../assets/uploads/evacuation_centers/one_piece_scene_zoro_by_uoa7_d5hhg5y.jpg', '2024-11-10 11:18:41'),
-(4, 'Barangay Hall', 'Bugguk', '20', 2, '', '2024-11-01 12:15:50'),
-(5, 'Western Mindanao State University Main Campus', 'Guiwan Street', '40', 2, '../../assets/uploads/evacuation_centers/ScreenShot-2022-9-8_20-32-54.png', '2024-11-10 12:18:59'),
-(10, 'Zamcelco', 'Di Makita Street', '22', 2, '../../assets/uploads/evacuation_centers/weathering with you.jpg', '2024-11-18 10:29:54'),
-(11, 'Barangay Hall of Bugguk', 'Kasanyangan', '22', 8, '../../assets/uploads/evacuation_centers/the_valley_of_the_wind__nausicaa_by_syntetyc_d5wb09s-fullview.jpg', '2024-11-12 11:12:18'),
-(12, 'Basketball Court of Bugguk', 'Kasanyangan', '22', 8, '../../assets/uploads/evacuation_centers/the_valley_of_the_wind__nausicaa_by_syntetyc_d5wb09s-fullview.jpg', '2024-11-12 11:12:18');
+INSERT INTO `evacuation_center` (`id`, `name`, `location`, `barangay`, `capacity`, `admin_id`, `image`, `created_at`) VALUES
+(1, 'Don Gems', 'Grandline', '', '122', 2, '../../assets/uploads/evacuation_centers/spirited_away_by_snatti89_ddj15iy.jpg', '2024-11-10 11:18:41'),
+(2, 'Zamboanga City High School Main', 'Grandline', '', '122', 2, '', '2024-11-06 11:18:41'),
+(3, 'Avengers Tower', 'New York', '', '4', 2, '../../assets/uploads/evacuation_centers/one_piece_scene_zoro_by_uoa7_d5hhg5y.jpg', '2024-11-10 11:18:41'),
+(4, 'Barangay Hall', 'Bugguk', '', '20', 2, '', '2024-11-01 12:15:50'),
+(5, 'Western Mindanao State University Main Campus', 'Guiwan Street', '', '40', 2, '../../assets/uploads/evacuation_centers/ScreenShot-2022-9-8_20-32-54.png', '2024-11-10 12:18:59'),
+(10, 'Zamcelco', 'Di Makita Street', '', '22', 2, '../../assets/uploads/evacuation_centers/weathering with you.jpg', '2024-11-18 10:29:54'),
+(11, 'Barangay Hall of Bugguk', 'Kasanyangan', '', '22', 8, '../../assets/uploads/evacuation_centers/the_valley_of_the_wind__nausicaa_by_syntetyc_d5wb09s-fullview.jpg', '2024-11-12 11:12:18'),
+(12, 'Basketball Court of Bugguk', 'Kasanyangan', '', '22', 8, '../../assets/uploads/evacuation_centers/the_valley_of_the_wind__nausicaa_by_syntetyc_d5wb09s-fullview.jpg', '2024-11-12 11:12:18'),
+(13, 'Gymnasium', 'Chico', ' Guiwan', '10', 2, '../../assets/uploads/evacuation_centers/front22.png', '2024-11-24 17:02:44');
 
 -- --------------------------------------------------------
 
@@ -357,7 +360,8 @@ INSERT INTO `evacuees_log` (`id`, `log_msg`, `created_at`, `status`, `evacuees_i
 (117, 'Transfer approved.', '2024-11-21 20:05:59', 'notify', 10),
 (118, 'Requesting transfer to Western Mindanao State University Main Campus', '2024-11-21 20:09:14', 'notify', 10),
 (119, 'Admitted', '2024-11-22 10:20:34', 'notify', 15),
-(120, 'Admitted', '2024-11-22 10:27:18', 'notify', 16);
+(120, 'Admitted', '2024-11-22 10:27:18', 'notify', 16),
+(121, '1 piece of Ahmad M. Salasain  have been distributed.', '2024-11-25 01:19:23', 'notify', 2);
 
 -- --------------------------------------------------------
 
@@ -489,7 +493,8 @@ INSERT INTO `feeds` (`id`, `logged_in_id`, `user_type`, `feed_msg`, `created_at`
 (125, 2, 'admin', '1 pack of Magi redistributed to Ricalde.', '2024-11-18 13:36:29', 'notify'),
 (126, 2, 'admin', '1 pack of Magi redistributed to Ricalde.', '2024-11-20 17:47:05', 'notify'),
 (127, 2, 'admin', 'weqwe weqw Cenaqwe admitted to Zamboanga City High School Main.', '2024-11-22 10:20:34', 'notify'),
-(128, 2, 'admin', 'asdasd sdasd Cenaaa admitted to Don Gems.', '2024-11-22 10:27:18', 'notify');
+(128, 2, 'admin', 'asdasd sdasd Cenaaa admitted to Don Gems.', '2024-11-22 10:27:18', 'notify'),
+(129, 2, 'admin', '1 piece of Ahmad M. Salasain  distributed to Dragon.', '2024-11-25 01:19:23', 'notify');
 
 -- --------------------------------------------------------
 
@@ -578,7 +583,10 @@ INSERT INTO `notifications` (`id`, `logged_in_id`, `user_type`, `notification_ms
 (74, 8, 'admin', 'Evacuation center has been inactive: Barangay Hall of Bugguk', '2024-11-20 17:27:40', 'viewed'),
 (75, 8, 'admin', 'Evacuation center has been inactive: Basketball Court of Bugguk', '2024-11-20 17:27:40', 'viewed'),
 (76, 2, 'admin', 'Sam Cena is requesting to transfer to Western Mindanao State University Main Campus', '2024-11-21 20:09:14', 'viewed'),
-(77, 1, 'admin', 'New Admin Account Added: Chinatsu  Kano', '2024-11-24 23:04:47', 'notify');
+(77, 1, 'admin', 'New Admin Account Added: Chinatsu  Kano', '2024-11-24 23:04:47', 'notify'),
+(78, 2, 'admin', 'New Worker Account Added: Taiki  Inomata', '2024-11-25 00:39:03', 'viewed'),
+(79, 2, 'admin', 'New Evacuation Center Added: Gymnasium', '2024-11-25 01:02:44', 'viewed'),
+(80, 1, 'admin', 'New Evacuation Center Added: Gymnasium at Barangay: Guiwan', '2024-11-25 01:02:44', 'notify');
 
 -- --------------------------------------------------------
 
@@ -653,7 +661,7 @@ INSERT INTO `supply` (`id`, `name`, `description`, `quantity`, `original_quantit
 (13, 'Ahmad M. Salasain ', 'Sarap mag Canton', 33, 33, 'piece', '', '2024-11-14', '21:00:00', 'Tabotabo', 2, 1),
 (14, 'Ahmad M. Salasain ', 'Sarap mag Canton', 33, 33, 'pack', '', '2024-11-14', '21:00:00', 'Tabotabo', 2, 1),
 (17, 'Maloi', 'Bini', 1, 1, 'piece', '../../assets/uploads/supplies/bini_maloi.png', '2024-11-14', '23:05:00', 'Heart', 5, 1),
-(20, 'Ahmad M. Salasain ', 'Bini', 22, 22, 'piece', '', '2024-11-08', '09:40:00', 'Abdul Jakul', 5, 1),
+(20, 'Ahmad M. Salasain ', 'Bini', 21, 22, 'piece', '', '2024-11-08', '09:40:00', 'Abdul Jakul', 5, 1),
 (21, 'Venyz Bangquiao', '123', 33, 33, 'piece', '', '2024-11-07', '09:45:00', 'Tabotabo', 5, 3),
 (26, 'Chicken Joy', 'Bida ang saya', 22, 22, 'piece', '../../assets/uploads/supplies/download (2).jpg', '2024-11-21', '09:01:00', 'Tabotabo', 3, 1);
 
@@ -692,8 +700,9 @@ CREATE TABLE `worker` (
 --
 
 INSERT INTO `worker` (`id`, `email`, `username`, `first_name`, `middle_name`, `last_name`, `extension_name`, `password`, `image`, `birthday`, `age`, `gender`, `position`, `city`, `barangay`, `contact`, `proof_image`, `status`, `last_login`, `verification_code`, `admin_id`) VALUES
-(1, 'worker@gmail.com', 'Worker123', 'Ryota', 'D.', 'Miyagi', '', '$2y$10$qgHnhQJT1K2D.hEfuCCb0.PNDlgsSwiZJTFzOq7LAthmftb1bHIMe', '../../assets/uploads/profiles/ryota.jpg', '2014-11-20', 30, 'Male', 'Technician', 'Zamboanga City', 'Guiwan', '1234567890', '../../assets/uploads/appointments/69ce7c36886481c490338f7465e00bd9.png', 'active', '2024-11-22 10:21:49', NULL, 2),
-(4, 'bini@gmail.com', 'RyotaTeamManager', 'Ayako', 'D', 'Ryota', '', '$2y$10$FRKQZtVToUBv4S0.tXAVhuXXgnh2VWV0ejI23KzxMCMQOvUB5yi7a', '../../assets/uploads/profiles/ayako.jpg', '2014-11-17', 22, 'Female', 'Team Manager', 'Zamboanga City', 'Guiwan', '12345555', '../../assets/uploads/appointments/1232342112.jpg', 'inactive', '2024-11-10 20:27:53', NULL, 2);
+(1, 'worker@gmail.com', 'Worker123', 'Ryota', 'D.', 'Miyagi', '', '$2y$10$qgHnhQJT1K2D.hEfuCCb0.PNDlgsSwiZJTFzOq7LAthmftb1bHIMe', '../../assets/uploads/profiles/ryota.jpg', '2014-11-20', 30, 'Male', 'Technician', 'Zamboanga City', 'Guiwan', '1234567890', '../../assets/uploads/appointments/69ce7c36886481c490338f7465e00bd9.png', 'active', '2024-11-25 01:16:59', NULL, 2),
+(4, 'bini@gmail.com', 'RyotaTeamManager', 'Ayako', 'D', 'Ryota', '', '$2y$10$FRKQZtVToUBv4S0.tXAVhuXXgnh2VWV0ejI23KzxMCMQOvUB5yi7a', '../../assets/uploads/profiles/ayako.jpg', '2014-11-17', 22, 'Female', 'Team Manager', 'Zamboanga City', 'Guiwan', '12345555', '../../assets/uploads/appointments/1232342112.jpg', 'inactive', '2024-11-10 20:27:53', NULL, 2),
+(5, 'binimaloi352@gmail.com', 'InomataBadmintonPlayer', 'Taiki', '', 'Inomata', '', '$2y$10$ppSCKg5seNV8IWbL.m9PtuT8ZTX1RVTo8taBg3Gri1NOeN/QZgB06', '../../assets/uploads/profiles/haruko.jpg', '1998-07-06', 26, 'Male', 'Badminton Player', 'Zamboanga City', 'Guiwan', '123456', '../../assets/uploads/appointments/download (2).jpg', 'active', '2024-11-25 00:40:20', NULL, 2);
 
 --
 -- Indexes for dumped tables
@@ -836,13 +845,13 @@ ALTER TABLE `category`
 -- AUTO_INCREMENT for table `distribute`
 --
 ALTER TABLE `distribute`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
 
 --
 -- AUTO_INCREMENT for table `evacuation_center`
 --
 ALTER TABLE `evacuation_center`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `evacuees`
@@ -854,13 +863,13 @@ ALTER TABLE `evacuees`
 -- AUTO_INCREMENT for table `evacuees_log`
 --
 ALTER TABLE `evacuees_log`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=121;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=122;
 
 --
 -- AUTO_INCREMENT for table `feeds`
 --
 ALTER TABLE `feeds`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=129;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
 
 --
 -- AUTO_INCREMENT for table `members`
@@ -872,7 +881,7 @@ ALTER TABLE `members`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT for table `stock`
@@ -890,7 +899,7 @@ ALTER TABLE `supply`
 -- AUTO_INCREMENT for table `worker`
 --
 ALTER TABLE `worker`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables

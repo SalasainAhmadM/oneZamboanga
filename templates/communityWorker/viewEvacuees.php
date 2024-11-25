@@ -2,6 +2,24 @@
 session_start();
 require_once '../../connection/conn.php';
 require_once '../../connection/auth.php';
+date_default_timezone_set('Asia/Manila');
+
+// Set the timeout duration (in seconds)
+define('INACTIVITY_LIMIT', 300); // 5 minutes
+
+// Check if the user has been inactive for the defined limit
+if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > INACTIVITY_LIMIT)) {
+    // Destroy the session and redirect to the login page
+    session_unset();
+    session_destroy();
+    header("Location: ../../login.php?message=Session expired due to inactivity.");
+    exit();
+}
+
+// Update the last activity time
+$_SESSION['LAST_ACTIVITY'] = time();
+
+// Validate session role
 validateSession('worker');
 
 if (isset($_GET['id']) && isset($_GET['center_id']) && isset($_GET['worker_id'])) {
@@ -385,7 +403,7 @@ $logsResult = $logsStmt->get_result();
         <label for="centerSelect">Select a new evacuation center:</label>
         <select id="centerSelect" class="swal2-select" style="width: 400px;">
             <?php foreach ($otherCenters as $center): ?>
-                                                                                                                                                        <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
+                                                                                                                                                                <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
             <?php endforeach; ?>
         </select>
     `,

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +10,7 @@
     <link rel="stylesheet" href="../../assets/fontawesome/all.css">
     <link rel="stylesheet" href="../../assets/fontawesome/fontawesome.min.css">
     <!--styles-->
-    
+
     <link rel="stylesheet" href="../../assets/styles/style.css">
     <link rel="stylesheet" href="../../assets/styles/utils/dashboard.css">
     <link rel="stylesheet" href="../../assets/styles/utils/ecenter.css">
@@ -17,7 +18,8 @@
     <link rel="stylesheet" href="../../assets/styles/utils/myProfile.css">
 
     <!-- jquery cdn -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 
     <!-- sweetalert cdn -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -26,10 +28,11 @@
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+
 <body>
 
     <div class="container">
-        
+
         <aside class="left-section">
             <special-logo></special-logo>
             <!-- <div class="logo">
@@ -54,7 +57,7 @@
                         <i class="fa-solid fa-right-from-bracket"></i>
                     </a>
                 </div>
-                
+
             </div>
             <a class="logout logout-icon" href="login.php">
                 <i class="fa-solid fa-right-from-bracket"></i>
@@ -70,8 +73,8 @@
                 <!-- <h5>Hello <b>Mark</b>, welcome back!</h5> -->
                 <div class="separator">
                     <div class="info">
-                        
-                        
+
+
                         <div class="info-header">
                             <a href="viewAssignedEC.php">Tetuan Central School</a>
 
@@ -80,10 +83,10 @@
                             <a href="personnel.php">Team</a>
                         </div>
 
-                        
 
 
-                        
+
+
                         <!-- <button class="addBg-admin">
                             Create
                         </button> -->
@@ -93,7 +96,7 @@
 
             <div class="main-wrapper">
                 <div class="main-container">
-                    
+
                     <div class="profile-left">
                         <div class="left-wrapper">
 
@@ -101,16 +104,16 @@
                                 <i class="fa-regular fa-user"></i>
                                 <p>Profile</p>
                             </div>
-    
-                            
-    
+
+
+
                             <!-- <div class="profileOption" id="password">
                                 <i class="fa-solid fa-lock"></i>
                                 <p>Change Password</p>
                             </div> -->
                         </div>
                     </div>
-                    
+
 
                     <!-- ======myProfile====== -->
                     <div class="profile-right" id="myProfile">
@@ -118,7 +121,7 @@
 
                         <div class="right-wrapper">
                             <img src="../../assets/img/undraw_male_avatar_g98d.svg" alt="">
-                            
+
                             <ul class="profileDetails">
                                 <li>
                                     <p>Address: <span>Tetuan chuchu chu</span></p>
@@ -152,16 +155,16 @@
 
 
 
-                    
 
-                
+
+
                 </div>
             </div>
         </main>
 
     </div>
 
-    
+
 
     <!-- sidebar import js -->
     <script src="../../includes/sidebarWokers.js"></script>
@@ -186,7 +189,7 @@
             option.addEventListener('click', () => {
                 // Remove active class from all options
                 profileOptions.forEach(opt => opt.classList.remove('active'));
-                
+
                 // Add active class to the clicked option
                 option.classList.add('active');
             });
@@ -205,21 +208,21 @@
         const passProfile = document.getElementById('passProfile');
 
         // show profile
-        profileBtn.addEventListener('click', function() {
+        profileBtn.addEventListener('click', function () {
             myProfile.style.display = 'block';
             editProfile.style.display = 'none';
             passProfile.style.display = 'none';
         });
 
         // show edit
-        editBtn.addEventListener('click', function() {
+        editBtn.addEventListener('click', function () {
             editProfile.style.display = 'block';
             myProfile.style.display = 'none';
             passProfile.style.display = 'none';
         });
 
         // show pass
-        passBtn.addEventListener('click', function() {
+        passBtn.addEventListener('click', function () {
             passProfile.style.display = 'block';
             myProfile.style.display = 'none';
             editProfile.style.display = 'none';
@@ -233,13 +236,13 @@
         const proof = document.querySelector('.proof');
         const closeProof = document.getElementById('closeProof');
 
-        openProof.addEventListener('click', function() {
+        openProof.addEventListener('click', function () {
             proof.style.display = 'block';
-            
+
             console.log('hello');
         });
 
-        closeProof.addEventListener('click', function() {
+        closeProof.addEventListener('click', function () {
             proof.style.display = 'none';
         })
 
@@ -249,30 +252,30 @@
 
     <!-- sweetalert popup messagebox add form-->
     <script>
-        $('#save').on('click', function() {
+        $('#save').on('click', function () {
             Swal.fire({
-            title: "Save Changes?",
-            text: "",
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes",
-            customClass: {
-                popup: 'custom-swal-popup' //to customize the style
-            }
+                title: "Save Changes?",
+                text: "",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes",
+                customClass: {
+                    popup: 'custom-swal-popup' //to customize the style
+                }
 
             }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                title: "Success!",
-                text: "Evacuation center created.",
-                icon: "success",
-                customClass: {
-                    popup: 'custom-swal-popup'
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: "Success!",
+                        text: "Evacuation center created.",
+                        icon: "success",
+                        customClass: {
+                            popup: 'custom-swal-popup'
+                        }
+                    });
                 }
-                });
-            }
             });
 
         })
@@ -280,9 +283,10 @@
 
 
 
-    
 
-    
-    
+
+
+
 </body>
+
 </html>

@@ -2,6 +2,24 @@
 session_start();
 include("../../connection/conn.php");
 require_once '../../connection/auth.php';
+date_default_timezone_set('Asia/Manila');
+
+// Set the timeout duration (in seconds)
+define('INACTIVITY_LIMIT', 300); // 5 minutes
+
+// Check if the user has been inactive for the defined limit
+if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > INACTIVITY_LIMIT)) {
+    // Destroy the session and redirect to the login page
+    session_unset();
+    session_destroy();
+    header("Location: ../../login.php?message=Session expired due to inactivity.");
+    exit();
+}
+
+// Update the last activity time
+$_SESSION['LAST_ACTIVITY'] = time();
+
+// Validate session role
 validateSession('admin');
 
 if (isset($_SESSION['user_id'])) {
@@ -36,6 +54,7 @@ $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $admin_id);
 $stmt->execute();
 $centers_result = $stmt->get_result();
+
 ?>
 
 <!DOCTYPE html>
@@ -127,12 +146,15 @@ $centers_result = $stmt->get_result();
 
 
 
-                        <!-- <a class="addBg-admin" href="addEC.php">
-                            <i class="fa-solid fa-plus"></i>
-                        </a> -->
+                        <select class="filter-admin" id="statusFilter" onchange="filterCenters()">
+                            <option value="active" selected>Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+
                         <button class="addBg-admin">
                             Create
                         </button>
+
                         <!-- <button class="deleteBg-admin">
                             <i class="fa-solid fa-building-circle-xmark"></i>
                         </button> -->
@@ -150,7 +172,7 @@ $centers_result = $stmt->get_result();
 
                     <div class="main-wrapper bgEcWrapper">
                         <div class="main-container bgEcList">
-                            <div class="bgEc-container">
+                            <div class="bgEc-container" id="centerList">
                                 <?php if ($centers_result->num_rows > 0): ?>
                                     <?php while ($center = $centers_result->fetch_assoc()):
                                         $center_id = $center['id'];
@@ -206,7 +228,7 @@ $centers_result = $stmt->get_result();
                                             }
                                         }
                                         ?>
-                                        <div class="bgEc-cards"
+                                        <div class="bgEc-cards" data-status="<?php echo $status_color; ?>"
                                             onclick="window.location.href='viewEC.php?id=<?php echo $center['id']; ?>'">
                                             <div class="bgEc-status <?php echo $status_color; ?>"></div>
                                             <img src="<?php echo !empty($center['image']) ? htmlspecialchars($center['image']) : '../../assets/img/evacuation-default.svg'; ?>"
@@ -227,6 +249,35 @@ $centers_result = $stmt->get_result();
                             </div>
                         </div>
                     </div>
+
+                    <script>
+                        function filterCenters() {
+                            const filterValue = document.getElementById('statusFilter').value;
+                            const centers = document.querySelectorAll('.bgEc-cards');
+
+                            centers.forEach(center => {
+                                const status = center.getAttribute('data-status');
+                                if (filterValue === 'active') {
+                                    // Show only centers that are not grey
+                                    if (status === 'grey') {
+                                        center.style.display = 'none';
+                                    } else {
+                                        center.style.display = 'block';
+                                    }
+                                } else if (filterValue === 'inactive') {
+                                    // Show only centers that are grey
+                                    if (status === 'grey') {
+                                        center.style.display = 'block';
+                                    } else {
+                                        center.style.display = 'none';
+                                    }
+                                }
+                            });
+                        }
+
+                        // Initial filter on page load
+                        document.addEventListener('DOMContentLoaded', filterCenters);
+                    </script>
 
 
                     <!-- add evacuaton form -->

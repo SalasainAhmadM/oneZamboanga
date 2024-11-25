@@ -4,6 +4,26 @@ include("../../connection/conn.php");
 require_once '../../connection/auth.php';
 validateSession('admin');
 
+date_default_timezone_set('Asia/Manila');
+
+// Set the timeout duration (in seconds)
+define('INACTIVITY_LIMIT', 300); // 5 minutes
+
+// Check if the user has been inactive for the defined limit
+if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > INACTIVITY_LIMIT)) {
+    // Destroy the session and redirect to the login page
+    session_unset();
+    session_destroy();
+    header("Location: ../../login.php?message=Session expired due to inactivity.");
+    exit();
+}
+
+// Update the last activity time
+$_SESSION['LAST_ACTIVITY'] = time();
+
+// Validate session role
+validateSession('admin');
+
 if (isset($_SESSION['user_id'])) {
     $admin_id = $_SESSION['user_id'];
 
@@ -314,7 +334,7 @@ $feeds_result = $feeds_stmt->get_result();
                 <div class="item">
                     <div class="progress">
                         <div class="info">
-                            <h5>Community Wokers</h5>
+                            <h5>Community Workers</h5>
                             <p>Total: <?php echo $total_workers; ?></p>
                         </div>
                     </div>
@@ -340,6 +360,25 @@ $feeds_result = $feeds_stmt->get_result();
                     <i class="fa-solid fa-person-shelter"></i>
                 </div>
 
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+
+                        const items = document.querySelectorAll(".item");
+
+                        items.forEach((item) => {
+                            item.addEventListener("click", () => {
+                                if (item.classList.contains("spanning")) {
+                                    window.location.href = "evacuation_centers.php";
+                                } else if (item.querySelector("h5").textContent === "Community Workers") {
+                                    window.location.href = "personnelPage.php";
+                                } else if (item.querySelector("h5").textContent === "Evacuees") {
+                                    window.location.href = "evacuees.php";
+                                }
+                            });
+                        });
+                    });
+
+                </script>
                 <!-- <div class="item">
                     <div class="progress">
                         <div class="info">

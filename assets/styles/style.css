@@ -112,7 +112,7 @@ label {
 /* loader */
 
 /* btn for adding */
-button.addBg-admin , button.deleteBg-admin {
+button.addBg-admin , button.deleteBg-admin , button.filter-admin {
     outline: none;
     border: none;
     display: flex;
@@ -137,6 +137,33 @@ button.addBg-admin , button.deleteBg-admin {
 button.addBg-admin i {
     color: var(--clr-white);
     font-size: var(--size-base);
+}
+select.filter-admin {
+    outline: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    padding: 0.5em 1em;
+    border-radius: 0.5em;
+    background-color: var(--clr-slate600);
+    font-size: var(--size-base);
+    color: var(--clr-white);
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s ease;
+    appearance: none; /* Removes the default arrow */
+    position: relative;
+}
+
+select.filter-admin:hover {
+    background-color: var(--clr-dark);
+}
+
+select.filter-admin option {
+    background-color: var(--clr-slate600);
+    color: var(--clr-white);
+    padding: 0.5em;
+    font-size: var(--size-sm);
 }
 
 

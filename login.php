@@ -57,6 +57,16 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <?php if (isset($_GET['message'])): ?>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Alert',
+                text: "<?php echo htmlspecialchars($_GET['message']); ?>",
+                confirmButtonColor: '#d33',
+            });
+        </script>
+    <?php endif; ?>
 
     <?php
     session_start();
@@ -83,6 +93,7 @@
         unset($_SESSION['message']);
         unset($_SESSION['message_type']);
     }
+
     ?>
     <script>
         function showForgotPasswordModal() {
