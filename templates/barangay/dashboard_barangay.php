@@ -368,11 +368,11 @@ $feeds_result = $feeds_stmt->get_result();
                         items.forEach((item) => {
                             item.addEventListener("click", () => {
                                 if (item.classList.contains("spanning")) {
-                                    window.location.href = "evacuation_centers.php";
+                                    window.location.href = "evacuation.php";
                                 } else if (item.querySelector("h5").textContent === "Community Workers") {
                                     window.location.href = "personnelPage.php";
                                 } else if (item.querySelector("h5").textContent === "Evacuees") {
-                                    window.location.href = "evacuees.php";
+                                    window.location.href = "evacueesPage.php";
                                 }
                             });
                         });
