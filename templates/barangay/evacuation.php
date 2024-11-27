@@ -165,7 +165,13 @@ $centers_result = $stmt->get_result();
             <div class="main-wrapper bgEcWrapper">
                 <div class="main-container bgEcList">
 
-
+                    <style>
+                        .bgEc-img {
+                            display: block;
+                            margin: 0 auto;
+                            max-width: 100%;
+                        }
+                    </style>
                     <!-- <div class="statusHeader">
                         <h3>Barangay Tetuan</h3>
                     </div> -->

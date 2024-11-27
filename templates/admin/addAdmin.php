@@ -56,6 +56,70 @@ validateSession('superadmin');
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+<style>
+    .dropdown-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-barangay,
+    .input-position {
+        width: 100%;
+        padding: 8px 32px 8px 8px;
+        box-sizing: border-box;
+    }
+
+    .add-icon {
+        position: absolute;
+        right: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        color: #fff;
+        background-color: var(--clr-slate600);
+        border: 1px solid #ccc;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .add-icon:hover {
+        background-color: #000;
+        color: #fff;
+    }
+
+    .dropdown-list {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        max-height: 150px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+
+    .dropdown-list li {
+        padding: 8px;
+        cursor: pointer;
+    }
+
+    .dropdown-list li:hover {
+        background-color: #f0f0f0;
+    }
+</style>
 
 <body>
     <?php
@@ -201,69 +265,7 @@ validateSession('superadmin');
                                 <input type="text" id="city" name="city" class="input-city" placeholder=""
                                     value="Zamboanga City" required>
                             </div>
-                            <style>
-                                .dropdown-container {
-                                    position: relative;
-                                    display: flex;
-                                    align-items: center;
-                                }
 
-                                .input-barangay {
-                                    width: 100%;
-                                    padding: 8px 32px 8px 8px;
-                                    box-sizing: border-box;
-                                }
-
-                                .add-icon {
-                                    position: absolute;
-                                    right: 8px;
-                                    cursor: pointer;
-                                    font-size: 16px;
-                                    font-weight: bold;
-                                    color: #fff;
-                                    background-color: var(--clr-slate600);
-                                    border: 1px solid #ccc;
-                                    border-radius: 50%;
-                                    width: 24px;
-                                    height: 24px;
-                                    display: flex;
-                                    justify-content: center;
-                                    align-items: center;
-                                    z-index: 10;
-                                    transition: background-color 0.3s, color 0.3s;
-                                }
-
-                                .add-icon:hover {
-                                    background-color: #000;
-                                    color: #fff;
-                                }
-
-                                .dropdown-list {
-                                    list-style-type: none;
-                                    margin: 0;
-                                    padding: 0;
-                                    position: absolute;
-                                    top: 100%;
-                                    left: 0;
-                                    right: 0;
-                                    background: white;
-                                    border: 1px solid #ccc;
-                                    border-radius: 4px;
-                                    max-height: 150px;
-                                    overflow-y: auto;
-                                    z-index: 1000;
-                                    display: none;
-                                }
-
-                                .dropdown-list li {
-                                    padding: 8px;
-                                    cursor: pointer;
-                                }
-
-                                .dropdown-list li:hover {
-                                    background-color: #f0f0f0;
-                                }
-                            </style>
                             <div class="admin-input">
                                 <label for="barangay">Barangay</label>
                                 <div class="dropdown-container">
@@ -289,9 +291,44 @@ validateSession('superadmin');
 
                             <div class="admin-input">
                                 <label for="position">Position</label>
-                                <input type="text" id="position" name="position" class="input-position"
-                                    placeholder="e.g., Barangay Captain" required>
+                                <div class="dropdown-container">
+                                    <input type="text" id="position" name="position" class="input-position"
+                                        placeholder="e.g., Barangay Captain" required autocomplete="off">
+                                    <ul id="position-dropdown" class="dropdown-list">
+                                        <li>Barangay Captain</li>
+                                        <li>SK Kagawad</li>
+                                        <li>Intern</li>
+                                        <li>Volunteer</li>
+                                    </ul>
+                                </div>
                             </div>
+                            <script>
+                                document.addEventListener("DOMContentLoaded", function () {
+                                    const positionInput = document.getElementById("position");
+                                    const positionDropdown = document.getElementById("position-dropdown");
+
+                                    // Show dropdown when input is focused
+                                    positionInput.addEventListener("focus", function () {
+                                        positionDropdown.style.display = "block";
+                                    });
+
+                                    // Set input value when a position is selected
+                                    positionDropdown.addEventListener("click", function (event) {
+                                        if (event.target.tagName === "LI") {
+                                            positionInput.value = event.target.textContent;
+                                            positionDropdown.style.display = "none"; // Hide dropdown
+                                        }
+                                    });
+
+                                    // Hide dropdown if clicked outside
+                                    document.addEventListener("click", function (event) {
+                                        if (!positionInput.contains(event.target) && !positionDropdown.contains(event.target)) {
+                                            positionDropdown.style.display = "none";
+                                        }
+                                    });
+                                });
+
+                            </script>
 
                             <div class="admin-input">
                                 <label for="proofOfAppointment">Proof of appointment</label>

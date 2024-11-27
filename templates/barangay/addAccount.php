@@ -86,7 +86,8 @@ if (isset($_SESSION['user_id'])) {
         align-items: center;
     }
 
-    .input-barangay {
+    .input-barangay,
+    .input-position {
         width: 100%;
         padding: 8px 32px 8px 8px;
         box-sizing: border-box;
@@ -129,7 +130,7 @@ if (isset($_SESSION['user_id'])) {
         border-radius: 4px;
         max-height: 150px;
         overflow-y: auto;
-        z-index: 1000;
+        z-index: 1010;
         display: none;
     }
 
@@ -140,6 +141,10 @@ if (isset($_SESSION['user_id'])) {
 
     .dropdown-list li:hover {
         background-color: #f0f0f0;
+    }
+
+    body.no-scroll {
+        overflow: hidden;
     }
 </style>
 
@@ -257,33 +262,6 @@ if (isset($_SESSION['user_id'])) {
                                     required readonly>
                             </div>
 
-                            <script>
-
-                                document.getElementById('birthday').addEventListener('change', function () {
-                                    const birthday = new Date(this.value);
-
-                                    // Get the current date in Asia/Manila timezone
-                                    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }));
-
-                                    if (birthday > now) {
-                                        document.getElementById('age').value = 0;
-                                        return;
-                                    }
-
-                                    let age = now.getFullYear() - birthday.getFullYear();
-                                    const isBirthdayPassedThisYear =
-                                        now.getMonth() > birthday.getMonth() ||
-                                        (now.getMonth() === birthday.getMonth() && now.getDate() >= birthday.getDate());
-
-                                    if (!isBirthdayPassedThisYear) {
-                                        age--;
-                                    }
-
-                                    document.getElementById('age').value = age > 0 ? age : 0;
-                                });
-                            </script>
-
-
                             <div class="admin-input">
                                 <label for="city">City/Province</label>
                                 <input type="text" id="city" name="city" class="input-city" placeholder=""
@@ -320,8 +298,16 @@ if (isset($_SESSION['user_id'])) {
 
                             <div class="admin-input">
                                 <label for="position">Position</label>
-                                <input type="text" id="position" name="position" class="input-position"
-                                    placeholder="e.g., Barangay Captain" required>
+                                <div class="dropdown-container">
+                                    <input type="text" id="position" name="position" class="input-position"
+                                        placeholder="e.g., Barangay Captain" required autocomplete="off" readonly>
+                                    <ul id="position-dropdown" class="dropdown-list">
+                                        <li>Barangay Captain</li>
+                                        <li>SK Kagawad</li>
+                                        <li>Intern</li>
+                                        <li>Volunteer</li>
+                                    </ul>
+                                </div>
                             </div>
 
                             <div class="admin-input">
@@ -378,12 +364,77 @@ if (isset($_SESSION['user_id'])) {
                 form.reportValidity();
             }
         });
-    </script>
+        // birthday
+        document.getElementById('birthday').addEventListener('change', function () {
+            const birthday = new Date(this.value);
 
-    <script>
+            // Get the current date in Asia/Manila timezone
+            const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+
+            if (birthday > now) {
+                document.getElementById('age').value = 0;
+                return;
+            }
+
+            let age = now.getFullYear() - birthday.getFullYear();
+            const isBirthdayPassedThisYear =
+                now.getMonth() > birthday.getMonth() ||
+                (now.getMonth() === birthday.getMonth() && now.getDate() >= birthday.getDate());
+
+            if (!isBirthdayPassedThisYear) {
+                age--;
+            }
+
+            document.getElementById('age').value = age > 0 ? age : 0;
+        });
+
         document.addEventListener("DOMContentLoaded", function () {
+            const positionInput = document.getElementById("position");
+            const positionDropdown = document.getElementById("position-dropdown");
             const barangayInput = document.getElementById("barangay");
-            const dropdownList = document.getElementById("barangay-dropdown");
+            const barangayDropdown = document.getElementById("barangay-dropdown");
+
+            // Static positions
+            const positions = ["Barangay Captain", "SK Kagawad", "Intern", "Volunteer"];
+
+            positionInput.addEventListener("focus", function () {
+                populateStaticDropdown(positions, positionDropdown, positionInput);
+                toggleBodyScroll(true);
+            });
+
+            document.addEventListener("click", function (event) {
+                if (!positionInput.contains(event.target) && !positionDropdown.contains(event.target)) {
+                    positionDropdown.style.display = "none";
+                    toggleBodyScroll(false);
+                }
+                if (!barangayInput.contains(event.target) && !barangayDropdown.contains(event.target)) {
+                    barangayDropdown.style.display = "none";
+                    toggleBodyScroll(false);
+                }
+            });
+
+            function populateStaticDropdown(values, dropdown, input) {
+                dropdown.innerHTML = "";
+                values.forEach(value => {
+                    const listItem = document.createElement("li");
+                    listItem.textContent = value;
+                    listItem.addEventListener("click", function () {
+                        input.value = value;
+                        dropdown.style.display = "none";
+                        toggleBodyScroll(false);
+                    });
+                    dropdown.appendChild(listItem);
+                });
+                dropdown.style.display = "block";
+            }
+
+            function toggleBodyScroll(disable) {
+                if (disable) {
+                    document.body.classList.add("no-scroll");
+                } else {
+                    document.body.classList.remove("no-scroll");
+                }
+            }
 
             // Fetch barangays from the server
             async function fetchBarangays() {
