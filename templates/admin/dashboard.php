@@ -196,12 +196,12 @@ if ($latest_admins_result->num_rows > 0) {
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <!-- <h5>Hello <b>Mark</b>, welcome back!</h5> -->
-                <h5><b>Evacuation Center Management System</b></h5>
+                <h5><b>Zamboanga City Evacuation Center Management System</b></h5>
             </header>
 
             <div class="separator">
                 <div class="info">
-                    <h3>Dashboard</h3>
+                    <h3>Hello, <?php echo $first_name; ?>!</h3>
                     <!-- <a href="#">View All</a> -->
                 </div>
                 <div class="search">

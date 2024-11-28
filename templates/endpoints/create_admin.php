@@ -148,7 +148,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                   VALUES ('$admin_id', 'admin', '$notification_msg', 'notify')";
 
             if (!mysqli_query($conn, $notificationQuery)) {
-                $_SESSION['message'] = "Worker account created, but notification failed.";
+                $_SESSION['message'] = "Admin account created, but notification failed.";
                 $_SESSION['message_type'] = "warning";
             }
         } catch (Exception $e) {

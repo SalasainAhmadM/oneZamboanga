@@ -43,13 +43,28 @@ if (isset($_SESSION['user_id'])) {
         $admin_id = $worker['admin_id'];
 
         $worker_name = trim($first_name . ' ' . $middle_name . ' ' . $last_name . ' ' . $extension_name);
+
+        // Fetch the barangay value of the admin
+        $admin_sql = "SELECT barangay FROM admin WHERE id = ?";
+        $admin_stmt = $conn->prepare($admin_sql);
+        $admin_stmt->bind_param("i", $admin_id);
+        $admin_stmt->execute();
+        $admin_result = $admin_stmt->get_result();
+
+        if ($admin_result->num_rows > 0) {
+            $admin = $admin_result->fetch_assoc();
+            $admin_barangay = $admin['barangay'];
+        } else {
+            $admin_barangay = 'Unknown'; // Default value if no admin is found
+        }
     } else {
-        $first_name = $middle_name = $last_name = $extension_name = $email = $admin_id = '';
+        $first_name = $middle_name = $last_name = $extension_name = $email = $admin_id = $admin_barangay = '';
     }
 } else {
     header("Location: ../../login.php");
     exit;
 }
+
 
 $worker_image = !empty($worker['image']) ? $worker['image'] : "../../assets/img/undraw_male_avatar_g98d.svg";
 
@@ -282,12 +297,12 @@ $feeds_result = $feeds_stmt->get_result();
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <!-- <h5>Hello <b>Mark</b>, welcome back!</h5> -->
-                <h5><b>Evacuation Center Management System</b></h5>
+                <h5><b><?php echo $admin_barangay; ?> Evacuation Center Management System</b></h5>
             </header>
 
             <div class="separator">
                 <div class="info">
-                    <h3>Dashboard</h3>
+                    <h3>Hello, <?php echo $first_name; ?>!</h3>
                     <!-- <a href="#">View All</a> -->
                 </div>
                 <div class="search">

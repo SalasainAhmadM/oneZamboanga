@@ -28,7 +28,7 @@ if (isset($_SESSION['user_id'])) {
     $admin_id = $_SESSION['user_id'];
 
     // Fetch the admin's details from the database
-    $sql = "SELECT first_name, middle_name, last_name, extension_name, email, image FROM admin WHERE id = ?";
+    $sql = "SELECT first_name, middle_name, last_name, barangay, extension_name, email, image FROM admin WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $admin_id);
     $stmt->execute();
@@ -41,6 +41,7 @@ if (isset($_SESSION['user_id'])) {
         $last_name = $admin['last_name'];
         $extension_name = $admin['extension_name'];
         $email = $admin['email'];
+        $barangay = $admin['barangay'];
         $admin_image = $admin['image'];
 
         $admin_name = trim($first_name . ' ' . $middle_name . ' ' . $last_name . ' ' . $extension_name);
@@ -309,12 +310,12 @@ $feeds_result = $feeds_stmt->get_result();
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <!-- <h5>Hello <b>Mark</b>, welcome back!</h5> -->
-                <h5><b>Evacuation Center Management System</b></h5>
+                <h5><b><?php echo $barangay; ?> Evacuation Center Management System</b></h5>
             </header>
 
             <div class="separator">
                 <div class="info">
-                    <h3>Dashboard</h3>
+                    <h3>Hello, <?php echo $first_name; ?>!</h3>
                     <!-- <a href="#">View All</a> -->
                 </div>
                 <div class="search">
