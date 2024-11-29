@@ -348,6 +348,25 @@ $feeds_result = $feeds_stmt->get_result();
                     <i class="fa-solid fa-person-shelter"></i>
                 </div>
 
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+
+                        const items = document.querySelectorAll(".item");
+
+                        items.forEach((item) => {
+                            item.addEventListener("click", () => {
+                                if (item.classList.contains("spanning")) {
+                                    window.location.href = "assignedEC.php";
+                                } else if (item.querySelector("h5").textContent === "Evacuation Centers") {
+                                    window.location.href = "evacuationCenter.php";
+                                } else if (item.querySelector("h5").textContent === "Evacuees") {
+                                    window.location.href = "evacueesPage.php?id=All";
+                                }
+                            });
+                        });
+                    });
+
+                </script>
                 <!-- <div class="item">
                     <div class="progress">
                         <div class="info">

@@ -90,6 +90,18 @@ $position_result = $position_stmt->get_result();
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+<style>
+    .ecNavbar ul {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 40px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+</style>
 
 <body>
 

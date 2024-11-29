@@ -373,7 +373,7 @@ $feeds_result = $feeds_stmt->get_result();
                                 } else if (item.querySelector("h5").textContent === "Community Workers") {
                                     window.location.href = "personnelPage.php";
                                 } else if (item.querySelector("h5").textContent === "Evacuees") {
-                                    window.location.href = "evacueesPage.php";
+                                    window.location.href = "evacueesPage.php?id=All";
                                 }
                             });
                         });

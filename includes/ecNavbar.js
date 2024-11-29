@@ -8,23 +8,23 @@ class SpecialNavbar extends HTMLElement {
             <div class="ecNavbar">
                 <ul>
                     <div class="navList">
-                        <li><a href="viewEC.php${idParam}">Overview</a></li>
+                        <li><a href="viewEC.php${idParam}" class="restricted-link">Overview</a></li>
                         <div class="indicator"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="evacueesPage.php${idParam}">Evacuees</a></li>
+                        <li><a href="evacueesPage.php${idParam}" class="restricted-link">Evacuees</a></li>
                         <div class="indicator"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="resources.php${idParam}">Resource Management</a></li>
+                        <li><a href="resources.php${idParam}" class="restricted-link">Resource Management</a></li>
                         <div class="indicator long"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="personnel.php${idParam}">Team</a></li>
+                        <li><a href="personnel.php${idParam}" class="restricted-link">Team</a></li>
                         <div class="indicator extrasmall"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="nearEC.php${idParam}">Transfer</a></li>
+                        <li><a href="nearEC.php${idParam}" class="restricted-link">Transfer</a></li>
                         <div class="indicator small"></div> 
                     </div>
                 </ul>
@@ -46,6 +46,25 @@ class SpecialNavbar extends HTMLElement {
             } else {
                 indicator.style.display = 'none';
             }
+        });
+
+        // Attach event listeners to restricted links
+        const restrictedLinks = this.querySelectorAll('.restricted-link');
+        restrictedLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const url = new URL(link.href); // Parse the link's URL
+                const id = url.searchParams.get('id'); // Extract the 'id' parameter
+
+                if (id === 'All') {
+                    e.preventDefault(); // Prevent navigation
+                    Swal.fire({
+                        icon: 'info',
+                        text: 'Please select a specific evacuation center first.',
+                        confirmButtonText: 'OK'
+                    });
+                    console.log('Navigation prevented for id=All'); // Debug log
+                }
+            });
         });
     }
 }

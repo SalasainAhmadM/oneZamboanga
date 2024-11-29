@@ -249,6 +249,28 @@ if ($latest_admins_result->num_rows > 0) {
 
             </div>
 
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const items = document.querySelectorAll(".analytics .item");
+
+                    items.forEach((item) => {
+                        item.addEventListener("click", () => {
+                            const heading = item.querySelector("h5").textContent;
+
+                            if (item.classList.contains("spanning")) {
+                                window.location.href = "barangayEC.php?barangay=all&admin_id=all";
+                            } else if (heading === "Admin Accounts") {
+                                window.location.href = "barangayAcc.php";
+                            } else if (heading === "Evacuees") {
+                                window.location.href = "evacuees.php";
+                            }
+                        });
+                    });
+                });
+
+
+            </script>
+
             <div class="separator">
                 <div class="info">
                     <h3>Barangay Status Overview</h3>

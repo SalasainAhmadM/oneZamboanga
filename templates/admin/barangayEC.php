@@ -22,7 +22,7 @@ $_SESSION['LAST_ACTIVITY'] = time();
 // Validate session role
 validateSession('superadmin');
 
-if (isset($_GET['admin_id'])) {
+if (isset($_GET['admin_id']) && $_GET['admin_id'] !== "all") {
     $admin_id = $_GET['admin_id'];
 
     // Fetch evacuation centers for this admin_id
@@ -40,11 +40,18 @@ if (isset($_GET['admin_id'])) {
     $barangay_stmt->execute();
     $barangay_result = $barangay_stmt->get_result();
 
-    // Assign barangay value to a variable
     $barangay = $barangay_result->num_rows > 0 ? $barangay_result->fetch_assoc()['barangay'] : 'Unknown Barangay';
 } else {
-    $barangay = 'Unknown Barangay';
+    // Fetch all evacuation centers when "all" is selected
+    $sql = "SELECT id, name, location, capacity, image, created_at FROM evacuation_center";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $centers_found = ($result->num_rows > 0);
+
+    $barangay = 'All Barangays';
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -71,6 +78,13 @@ if (isset($_GET['admin_id'])) {
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+<style>
+    .bgEc-img {
+        display: block;
+        margin: 0 auto;
+        max-width: 100%;
+    }
+</style>
 
 <body>
 
@@ -101,10 +115,44 @@ if (isset($_GET['admin_id'])) {
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="barangayStatus.php">Barangay <?= htmlspecialchars($barangay) ?></a>
+                            <?php if ($barangay !== 'All Barangays'): ?>
+                                <a href="barangayStatus.php">Barangay <?= htmlspecialchars($barangay) ?></a>
+                            <?php else: ?>
+                                <a href="barangayStatus.php">Zamboanga City</a>
+                            <?php endif; ?>
+
                             <i class="fa-solid fa-chevron-right"></i>
                             <a href="#">Evacuation Centers</a>
                         </div>
+                        <?php
+                        $barangay_query = "SELECT id, barangay FROM admin WHERE role != 'superadmin'";
+                        $barangay_result = $conn->query($barangay_query);
+
+                        $current_barangay = isset($_GET['barangay']) ? $_GET['barangay'] : 'all';
+                        $current_admin_id = isset($_GET['admin_id']) ? $_GET['admin_id'] : 'all';
+                        ?>
+                        <!-- Barangay Filter -->
+                        <select class="filter-admin" id="barangayFilter" onchange="filterBarangay()">
+                            <option value="all" data-admin-id="all" <?php echo ($current_barangay === 'all' && $current_admin_id === 'all') ? 'selected' : ''; ?>>
+                                All Barangays
+                            </option>
+                            <?php if ($barangay_result->num_rows > 0): ?>
+                                <?php while ($row = $barangay_result->fetch_assoc()): ?>
+                                    <option value="<?php echo htmlspecialchars($row['barangay']); ?>"
+                                        data-admin-id="<?php echo htmlspecialchars($row['id']); ?>" <?php echo ($current_barangay === $row['barangay'] && $current_admin_id == $row['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($row['barangay']); ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <option disabled>No barangays available</option>
+                            <?php endif; ?>
+                        </select>
+
+
+                        <select class="filter-admin" id="statusFilter" onchange="filterCenters()">
+                            <option value="active" selected>Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
                     </div>
                 </div>
             </header>
@@ -152,6 +200,7 @@ if (isset($_GET['admin_id'])) {
                                 }
                                 ?>
                                 <div class="bgEc-cards"
+                                    data-status="<?php echo $status_color === 'grey' ? 'inactive' : 'active'; ?>"
                                     onclick="window.location.href='viewEvacuation.php?id=<?php echo $row['id']; ?>'">
                                     <div class="bgEc-status <?php echo $status_color; ?>"></div>
                                     <img src="<?php echo !empty($row['image']) ? '../../assets/img/' . $row['image'] : '../../assets/img/ecDefault.svg'; ?>"
@@ -164,6 +213,7 @@ if (isset($_GET['admin_id'])) {
                                         <li>Total Evacuees: <?php echo $total_evacuees; ?></li>
                                     </ul>
                                 </div>
+
                             <?php endwhile; ?>
                         <?php else: ?>
                             <div class="no-centers-message">
@@ -177,7 +227,51 @@ if (isset($_GET['admin_id'])) {
 
     </div>
 
+    <script>
+        function filterCenters() {
+            const filterValue = document.getElementById('statusFilter').value;
+            const centers = document.querySelectorAll('.bgEc-cards');
 
+            centers.forEach(center => {
+                const status = center.getAttribute('data-status');
+
+                // Show or hide centers based on the selected filter
+                if (filterValue === 'active' && status === 'inactive') {
+                    center.style.display = 'none';
+                } else if (filterValue === 'inactive' && status === 'active') {
+                    center.style.display = 'none';
+                } else {
+                    center.style.display = 'block';
+                }
+            });
+        }
+
+
+        document.addEventListener('DOMContentLoaded', filterCenters);
+
+        function filterBarangay() {
+            const barangaySelect = document.getElementById('barangayFilter');
+            const selectedOption = barangaySelect.options[barangaySelect.selectedIndex];
+
+            if (selectedOption) {
+                const barangay = selectedOption.value;
+                const adminId = selectedOption.getAttribute('data-admin-id');
+
+                // Check if the selected option is "All Barangays"
+                if (adminId === "all") {
+                    // Redirect to the URL without filtering
+                    const url = `http://localhost/onezamboanga/templates/admin/barangayEC.php?barangay=all&admin_id=all`;
+                    window.location.href = url;
+                } else {
+                    // Redirect to the URL with the selected barangay and admin_id
+                    const url = `http://localhost/onezamboanga/templates/admin/barangayEC.php?barangay=${barangay}&admin_id=${adminId}`;
+                    window.location.href = url;
+                }
+            }
+        }
+
+
+    </script>
     <!-- import sidebar -->
     <script src="../../includes/sidebar.js"></script>
 

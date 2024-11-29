@@ -31,16 +31,44 @@ if (isset($_GET['id']) && isset($_GET['worker_id'])) {
     // header("Location: ");
     // exit;
 }
-// Fetch the evacuation center name
-$evacuationCenterSql = "SELECT name FROM evacuation_center WHERE id = ?";
-$evacuationCenterStmt = $conn->prepare($evacuationCenterSql);
-$evacuationCenterStmt->bind_param("i", $evacuationCenterId);
-$evacuationCenterStmt->execute();
-$evacuationCenterResult = $evacuationCenterStmt->get_result();
-$evacuationCenter = $evacuationCenterResult->fetch_assoc();
+$workerId = $_SESSION['worker_id'] ?? null;
+$evacuationCenterId = $_GET['id'] ?? 'All';
 
-// Prepare and execute the SQL query
-$sql = "
+// Fetch admin_id associated with the evacuation center (or any valid center)
+$adminId = null;
+if ($evacuationCenterId !== 'All') {
+    $adminQuery = "SELECT admin_id FROM evacuation_center WHERE id = ?";
+    $adminStmt = $conn->prepare($adminQuery);
+    $adminStmt->bind_param("i", $evacuationCenterId);
+    $adminStmt->execute();
+    $adminResult = $adminStmt->get_result();
+    $adminData = $adminResult->fetch_assoc();
+    $adminId = $adminData['admin_id'];
+} else {
+    // If "All" is selected, fetch admin_id of the logged-in user
+    $adminQuery = "SELECT DISTINCT admin_id FROM evacuation_center";
+    $adminResult = $conn->query($adminQuery);
+    $adminData = $adminResult->fetch_assoc();
+    $adminId = $adminData['admin_id'];
+}
+
+// Fetch evacuation centers associated with the admin
+$centersQuery = "
+    SELECT 
+        ec.id, 
+        ec.name
+    FROM evacuation_center ec
+    WHERE ec.admin_id = ?
+    ORDER BY ec.name ASC";
+$centersStmt = $conn->prepare($centersQuery);
+$centersStmt->bind_param("i", $adminId);
+$centersStmt->execute();
+$centersResult = $centersStmt->get_result();
+
+// Prepare evacuees query based on the selected evacuation center
+if ($evacuationCenterId === 'All') {
+    $evacuationCenterName = 'All Evacuees';
+    $sql = "
     SELECT 
         e.id AS evacuee_id,
         CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
@@ -52,17 +80,46 @@ $sql = "
         GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) ORDER BY m.first_name ASC SEPARATOR ', ') AS member_names
     FROM evacuees e
     LEFT JOIN members m ON e.id = m.evacuees_id
-    WHERE e.evacuation_center_id = ? AND e.status != 'Transfer' 
+    LEFT JOIN evacuation_center ec ON e.evacuation_center_id = ec.id
+    WHERE ec.admin_id = ? AND e.status != 'Transfer'
     GROUP BY e.id
-    ORDER BY e.date DESC;
-";
+    ORDER BY e.date DESC;";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $adminId);
 
+} else {
+    // Fetch evacuees for a specific evacuation center
+    $evacuationCenterSql = "SELECT name FROM evacuation_center WHERE id = ?";
+    $evacuationCenterStmt = $conn->prepare($evacuationCenterSql);
+    $evacuationCenterStmt->bind_param("i", $evacuationCenterId);
+    $evacuationCenterStmt->execute();
+    $evacuationCenterResult = $evacuationCenterStmt->get_result();
+    $evacuationCenter = $evacuationCenterResult->fetch_assoc();
+    $evacuationCenterName = $evacuationCenter['name'];
 
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $evacuationCenterId);  // Bind the evacuation center ID parameter
+    $sql = "
+    SELECT 
+        e.id AS evacuee_id,
+        CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
+        e.contact,
+        e.status,
+        e.date,
+        e.disaster_type,
+        COUNT(m.id) AS member_count,
+        GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) ORDER BY m.first_name ASC SEPARATOR ', ') AS member_names
+    FROM evacuees e
+    LEFT JOIN members m ON e.id = m.evacuees_id
+    WHERE e.evacuation_center_id = ? AND e.status != 'Transfer'
+    GROUP BY e.id
+    ORDER BY e.date DESC;";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $evacuationCenterId);
+
+}
+
+// Execute the query
 $stmt->execute();
 $result = $stmt->get_result();
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -122,8 +179,13 @@ $result = $stmt->get_result();
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a
-                                href="viewAssignedEC.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>"><?php echo $evacuationCenter['name']; ?></a>
+                            <!-- <a
+                                href="viewAssignedEC.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>">
+                                <?php echo htmlspecialchars($evacuationCenterName); ?>
+                            </a> -->
+                            <a href="">
+                                <?php echo htmlspecialchars($evacuationCenterName); ?>
+                            </a>
 
                             <!-- next page -->
                             <i class="fa-solid fa-chevron-right"></i>
@@ -134,9 +196,54 @@ $result = $stmt->get_result();
                         <!-- <a class="addBg-admin" href="addEvacuees.php">
                             <i class="fa-solid fa-plus"></i>
                         </a> -->
+                        <?php
+                        if ($adminData) {
+                            $adminId = $adminData['admin_id'];
+
+                            // Fetch evacuation centers (only id and name) associated with the same admin_id
+                            $centersQuery = "
+        SELECT 
+            ec.id, 
+            ec.name
+        FROM evacuation_center ec
+        WHERE ec.admin_id = ?
+        ORDER BY ec.name ASC";
+
+                            $centersStmt = $conn->prepare($centersQuery);
+                            $centersStmt->bind_param("i", $adminId);
+                            $centersStmt->execute();
+                            $centersResult = $centersStmt->get_result();
+                        } ?>
+
+                        <select id="filterBarangay" class="filter-admin">
+                            <option value="All" <?php echo ($evacuationCenterId === 'All') ? 'selected' : ''; ?>>All
+                            </option>
+                            <?php if ($centersResult->num_rows > 0): ?>
+                                <?php while ($center = $centersResult->fetch_assoc()): ?>
+                                    <option value="<?php echo htmlspecialchars($center['id']); ?>" <?php echo ($evacuationCenterId == $center['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($center['name']); ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <option value="" disabled>No Evacuation Centers Found</option>
+                            <?php endif; ?>
+                        </select>
+
+                        <script>
+                            document.getElementById('filterBarangay').addEventListener('change', function () {
+                                const selectedValue = this.value;
+                                const currentUrl = new URL(window.location.href);
+
+                                // Update the `id` parameter in the URL
+                                currentUrl.searchParams.set('id', selectedValue);
+
+                                // Reload the page with the new URL
+                                window.location.href = currentUrl.href;
+                            });
+                        </script>
 
                         <button class="addBg-admin"
-                            onclick="window.location.href='evacueesForm.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>'">
+                            data-ec-id="<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>">
                             Admit
                             <!-- <i class="fa-solid fa-plus"></i> -->
                         </button>
@@ -340,6 +447,45 @@ $result = $stmt->get_result();
 
             searchInput.addEventListener("keyup", filterTable);
         });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get the current URL
+            const currentUrl = window.location.href;
+
+            // Check if the URL parameter `id` is "All"
+            const urlParams = new URLSearchParams(window.location.search);
+            const isAll = urlParams.get('id') === 'All';
+
+            // document.querySelectorAll('a[href*="viewAssignedEC.php"]').forEach(link => {
+            //     link.addEventListener('click', (event) => {
+            //         event.preventDefault(); // Prevent the default action
+            //         Swal.fire({
+            //             icon: 'info',
+            //             text: 'Please select a specific evacuation center first.',
+            //             confirmButtonText: 'OK'
+            //         });
+            //     });
+            // });
+            // Add event listeners to buttons with the class `addBg-admin`
+            document.querySelectorAll('.addBg-admin').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    event.preventDefault(); // Prevent the default action
+                    if (isAll) {
+                        Swal.fire({
+                            icon: 'info',
+                            text: 'Please select a specific evacuation center first.',
+                            confirmButtonText: 'OK'
+                        });
+                    } else {
+                        // Get the evacuation center ID from the `data-ec-id` attribute
+                        const evacuationCenterId = button.getAttribute('data-ec-id');
+                        // Redirect to the appropriate URL
+                        window.location.href = `evacueesForm.php?id=${evacuationCenterId}`;
+                    }
+                });
+            });
+        });
+
     </script>
 
     <!-- sidebar import js -->
