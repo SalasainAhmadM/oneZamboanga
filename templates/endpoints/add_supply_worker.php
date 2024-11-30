@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $from = $_POST['from'];
     $evacuationCenterId = $_POST['evacuation_center_id'];
     $categoryId = $_POST['category_id'];
-    $approved = 1;
+    $approved = 0;
 
     $evacuationCenterName = $_POST['evacuation_center_name'];
     $adminId = $_POST['admin_id'];

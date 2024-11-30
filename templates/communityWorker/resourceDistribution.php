@@ -193,6 +193,29 @@ $supplyResult = $supplyStmt->get_result();
         border: 1px solid #fff;
         box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
     }
+
+    .redirect-dropdown {
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: left;
+    }
+
+    #resource-switcher {
+        padding: 8px;
+        font-size: 14px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        width: 50%;
+        max-width: 180px;
+        outline: none;
+        appearance: none;
+        background-color: #fff;
+        cursor: pointer;
+    }
+
+    #resource-switcher:hover {
+        border-color: #888;
+    }
 </style>
 
 <body>
@@ -256,7 +279,25 @@ $supplyResult = $supplyStmt->get_result();
                 <div class="main-container overview">
 
                     <special-navbar></special-navbar>
+                    <div class="redirect-dropdown">
+                        <select id="resource-switcher" onchange="redirectToPage()">
+                            <option value="resourceSupply.php" <?php echo basename($_SERVER['PHP_SELF']) === 'resourceSupply.php' ? 'selected' : ''; ?>>Resource
+                                Supply</option>
+                            <option value="resourceDistribution.php" <?php echo basename($_SERVER['PHP_SELF']) === 'resourceDistribution.php' ? 'selected' : ''; ?>>
+                                Resource Distribution</option>
+                        </select>
+                    </div>
 
+                    <script>
+                        function redirectToPage() {
+                            const selectedPage = document.getElementById('resource-switcher').value;
+                            const params = new URLSearchParams({
+                                id: "<?php echo htmlspecialchars($evacuationCenterId); ?>",
+                                worker_id: "<?php echo htmlspecialchars($workerId); ?>"
+                            });
+                            window.location.href = `${selectedPage}?${params.toString()}`;
+                        }
+                    </script>
                     <div class="supplySearch">
                         <input type="text" id="supply-search" placeholder="Search supply by name..."
                             onkeyup="filterSupplies()">

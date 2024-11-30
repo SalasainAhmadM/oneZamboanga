@@ -79,7 +79,7 @@ class SpecialNavbar extends HTMLElement {
                         <div class="indicator"></div>
                     </div>
                     <div class="navList">
-                        <li><a href="resources.php${queryString}" class="restricted-link">Resource Management</a></li>
+                        <li><a href="resourceSupply.php${queryString}" class="restricted-link">Resource Management</a></li>
                         <div class="indicator long"></div>
                     </div>
                     <div class="navList">
