@@ -146,9 +146,7 @@ if (isset($_SESSION['user_id'])) {
                                 href="evacuationCenter.php"><?php echo htmlspecialchars("Barangay " . $admin_barangay); ?></a>
 
 
-                            <!-- next page -->
-                            <!-- <i class="fa-solid fa-chevron-right"></i>
-                            <a href="#">Near Evacuation Center</a> -->
+                            <i id="toggle-btn" class="fa-solid fa-up-right-and-down-left-from-center"></i>
                         </div>
 
 
@@ -163,142 +161,145 @@ if (isset($_SESSION['user_id'])) {
 
             <div class="main-wrapper">
                 <div class="main-container overview">
+                    <div id="first-container">
+                        <h2>Assigned Evacuation Centers</h2>
+                        <div class="bgEc-container" style="margin-top: 1em; margin-bottom: 10px;">
+                            <?php if ($assigned_centers_result->num_rows > 0): ?>
+                                <?php while ($center = $assigned_centers_result->fetch_assoc()):
+                                    $center_id = $center['id'];
+                                    $capacity = (int) $center['capacity'];
 
-                    <h2>Assigned Evacuation Centers</h2>
-                    <div class="bgEc-container" style="margin-top: 1em; margin-bottom: 10px;">
-                        <?php if ($assigned_centers_result->num_rows > 0): ?>
-                            <?php while ($center = $assigned_centers_result->fetch_assoc()):
-                                $center_id = $center['id'];
-                                $capacity = (int) $center['capacity'];
+                                    // Fetch total families in this center
+                                    $family_count_sql = "SELECT COUNT(*) AS total_families FROM evacuees WHERE evacuation_center_id = ?";
+                                    $family_count_stmt = $conn->prepare($family_count_sql);
+                                    $family_count_stmt->bind_param("i", $center_id);
+                                    $family_count_stmt->execute();
+                                    $family_count_result = $family_count_stmt->get_result();
+                                    $total_families = ($family_count_result->num_rows > 0) ? $family_count_result->fetch_assoc()['total_families'] : 0;
 
-                                // Fetch total families in this center
-                                $family_count_sql = "SELECT COUNT(*) AS total_families FROM evacuees WHERE evacuation_center_id = ?";
-                                $family_count_stmt = $conn->prepare($family_count_sql);
-                                $family_count_stmt->bind_param("i", $center_id);
-                                $family_count_stmt->execute();
-                                $family_count_result = $family_count_stmt->get_result();
-                                $total_families = ($family_count_result->num_rows > 0) ? $family_count_result->fetch_assoc()['total_families'] : 0;
-
-                                // Fetch total evacuees (families + members)
-                                $evacuees_count_sql = "
+                                    // Fetch total evacuees (families + members)
+                                    $evacuees_count_sql = "
                 SELECT 
                     (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
                     (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
                     (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
                     ) AS total_evacuees
             ";
-                                $evacuees_count_stmt = $conn->prepare($evacuees_count_sql);
-                                $evacuees_count_stmt->bind_param("ii", $center_id, $center_id);
-                                $evacuees_count_stmt->execute();
-                                $evacuees_count_result = $evacuees_count_stmt->get_result();
-                                $total_evacuees = ($evacuees_count_result->num_rows > 0) ? $evacuees_count_result->fetch_assoc()['total_evacuees'] : 0;
+                                    $evacuees_count_stmt = $conn->prepare($evacuees_count_sql);
+                                    $evacuees_count_stmt->bind_param("ii", $center_id, $center_id);
+                                    $evacuees_count_stmt->execute();
+                                    $evacuees_count_result = $evacuees_count_stmt->get_result();
+                                    $total_evacuees = ($evacuees_count_result->num_rows > 0) ? $evacuees_count_result->fetch_assoc()['total_evacuees'] : 0;
 
-                                // Determine occupancy status color
-                                if ($total_families === 0) {
-                                    $status_color = "grey";
-                                } else {
-                                    $occupancy_percentage = ($total_families / $capacity) * 100;
-
-                                    if ($occupancy_percentage < 70) {
-                                        $status_color = "green";
-                                    } elseif ($occupancy_percentage >= 70 && $occupancy_percentage < 100) {
-                                        $status_color = "yellow";
+                                    // Determine occupancy status color
+                                    if ($total_families === 0) {
+                                        $status_color = "grey";
                                     } else {
-                                        $status_color = "red";
+                                        $occupancy_percentage = ($total_families / $capacity) * 100;
+
+                                        if ($occupancy_percentage < 70) {
+                                            $status_color = "green";
+                                        } elseif ($occupancy_percentage >= 70 && $occupancy_percentage < 100) {
+                                            $status_color = "yellow";
+                                        } else {
+                                            $status_color = "red";
+                                        }
                                     }
-                                }
-                                ?>
-                                <div class="bgEc-cards"
-                                    onclick="window.location.href='viewAssignedEC.php?id=<?php echo $center['id']; ?>&worker_id=<?php echo $worker_id; ?>'">
-                                    <div class="bgEc-status <?php echo $status_color; ?>"></div>
-                                    <img src="<?php echo !empty($center['image']) ? htmlspecialchars($center['image']) : '../../assets/img/evacuation-default.svg'; ?>"
-                                        alt="" class="bgEc-img">
+                                    ?>
+                                    <div class="bgEc-cards"
+                                        onclick="window.location.href='viewAssignedEC.php?id=<?php echo $center['id']; ?>&worker_id=<?php echo $worker_id; ?>'">
+                                        <div class="bgEc-status <?php echo $status_color; ?>"></div>
+                                        <img src="<?php echo !empty($center['image']) ? htmlspecialchars($center['image']) : '../../assets/img/evacuation-default.svg'; ?>"
+                                            alt="" class="bgEc-img">
 
-                                    <ul class="bgEc-info">
-                                        <li><strong><?php echo htmlspecialchars($center['name']); ?></strong></li>
-                                        <li>Location: <?php echo htmlspecialchars($center['location']); ?></li>
-                                        <li>Capacity: <?php echo htmlspecialchars($center['capacity']); ?> Families</li>
-                                        <li>Total Families: <?php echo $total_families; ?></li>
-                                        <li>Total Evacuees: <?php echo $total_evacuees; ?></li>
-                                    </ul>
-                                </div>
+                                        <ul class="bgEc-info">
+                                            <li><strong><?php echo htmlspecialchars($center['name']); ?></strong></li>
+                                            <li>Location: <?php echo htmlspecialchars($center['location']); ?></li>
+                                            <li>Capacity: <?php echo htmlspecialchars($center['capacity']); ?> Families</li>
+                                            <li>Total Families: <?php echo $total_families; ?></li>
+                                            <li>Total Evacuees: <?php echo $total_evacuees; ?></li>
+                                        </ul>
+                                    </div>
 
-                            <?php endwhile; ?>
-                        <?php else: ?>
-                            <p>No assigned evacuation centers found for this worker.</p>
-                        <?php endif; ?>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <p>No assigned evacuation centers found for this worker.</p>
+                            <?php endif; ?>
+                        </div>
                     </div>
                     <!-- <special-navbar></special-navbar> -->
-                    <h2>Other Evacuation Centers</h2>
-                    <div class="bgEc-container" style="margin-top: 1em;">
-                        <?php if ($centers_result->num_rows > 0): ?>
-                            <?php while ($center = $centers_result->fetch_assoc()):
-                                $center_id = $center['id'];
-                                $capacity = (int) $center['capacity'];
+                    <div id="second-container">
+                        <h2>Evacuation Centers</h2>
+                        <div class="bgEc-container" style="margin-top: 1em;">
+                            <?php if ($centers_result->num_rows > 0): ?>
+                                <?php while ($center = $centers_result->fetch_assoc()):
+                                    $center_id = $center['id'];
+                                    $capacity = (int) $center['capacity'];
 
-                                // Fetch total families in this center
-                                $family_count_sql = "SELECT COUNT(*) AS total_families FROM evacuees WHERE evacuation_center_id = ?";
-                                $family_count_stmt = $conn->prepare($family_count_sql);
-                                $family_count_stmt->bind_param("i", $center_id);
-                                $family_count_stmt->execute();
-                                $family_count_result = $family_count_stmt->get_result();
-                                $total_families = ($family_count_result->num_rows > 0) ? $family_count_result->fetch_assoc()['total_families'] : 0;
+                                    // Fetch total families in this center
+                                    $family_count_sql = "SELECT COUNT(*) AS total_families FROM evacuees WHERE evacuation_center_id = ?";
+                                    $family_count_stmt = $conn->prepare($family_count_sql);
+                                    $family_count_stmt->bind_param("i", $center_id);
+                                    $family_count_stmt->execute();
+                                    $family_count_result = $family_count_stmt->get_result();
+                                    $total_families = ($family_count_result->num_rows > 0) ? $family_count_result->fetch_assoc()['total_families'] : 0;
 
-                                // Fetch total evacuees (families + members)
-                                $evacuees_count_sql = "
+                                    // Fetch total evacuees (families + members)
+                                    $evacuees_count_sql = "
             SELECT 
                 (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
                 (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
                 (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
                 ) AS total_evacuees
             ";
-                                $evacuees_count_stmt = $conn->prepare($evacuees_count_sql);
-                                $evacuees_count_stmt->bind_param("ii", $center_id, $center_id);
-                                $evacuees_count_stmt->execute();
-                                $evacuees_count_result = $evacuees_count_stmt->get_result();
-                                $total_evacuees = ($evacuees_count_result->num_rows > 0) ? $evacuees_count_result->fetch_assoc()['total_evacuees'] : 0;
+                                    $evacuees_count_stmt = $conn->prepare($evacuees_count_sql);
+                                    $evacuees_count_stmt->bind_param("ii", $center_id, $center_id);
+                                    $evacuees_count_stmt->execute();
+                                    $evacuees_count_result = $evacuees_count_stmt->get_result();
+                                    $total_evacuees = ($evacuees_count_result->num_rows > 0) ? $evacuees_count_result->fetch_assoc()['total_evacuees'] : 0;
 
-                                // Determine occupancy status color
-                                if ($total_families === 0) {
-                                    $status_color = "grey";
-                                } else {
-                                    $occupancy_percentage = ($total_families / $capacity) * 100;
-
-                                    if ($occupancy_percentage < 70) {
-                                        $status_color = "green";
-                                    } elseif ($occupancy_percentage >= 70 && $occupancy_percentage < 100) {
-                                        $status_color = "yellow";
+                                    // Determine occupancy status color
+                                    if ($total_families === 0) {
+                                        $status_color = "grey";
                                     } else {
-                                        $status_color = "red";
+                                        $occupancy_percentage = ($total_families / $capacity) * 100;
+
+                                        if ($occupancy_percentage < 70) {
+                                            $status_color = "green";
+                                        } elseif ($occupancy_percentage >= 70 && $occupancy_percentage < 100) {
+                                            $status_color = "yellow";
+                                        } else {
+                                            $status_color = "red";
+                                        }
                                     }
-                                }
-                                ?>
-                                <div class="bgEc-cards"
-                                    onclick="window.location.href='evacuationView.php?id=<?php echo $center['id']; ?>'">
-                                    <div class="bgEc-status <?php echo $status_color; ?>"></div>
-                                    <img src="<?php echo !empty($center['image']) ? htmlspecialchars($center['image']) : '../../assets/img/evacuation-default.svg'; ?>"
-                                        alt="" class="bgEc-img">
+                                    ?>
+                                    <div class="bgEc-cards"
+                                        onclick="window.location.href='evacuationView.php?id=<?php echo $center['id']; ?>'">
+                                        <div class="bgEc-status <?php echo $status_color; ?>"></div>
+                                        <img src="<?php echo !empty($center['image']) ? htmlspecialchars($center['image']) : '../../assets/img/evacuation-default.svg'; ?>"
+                                            alt="" class="bgEc-img">
 
-                                    <ul class="bgEc-info">
-                                        <li><strong><?php echo htmlspecialchars($center['name']); ?></strong></li>
-                                        <li>Location: <?php echo htmlspecialchars($center['location']); ?></li>
-                                        <li>Capacity: <?php echo htmlspecialchars($center['capacity']); ?> Families</li>
-                                        <li>Total Families: <?php echo $total_families; ?></li>
-                                        <li>Total Evacuees: <?php echo $total_evacuees; ?></li>
-                                    </ul>
-                                </div>
-                            <?php endwhile; ?>
-                        <?php else: ?>
-                            <p>No evacuation centers found for this admin.</p>
-                        <?php endif; ?>
+                                        <ul class="bgEc-info">
+                                            <li><strong><?php echo htmlspecialchars($center['name']); ?></strong></li>
+                                            <li>Location: <?php echo htmlspecialchars($center['location']); ?></li>
+                                            <li>Capacity: <?php echo htmlspecialchars($center['capacity']); ?> Families</li>
+                                            <li>Total Families: <?php echo $total_families; ?></li>
+                                            <li>Total Evacuees: <?php echo $total_evacuees; ?></li>
+                                        </ul>
+                                    </div>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <p>No evacuation centers found for this admin.</p>
+                            <?php endif; ?>
+                        </div>
                     </div>
-
 
 
                     <button id="scroll-btn" class="scroll-btn at-top">
                         <i class="fa-solid fa-chevron-down"></i>
                     </button>
                 </div>
+
             </div>
 
         </main>
@@ -349,28 +350,74 @@ if (isset($_SESSION['user_id'])) {
         const mainContainer = document.querySelector('.main-container');
         let isAtBottom = false;
 
+        mainContainer.addEventListener('scroll', () => {
+            const scrollTop = mainContainer.scrollTop;
+            const scrollHeight = mainContainer.scrollHeight - mainContainer.clientHeight;
+
+            if (scrollTop >= scrollHeight - 10) {
+                scrollBtn.classList.remove('at-top');
+                scrollBtn.classList.add('at-bottom');
+                scrollBtn.innerHTML = '<i class="fa-solid fa-chevron-up"></i>';
+                isAtBottom = true;
+            } else if (scrollTop <= 10) {
+                scrollBtn.classList.remove('at-bottom');
+                scrollBtn.classList.add('at-top');
+                scrollBtn.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
+                isAtBottom = false;
+            }
+        });
+
         scrollBtn.addEventListener('click', () => {
             if (!isAtBottom) {
                 mainContainer.scrollTo({
                     top: mainContainer.scrollHeight,
                     behavior: 'smooth'
                 });
-                scrollBtn.classList.remove('at-top');
-                scrollBtn.classList.add('at-bottom');
-                scrollBtn.innerHTML = '<i class="fa-solid fa-chevron-up"></i>';
             } else {
                 mainContainer.scrollTo({
                     top: 0,
                     behavior: 'smooth'
                 });
-                scrollBtn.classList.remove('at-bottom');
-                scrollBtn.classList.add('at-top');
-                scrollBtn.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
             }
-            isAtBottom = !isAtBottom;
         });
 
+        const toggleBtn = document.getElementById('toggle-btn');
+        const firstContainer = document.getElementById('first-container');
+        const secondContainer = document.getElementById('second-container');
+        const currentUrl = window.location.href;
 
+        toggleBtn.addEventListener('click', () => {
+            // Switch the positions of the containers
+            const parent = firstContainer.parentElement;
+
+            if (firstContainer.nextElementSibling === secondContainer) {
+                // Move second container above first container
+                parent.insertBefore(secondContainer, firstContainer);
+            } else {
+                // Move first container above second container
+                parent.insertBefore(firstContainer, secondContainer);
+            }
+
+            // Update the URL
+            const url = new URL(currentUrl);
+            if (secondContainer.nextElementSibling === firstContainer) {
+                // Second container is now on top
+                url.searchParams.set('view', 'evacuationCenters');
+            } else {
+                // First container is now on top
+                url.searchParams.set('view', 'assigned');
+            }
+
+            window.history.pushState({}, '', url.toString());
+        });
+
+        // Initialize the view based on URL parameter
+        const params = new URLSearchParams(window.location.search);
+        const view = params.get('view');
+        if (view === 'evacuationCenters') {
+            const parent = firstContainer.parentElement;
+            parent.insertBefore(secondContainer, firstContainer);
+        }
     </script>
 
     <!-- sidebar import js -->

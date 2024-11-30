@@ -356,9 +356,9 @@ $feeds_result = $feeds_stmt->get_result();
                         items.forEach((item) => {
                             item.addEventListener("click", () => {
                                 if (item.classList.contains("spanning")) {
-                                    window.location.href = "assignedEC.php";
+                                    window.location.href = "evacuationCenter.php?view=assigned";
                                 } else if (item.querySelector("h5").textContent === "Evacuation Centers") {
-                                    window.location.href = "evacuationCenter.php";
+                                    window.location.href = "evacuationCenter.php?view=evacuationCenters";
                                 } else if (item.querySelector("h5").textContent === "Evacuees") {
                                     window.location.href = "evacueesPage.php?id=All&worker_id=<?php echo $worker_id; ?>";
                                 }
