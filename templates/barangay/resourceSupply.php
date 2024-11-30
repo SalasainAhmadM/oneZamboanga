@@ -48,12 +48,15 @@ while ($row = $categoryResult->fetch_assoc()) {
 
 // Fetch supplies associated with the evacuation center, including the dynamic `quantity` calculation
 $supplySql = "
-    SELECT s.id, s.name, s.description, s.quantity, s.original_quantity, s.unit, s.image, s.category_id,
+    SELECT s.id, s.name, s.description, s.quantity, s.original_quantity, s.unit, s.image, s.category_id, s.approved,
            (s.quantity + COALESCE(SUM(st.quantity), 0)) AS total_quantity
     FROM supply s
     LEFT JOIN stock st ON s.id = st.supply_id
     WHERE s.evacuation_center_id = ?
-    GROUP BY s.id";
+    GROUP BY s.id
+    ORDER BY s.approved ASC, s.name ASC";
+
+
 $supplyStmt = $conn->prepare($supplySql);
 $supplyStmt->bind_param("i", $evacuationCenterId);
 $supplyStmt->execute();
@@ -496,8 +499,13 @@ $supplyResult = $supplyStmt->get_result();
                                             <?php echo htmlspecialchars($supply['quantity']) . ' ' . htmlspecialchars($supply['unit']); ?>s
                                         </li>
                                     </ul>
-                                    <a href="viewSupply.php?id=<?php echo htmlspecialchars($supply['id']); ?>"
-                                        class="supply-btn">View Details</a>
+                                    <?php if ($supply['approved'] == 1): ?>
+                                        <a href="viewSupply.php?id=<?php echo htmlspecialchars($supply['id']); ?>"
+                                            class="supply-btn">View Details</a>
+                                    <?php else: ?>
+                                        <a href="#" class="supply-btn approve-btn"
+                                            data-id="<?php echo htmlspecialchars($supply['id']); ?>">Approve?</a>
+                                    <?php endif; ?>
                                 </div>
                             <?php endwhile; ?>
                         <?php else: ?>
@@ -590,6 +598,42 @@ $supplyResult = $supplyStmt->get_result();
             });
         });
 
+        document.querySelectorAll('.approve-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const supplyId = this.dataset.id;
+
+                Swal.fire({
+                    title: "Approve Supply?",
+                    text: "This action will make the supply available.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Yes",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '../endpoints/supply_approve.php',
+                            type: 'POST',
+                            data: { supply_id: supplyId },
+                            success: function (response) {
+                                const res = JSON.parse(response);
+                                if (res.success) {
+                                    Swal.fire("Approved!", "Supply has been approved.", "success").then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire("Error", res.error, "error");
+                                }
+                            },
+                            error: function () {
+                                Swal.fire("Error", "There was a problem approving the supply.", "error");
+                            }
+                        });
+                    }
+                });
+            });
+        });
 
 
     </script>

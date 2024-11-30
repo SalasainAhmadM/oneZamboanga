@@ -55,8 +55,9 @@ $supplySql = "
            (s.quantity + COALESCE(SUM(st.quantity), 0)) AS total_quantity
     FROM supply s
     LEFT JOIN stock st ON s.id = st.supply_id
-    WHERE s.evacuation_center_id = ?
+    WHERE s.evacuation_center_id = ? AND s.approved = 1
     GROUP BY s.id";
+
 $supplyStmt = $conn->prepare($supplySql);
 $supplyStmt->bind_param("i", $evacuationCenterId);
 $supplyStmt->execute();
