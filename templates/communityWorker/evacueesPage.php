@@ -31,7 +31,7 @@ if (isset($_GET['id']) && isset($_GET['worker_id'])) {
     // header("Location: ");
     // exit;
 }
-$workerId = $_SESSION['worker_id'] ?? null;
+$workerId = $_GET['worker_id'] ?? null;
 $evacuationCenterId = $_GET['id'] ?? 'All';
 
 // Fetch admin_id associated with the evacuation center (or any valid center)
@@ -58,10 +58,11 @@ $centersQuery = "
         ec.id, 
         ec.name
     FROM evacuation_center ec
-    WHERE ec.admin_id = ?
+    INNER JOIN assigned_worker aw ON ec.id = aw.evacuation_center_id
+    WHERE aw.worker_id = ? AND aw.status = 'assigned'
     ORDER BY ec.name ASC";
 $centersStmt = $conn->prepare($centersQuery);
-$centersStmt->bind_param("i", $adminId);
+$centersStmt->bind_param("i", $workerId);
 $centersStmt->execute();
 $centersResult = $centersStmt->get_result();
 
@@ -81,11 +82,12 @@ if ($evacuationCenterId === 'All') {
     FROM evacuees e
     LEFT JOIN members m ON e.id = m.evacuees_id
     LEFT JOIN evacuation_center ec ON e.evacuation_center_id = ec.id
-    WHERE ec.admin_id = ? AND e.status != 'Transfer'
+    INNER JOIN assigned_worker aw ON ec.id = aw.evacuation_center_id
+    WHERE aw.worker_id = ? AND aw.status = 'assigned' AND e.status != 'Transfer'
     GROUP BY e.id
     ORDER BY e.date DESC;";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $adminId);
+    $stmt->bind_param("i", $workerId);
 
 } else {
     // Fetch evacuees for a specific evacuation center
@@ -114,7 +116,6 @@ if ($evacuationCenterId === 'All') {
     ORDER BY e.date DESC;";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $evacuationCenterId);
-
 }
 
 // Execute the query
@@ -196,24 +197,7 @@ $result = $stmt->get_result();
                         <!-- <a class="addBg-admin" href="addEvacuees.php">
                             <i class="fa-solid fa-plus"></i>
                         </a> -->
-                        <?php
-                        if ($adminData) {
-                            $adminId = $adminData['admin_id'];
 
-                            // Fetch evacuation centers (only id and name) associated with the same admin_id
-                            $centersQuery = "
-        SELECT 
-            ec.id, 
-            ec.name
-        FROM evacuation_center ec
-        WHERE ec.admin_id = ?
-        ORDER BY ec.name ASC";
-
-                            $centersStmt = $conn->prepare($centersQuery);
-                            $centersStmt->bind_param("i", $adminId);
-                            $centersStmt->execute();
-                            $centersResult = $centersStmt->get_result();
-                        } ?>
 
                         <select id="filterBarangay" class="filter-admin">
                             <option value="All" <?php echo ($evacuationCenterId === 'All') ? 'selected' : ''; ?>>All

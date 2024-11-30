@@ -360,7 +360,7 @@ $feeds_result = $feeds_stmt->get_result();
                                 } else if (item.querySelector("h5").textContent === "Evacuation Centers") {
                                     window.location.href = "evacuationCenter.php";
                                 } else if (item.querySelector("h5").textContent === "Evacuees") {
-                                    window.location.href = "evacueesPage.php?id=All";
+                                    window.location.href = "evacueesPage.php?id=All&worker_id=<?php echo $worker_id; ?>";
                                 }
                             });
                         });
