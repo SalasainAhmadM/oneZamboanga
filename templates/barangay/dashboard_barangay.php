@@ -154,8 +154,7 @@ while ($row = $all_centers_result->fetch_assoc()) {
     ];
 }
 
-
-// Query to get the latest 4 evacuation centers for "Evacuation Center Overview"
+// Query to get the latest 10 evacuation centers for flexibility
 $latest_centers_sql = "
     SELECT id, name 
     FROM evacuation_center 
@@ -169,6 +168,8 @@ $latest_centers_stmt->execute();
 $latest_centers_result = $latest_centers_stmt->get_result();
 
 $latest_centers = [];
+$all_centers = []; // For filling up the remaining slots
+
 while ($row = $latest_centers_result->fetch_assoc()) {
     $center_id = $row['id'];
     $center_name = $row['name'];
@@ -179,7 +180,14 @@ while ($row = $latest_centers_result->fetch_assoc()) {
     $total_result = $count_total_stmt->get_result();
     $total_count = ($total_result->num_rows > 0) ? $total_result->fetch_assoc()['total_count'] : 0;
 
-    // Only add centers with at least one evacuee
+    // Save all centers for potential filling later
+    $all_centers[] = [
+        'id' => $center_id,
+        'name' => $center_name,
+        'evacuees' => $total_count
+    ];
+
+    // Add centers with evacuees to the primary list
     if ($total_count > 0) {
         $latest_centers[] = [
             'id' => $center_id,
@@ -188,11 +196,24 @@ while ($row = $latest_centers_result->fetch_assoc()) {
         ];
     }
 
-    // Limit to the latest 4 centers with evacuees
+    // Stop when we reach 4 centers with evacuees
     if (count($latest_centers) >= 4) {
         break;
     }
 }
+
+// Fill up remaining slots with centers that have no evacuees
+if (count($latest_centers) < 4) {
+    foreach ($all_centers as $center) {
+        if (!in_array($center, $latest_centers)) {
+            $latest_centers[] = $center;
+            if (count($latest_centers) >= 4) {
+                break;
+            }
+        }
+    }
+}
+
 
 // Fetch the admin's notifications
 $notif_sql = "SELECT notification_msg, created_at 

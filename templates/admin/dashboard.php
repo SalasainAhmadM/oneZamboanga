@@ -120,7 +120,7 @@ $latest_admins_sql = "
     GROUP BY a.id
     HAVING evacuation_center_count > 0
     ORDER BY a.id DESC
-    LIMIT 4
+    LIMIT 10
 ";
 $latest_admins_result = $conn->query($latest_admins_sql);
 
@@ -128,8 +128,40 @@ $latest_admins = [];
 if ($latest_admins_result->num_rows > 0) {
     while ($row = $latest_admins_result->fetch_assoc()) {
         $latest_admins[] = $row;
+        if (count($latest_admins) >= 4) {
+            break;
+        }
     }
 }
+
+// Calculate how many more entries are needed to reach 4
+$remaining_slots = 4 - count($latest_admins);
+
+// If fewer than 4 admins, fill the remaining slots dynamically
+if ($remaining_slots > 0) {
+    $filler_admins_sql = "
+        SELECT 
+            a.id AS admin_id, 
+            a.first_name, 
+            a.middle_name, 
+            a.last_name, 
+            a.extension_name, 
+            a.barangay, 
+            0 AS evacuation_center_count
+        FROM admin a
+        WHERE a.role = 'admin' AND a.id NOT IN (" . implode(',', array_column($latest_admins, 'admin_id')) . ")
+        ORDER BY a.id DESC
+        LIMIT $remaining_slots
+    ";
+    $filler_admins_result = $conn->query($filler_admins_sql);
+
+    if ($filler_admins_result->num_rows > 0) {
+        while ($row = $filler_admins_result->fetch_assoc()) {
+            $latest_admins[] = $row;
+        }
+    }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
