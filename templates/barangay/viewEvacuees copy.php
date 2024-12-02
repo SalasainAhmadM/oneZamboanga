@@ -40,15 +40,8 @@ $evacuationStmt->execute();
 $evacuationResult = $evacuationStmt->get_result();
 $evacuationCenter = $evacuationResult->fetch_assoc();
 
-// Fetch all other evacuation centers for the dropdown including capacity and evacuees count
-$centersQuery = "
-    SELECT 
-        ec.id, 
-        ec.name, 
-        ec.capacity, 
-        (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ec.id) AS evacuees_count 
-    FROM evacuation_center ec 
-    WHERE ec.id != ? AND ec.admin_id = ?";
+// Fetch all other evacuation centers for the dropdown
+$centersQuery = "SELECT id, name FROM evacuation_center WHERE id != ? AND admin_id = ?";
 $centersStmt = $conn->prepare($centersQuery);
 $centersStmt->bind_param("ii", $evacuee['evacuation_center_id'], $evacuee['admin_id']);
 $centersStmt->execute();
@@ -57,7 +50,6 @@ $otherCenters = [];
 while ($center = $centersResult->fetch_assoc()) {
     $otherCenters[] = $center;
 }
-
 
 // Fetch household members
 $membersQuery = "SELECT * FROM members WHERE evacuees_id = ?";
@@ -119,16 +111,6 @@ while ($center = $otherCentersResult->fetch_assoc()) {
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
-<style>
-    .swal-container-custom {
-        width: 600px;
-    }
-
-    .swal-popup-custom {
-        font-size: 1.2em;
-        padding: 2em;
-    }
-</style>
 
 <body>
 
@@ -441,8 +423,9 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                         title: 'Transfer within Current Barangay',
                         html: `
                     <label for="centerSelect">Select a new evacuation center:</label>
-                    <select id="centerSelect" class="swal2-select" style="width: 400px; font-size: 14px;">
-                        <?php foreach ($otherCenters as $center): ?><option value="<?= $center['id']; ?>" <?= $center['capacity'] <= $center['evacuees_count'] ? 'disabled' : ''; ?>> <?= htmlspecialchars($center['name'] . ' (Capacity: ' . $center['capacity'] . '/' . $center['evacuees_count'] . ')'); ?> </option>
+                    <select id="centerSelect" class="swal2-select" style="width: 400px;">
+                        <?php foreach ($otherCenters as $center): ?>
+                                                                                                                                                                                                        <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 `,
@@ -461,22 +444,22 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                             transferEvacuee(<?= $evacueeId; ?>, result.value);
                         }
                     });
-
                 } else if (result.dismiss === Swal.DismissReason.cancel) {
                     Swal.fire({
                         title: 'Transfer to Other Barangay',
                         html: `
-                    <label for="barangaySelect">Select a Barangay:</label>
-                    <select id="barangaySelect" class="swal2-select" style="width: 400px;">
-                        <option value="" disabled selected>Select a Barangay</option>
-                        <?php foreach ($admins as $admin): ?> <option value="<?= $admin['id']; ?>"><?= htmlspecialchars($admin['barangay']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <label for="centerSelect">Select an Evacuation Center:</label>
-                    <select id="centerSelect" class="swal2-select" style="width: 400px; font-size: 14px;" disabled>
-                        <option value="" disabled selected>Select a Barangay first</option>
-                    </select>
-                `,
+            <label for="barangaySelect">Select a Barangay:</label>
+            <select id="barangaySelect" class="swal2-select" style="width: 400px;">
+                <option value="" disabled selected>Select a Barangay</option>
+                <?php foreach ($admins as $admin): ?>
+                                                                                                                                                                <option value="<?= $admin['id']; ?>"><?= htmlspecialchars($admin['barangay']); ?></option>
+                <?php endforeach; ?>
+            </select>
+            <label for="centerSelect">Select an Evacuation Center:</label>
+            <select id="centerSelect" class="swal2-select" style="width: 400px;" disabled>
+                <option value="" disabled selected>Select a Barangay first</option>
+            </select>
+        `,
                         showCancelButton: true,
                         confirmButtonText: 'Transfer',
                         allowOutsideClick: false,
@@ -510,8 +493,7 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                                                 data.centers.forEach(center => {
                                                     const option = document.createElement('option');
                                                     option.value = center.id;
-                                                    option.textContent = `${center.name} (Capacity: ${center.capacity}/${center.evacuees_count})`;
-                                                    option.disabled = center.capacity <= center.evacuees_count; // Disable full centers
+                                                    option.textContent = center.name;
                                                     centerSelect.appendChild(option);
                                                 });
                                                 centerSelect.disabled = false;
@@ -526,7 +508,6 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                                         });
                                 }
                             });
-
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {
@@ -538,7 +519,6 @@ while ($center = $otherCentersResult->fetch_assoc()) {
             });
         });
 
-
         function transferToOtherBarangay(evacueeId, adminId, centerId) {
             fetch("../endpoints/transfer_to_other_barangay.php", {
                 method: "POST",
@@ -546,18 +526,12 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                 body: JSON.stringify({ evacuee_id: evacueeId, admin_id: adminId, center_id: centerId })
             }).then(response => response.json()).then(data => {
                 if (data.success) {
-                    Swal.fire('Success!', 'Evacuee transfer to the new barangay successfull and is pending for approval.', 'success')
-                        .then(() => {
-                            window.location.href = `evacueesPage.php?id=${centerId}`;
-                        });
+                    Swal.fire('Success!', 'Evacuee successfully transferred to the new barangay.', 'success');
                 } else {
                     Swal.fire('Error!', data.message, 'error');
                 }
-            }).catch(error => {
-                Swal.fire('Error!', 'An unexpected error occurred. Please try again.', 'error');
             });
         }
-
 
         // AJAX function for transferring evacuee within the Current Barangay
         function transferEvacuee(evacueeId, centerId) {
@@ -571,7 +545,7 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                     if (data.success) {
                         Swal.fire({
                             title: 'Success!',
-                            text: 'Evacuee transfer successfull and is pending for approval.',
+                            text: 'Evacuee successfully transferred to the new center.',
                             icon: 'success',
                             confirmButtonText: 'OK'
                         }).then(() => {

@@ -6,7 +6,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $admin_id = isset($data['admin_id']) ? intval($data['admin_id']) : 0;
 
     if ($admin_id > 0) {
-        $query = "SELECT id, name FROM evacuation_center WHERE admin_id = ?";
+        // Updated query to include capacity and evacuees count
+        $query = "
+            SELECT 
+                ec.id, 
+                ec.name, 
+                ec.capacity, 
+                (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ec.id) AS evacuees_count 
+            FROM evacuation_center ec 
+            WHERE ec.admin_id = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $admin_id);
         $stmt->execute();
