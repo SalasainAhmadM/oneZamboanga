@@ -44,8 +44,15 @@ $evacuationStmt->execute();
 $evacuationResult = $evacuationStmt->get_result();
 $evacuationCenter = $evacuationResult->fetch_assoc();
 
-// Fetch all other evacuation centers for the dropdown
-$centersQuery = "SELECT id, name FROM evacuation_center WHERE id != ? AND admin_id = ?";
+// Fetch all other evacuation centers for the dropdown including capacity and evacuees count
+$centersQuery = "
+    SELECT 
+        ec.id, 
+        ec.name, 
+        ec.capacity, 
+        (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ec.id) AS evacuees_count 
+    FROM evacuation_center ec 
+    WHERE ec.id != ? AND ec.admin_id = ?";
 $centersStmt = $conn->prepare($centersQuery);
 $centersStmt->bind_param("ii", $evacuee['evacuation_center_id'], $evacuee['admin_id']);
 $centersStmt->execute();
@@ -67,6 +74,28 @@ $logsStmt = $conn->prepare($logsQuery);
 $logsStmt->bind_param("i", $evacueeId);
 $logsStmt->execute();
 $logsResult = $logsStmt->get_result();
+
+// Fetch all admins and their barangays
+$adminsQuery = "SELECT id, barangay FROM admin WHERE id != ?";
+$adminsStmt = $conn->prepare($adminsQuery);
+$adminsStmt->bind_param("i", $evacuee['admin_id']);
+$adminsStmt->execute();
+$adminsResult = $adminsStmt->get_result();
+$admins = [];
+while ($admin = $adminsResult->fetch_assoc()) {
+    $admins[] = $admin;
+}
+
+// Fetch evacuation centers not managed by the current admin
+$otherCentersQuery = "SELECT id, name FROM evacuation_center WHERE admin_id != ?";
+$otherCentersStmt = $conn->prepare($otherCentersQuery);
+$otherCentersStmt->bind_param("i", $evacuee['admin_id']);
+$otherCentersStmt->execute();
+$otherCentersResult = $otherCentersStmt->get_result();
+$allOtherCenters = [];
+while ($center = $otherCentersResult->fetch_assoc()) {
+    $allOtherCenters[] = $center;
+}
 ?>
 
 <!DOCTYPE html>
@@ -394,83 +423,170 @@ $logsResult = $logsStmt->get_result();
             });
         });
 
+
+
+
+        // Transfer
         document.getElementById('transferBtn').addEventListener('click', function (event) {
-            event.preventDefault(); // Prevent default anchor action
+            event.preventDefault();
 
             Swal.fire({
-                title: 'Transfer Evacuee',
-                html: `
-        <label for="centerSelect">Select a new evacuation center:</label>
-        <select id="centerSelect" class="swal2-select" style="width: 400px;">
-            <?php foreach ($otherCenters as $center): ?>
-                                                                                                                                                                <option value="<?= $center['id']; ?>"><?= htmlspecialchars($center['name']); ?></option>
-            <?php endforeach; ?>
-        </select>
-    `,
+                title: 'Choose Transfer Type',
+                text: 'Do you want to transfer the evacuee within the Current Barangay or to the Nearest Barangay?',
                 showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Transfer',
-                cancelButtonText: 'Cancel',
+                confirmButtonText: 'Current Barangay',
+                cancelButtonText: 'Other Barangay',
                 customClass: {
-                    htmlContainer: 'fixed-width-container' // Add a custom class to control width
-                },
-                preConfirm: () => {
-                    const centerSelect = document.getElementById('centerSelect');
-                    if (!centerSelect.value) {
-                        Swal.showValidationMessage('Please select an evacuation center.');
-                    }
-                    return centerSelect.value;
+                    htmlContainer: 'fixed-width-container'
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const selectedCenterId = result.value;
-
-                    // Send AJAX request to transfer evacuee
-                    fetch("../endpoints/transfer_evacuee.php", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            evacuee_id: <?= $evacueeId; ?>, // Inject evacuee ID dynamically
-                            center_id: selectedCenterId
-                        })
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                Swal.fire({
-                                    title: 'Success!',
-                                    text: 'Evacuee successfully transferred to the new center.',
-                                    icon: 'success',
-                                    confirmButtonText: 'OK'
-                                }).then(() => {
-                                    // Redirect to requestTransfer.php
-                                    window.location.href = "evacueesPage.php?id=<?php echo $centerId; ?>&worker_id=<?php echo $workerId; ?>";
-                                });
-                            } else {
-                                Swal.fire({
-                                    title: 'Error!',
-                                    text: data.message || 'An error occurred during the transfer.',
-                                    icon: 'error',
-                                    confirmButtonText: 'OK'
-                                });
+                    Swal.fire({
+                        title: 'Transfer within Current Barangay',
+                        html: `
+                    <label for="centerSelect">Select a new evacuation center:</label>
+                    <select id="centerSelect" class="swal2-select" style="width: 400px; font-size: 14px;">
+                        <?php foreach ($otherCenters as $center): ?><option value="<?= $center['id']; ?>" <?= $center['capacity'] <= $center['evacuees_count'] ? 'disabled' : ''; ?>> <?= htmlspecialchars($center['name'] . ' (Capacity: ' . $center['capacity'] . '/' . $center['evacuees_count'] . ')'); ?> </option>
+                        <?php endforeach; ?>
+                    </select>
+                `,
+                        showCancelButton: true,
+                        confirmButtonText: 'Transfer',
+                        preConfirm: () => {
+                            const centerSelect = document.getElementById('centerSelect');
+                            if (!centerSelect.value) {
+                                Swal.showValidationMessage('Please select an evacuation center.');
                             }
-                        })
-                        .catch(error => {
-                            Swal.fire({
-                                title: 'Error!',
-                                text: 'Failed to communicate with the server.',
-                                icon: 'error',
-                                confirmButtonText: 'OK'
+                            return centerSelect.value;
+                        },
+                        allowOutsideClick: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            transferEvacuee(<?= $evacueeId; ?>, result.value);
+                        }
+                    });
+
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    Swal.fire({
+                        title: 'Transfer to Other Barangay',
+                        html: `
+                    <label for="barangaySelect">Select a Barangay:</label>
+                    <select id="barangaySelect" class="swal2-select" style="width: 400px;">
+                        <option value="" disabled selected>Select a Barangay</option>
+                        <?php foreach ($admins as $admin): ?> <option value="<?= $admin['id']; ?>"><?= htmlspecialchars($admin['barangay']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <label for="centerSelect">Select an Evacuation Center:</label>
+                    <select id="centerSelect" class="swal2-select" style="width: 400px; font-size: 14px;" disabled>
+                        <option value="" disabled selected>Select a Barangay first</option>
+                    </select>
+                `,
+                        showCancelButton: true,
+                        confirmButtonText: 'Transfer',
+                        allowOutsideClick: false,
+                        preConfirm: () => {
+                            const barangaySelect = document.getElementById('barangaySelect').value;
+                            const centerSelect = document.getElementById('centerSelect').value;
+
+                            if (!barangaySelect || !centerSelect) {
+                                Swal.showValidationMessage('Please select both a barangay and an evacuation center.');
+                            }
+                            return { adminId: barangaySelect, centerId: centerSelect };
+                        },
+                        didOpen: () => {
+                            // Fetch evacuation centers when a barangay is selected
+                            const barangaySelect = document.getElementById('barangaySelect');
+                            const centerSelect = document.getElementById('centerSelect');
+
+                            barangaySelect.addEventListener('change', () => {
+                                const adminId = barangaySelect.value;
+
+                                if (adminId) {
+                                    fetch("../endpoints/fetch_centers_by_barangay.php", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ admin_id: adminId })
+                                    })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.success) {
+                                                centerSelect.innerHTML = `<option value="" disabled selected>Select an Evacuation Center</option>`;
+                                                data.centers.forEach(center => {
+                                                    const option = document.createElement('option');
+                                                    option.value = center.id;
+                                                    option.textContent = `${center.name} (Capacity: ${center.capacity}/${center.evacuees_count})`;
+                                                    option.disabled = center.capacity <= center.evacuees_count; // Disable full centers
+                                                    centerSelect.appendChild(option);
+                                                });
+                                                centerSelect.disabled = false;
+                                            } else {
+                                                centerSelect.innerHTML = `<option value="" disabled>${data.message}</option>`;
+                                                centerSelect.disabled = true;
+                                            }
+                                        })
+                                        .catch(() => {
+                                            centerSelect.innerHTML = `<option value="" disabled>Error fetching centers</option>`;
+                                            centerSelect.disabled = true;
+                                        });
+                                }
                             });
-                        });
+
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const { adminId, centerId } = result.value;
+                            transferToOtherBarangay(<?= $evacueeId; ?>, adminId, centerId);
+                        }
+                    });
                 }
             });
         });
 
 
+        function transferToOtherBarangay(evacueeId, adminId, centerId) {
+            fetch("../endpoints/transfer_to_other_barangay.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ evacuee_id: evacueeId, admin_id: adminId, center_id: centerId })
+            }).then(response => response.json()).then(data => {
+                if (data.success) {
+                    Swal.fire('Success!', 'Evacuee transfer to the new barangay successfull and is pending for approval.', 'success')
+                        .then(() => {
+                            window.location.href = `evacueesPage.php?id=${centerId}&worker_id=<?php echo $workerId; ?>`;
+                        });
+                } else {
+                    Swal.fire('Error!', data.message, 'error');
+                }
+            }).catch(error => {
+                Swal.fire('Error!', 'An unexpected error occurred. Please try again.', 'error');
+            });
+        }
+
+
+        // AJAX function for transferring evacuee within the Current Barangay
+        function transferEvacuee(evacueeId, centerId) {
+            fetch("../endpoints/transfer_evacuee.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ evacuee_id: evacueeId, center_id: centerId })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Evacuee transfer successfull and is pending for approval.',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            window.location.href = `evacueesPage.php?id=<?php echo $centerId; ?>&worker_id=<?php echo $workerId; ?>`;
+                        });
+                    } else {
+                        Swal.fire('Error!', data.message || 'An error occurred during the transfer.', 'error');
+                    }
+                })
+                .catch(() => Swal.fire('Error!', 'Failed to communicate with the server.', 'error'));
+        }
         // 
         document.getElementById('moveOutBtn').addEventListener('click', function (event) {
             event.preventDefault(); // Prevent default anchor action
@@ -486,38 +602,77 @@ $logsResult = $logsStmt->get_result();
                 cancelButtonText: 'Cancel'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Send AJAX request to admit the evacuee
-                    fetch("../endpoints/moved_out_evacuee.php?id=<?= $evacueeId; ?>", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        }
+                    // Fetch if evacuee has received required supplies
+                    fetch(`../endpoints/check_supplies.php?id=<?= $evacueeId; ?>`, {
+                        method: "GET"
                     })
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                // Show success SweetAlert
-                                Swal.fire({
-                                    title: 'Success!',
-                                    text: 'Evacuee has been successfully moved-out.',
-                                    icon: 'success',
-                                    confirmButtonText: 'OK'
-                                }).then(() => {
-                                    // Optionally reload or redirect to update the UI
-                                    location.reload();
-                                });
+                                if (data.hasRequiredSupplies) {
+                                    // Proceed with move-out if all supplies are received
+                                    fetch(`../endpoints/moved_out_evacuee.php?id=<?= $evacueeId; ?>`, {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/json"
+                                        }
+                                    })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.success) {
+                                                Swal.fire({
+                                                    title: 'Success!',
+                                                    text: 'Evacuee has been successfully moved out.',
+                                                    icon: 'success',
+                                                    confirmButtonText: 'OK'
+                                                }).then(() => {
+                                                    location.reload();
+                                                });
+                                            } else {
+                                                Swal.fire({
+                                                    title: 'Error!',
+                                                    text: data.message || 'An error occurred while moving out the evacuee.',
+                                                    icon: 'error',
+                                                    confirmButtonText: 'OK'
+                                                });
+                                            }
+                                        })
+                                        .catch(error => {
+                                            Swal.fire({
+                                                title: 'Error!',
+                                                text: 'Failed to communicate with the server.',
+                                                icon: 'error',
+                                                confirmButtonText: 'OK'
+                                            });
+                                        });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Distribute Supplies First',
+                                        text: 'Evacuee cannot be moved out because they have not received the required supplies.',
+                                        icon: 'info',
+                                        showCancelButton: true,
+                                        confirmButtonText: 'Distribute?',
+                                        cancelButtonText: 'Cancel',
+                                        confirmButtonColor: '#3085d6',
+                                        cancelButtonColor: '#d33',
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            window.location.href = `resourceDistribution.php?id=<?php echo $evacuationCenter['id']; ?>`;
+                                        } else if (result.dismiss === Swal.DismissReason.cancel) {
+                                        }
+                                    });
+
+                                }
                             } else {
-                                // Show error SweetAlert
                                 Swal.fire({
                                     title: 'Error!',
-                                    text: data.message || 'An error occurred while moved-out the evacuee.',
+                                    text: data.message || 'Failed to verify evacuee supplies.',
                                     icon: 'error',
                                     confirmButtonText: 'OK'
                                 });
                             }
                         })
                         .catch(error => {
-                            // Handle any network or server errors
                             Swal.fire({
                                 title: 'Error!',
                                 text: 'Failed to communicate with the server.',
@@ -528,26 +683,6 @@ $logsResult = $logsStmt->get_result();
                 }
             });
         });
-        // SweetAlert confirmation for Move out
-        // document.getElementById('moveOutBtn').addEventListener('click', function (event) {
-        //     event.preventDefault(); // Prevent default anchor action
-
-        //     Swal.fire({
-        //         title: 'Are you sure?',
-        //         text: "This will mark the evacuee as moved out.",
-        //         icon: 'warning',
-        //         showCancelButton: true,
-        //         confirmButtonColor: '#3085d6',
-        //         cancelButtonColor: '#d33',
-        //         confirmButtonText: 'Confirm!',
-        //         cancelButtonText: 'Cancel'
-        //     }).then((result) => {
-        //         if (result.isConfirmed) {
-        //             // Redirect to the move-out handler with evacuees_id
-        //             window.location.href = "moveOutHandler.php?id=<?= $evacueeId; ?>";
-        //         }
-        //     });
-        // });
 
 
 
