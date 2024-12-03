@@ -241,7 +241,7 @@ $centersResult = $centersStmt->get_result();
                                 if ($showCenter):
                                     ?>
                                     <div class="bgEc-cards" data-status="<?php echo $statusColor; ?>"
-                                        onclick="window.location.href='evacueesForm.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>'">
+                                        onclick="window.location.href='evacueesForm.php?id=<?php echo $centerId; ?>&worker_id=<?php echo $workerId; ?>'">
                                         <div class="bgEc-status <?php echo $statusColor; ?>"></div>
                                         <img src="<?php echo !empty($center['image']) ? htmlspecialchars($center['image']) : '../../assets/img/evacuation-default.svg'; ?>"
                                             alt="" class="bgEc-img">

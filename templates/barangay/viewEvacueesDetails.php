@@ -199,8 +199,12 @@ $logsResult = $logsStmt->get_result();
                                     <p class="details-profile">Age: <?php echo $evacuee['age']; ?></p>
                                     <p class="details-profile">Contact Number: <?php echo $evacuee['contact']; ?></p>
                                     <p class="details-profile">Occupation: <?php echo $evacuee['occupation']; ?></p>
-                                    <p class="details-profile">Status of Occupancy: <?php echo $evacuee['status']; ?>
+                                    <p class="details-profile">Status of Occupancy:
+                                        <?php
+                                        echo ($evacuee['status'] === 'Transfer') ? 'Request Transfer' : 'For Approval';
+                                        ?>
                                     </p>
+
                                     <p class="details-profile">Damaged: <?php echo ucfirst($evacuee['damage']); ?></p>
                                     <p class="details-profile">Cost of damaged: <?php echo $evacuee['cost_damage']; ?>
                                     </p>
@@ -345,56 +349,112 @@ $logsResult = $logsStmt->get_result();
         document.querySelector('.btnAdmit').addEventListener('click', function (event) {
             event.preventDefault(); // Prevent default button action
 
-            Swal.fire({
-                title: 'Approve?',
-                text: "Confirm the request for transfer.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Confirm',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Send AJAX request to transfer the evacuee
-                    fetch("../endpoints/approve_transfer.php?id=<?= $evacueeId; ?>", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        }
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                Swal.fire({
-                                    title: 'Success!',
-                                    text: 'Evacuee has been successfully transferred.',
-                                    icon: 'success',
-                                    confirmButtonText: 'OK'
-                                }).then(() => {
-                                    // Redirect to requestTransfer.php
-                                    window.location.href = 'requestTransfer.php';
-                                });
-                            } else {
+            // Check the status of the evacuee
+            const evacueeStatus = '<?= $evacuee["status"]; ?>'; // Replace with actual evacuee status variable
+
+            if (evacueeStatus === 'Transfer') {
+                // Transfer confirmation modal
+                Swal.fire({
+                    title: 'Approve?',
+                    text: "Confirm the request for transfer.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Confirm',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Send AJAX request to transfer the evacuee
+                        fetch("../endpoints/approve_transfer.php?id=<?= $evacueeId; ?>", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            }
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        title: 'Success!',
+                                        text: 'Evacuee has been successfully transferred.',
+                                        icon: 'success',
+                                        confirmButtonText: 'OK'
+                                    }).then(() => {
+                                        window.location.href = 'requestTransfer.php';
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Error!',
+                                        text: data.message || 'An error occurred while transferring the evacuee.',
+                                        icon: 'error',
+                                        confirmButtonText: 'OK'
+                                    });
+                                }
+                            })
+                            .catch(error => {
                                 Swal.fire({
                                     title: 'Error!',
-                                    text: data.message || 'An error occurred while transferring the evacuee.',
+                                    text: 'Failed to communicate with the server.',
                                     icon: 'error',
                                     confirmButtonText: 'OK'
                                 });
+                            });
+                    }
+                });
+            } else if (evacueeStatus === 'Admit') {
+                // Admission approval modal
+                Swal.fire({
+                    title: 'Approve?',
+                    text: "Confirm the admission request.",
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Approve',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Send AJAX request to approve admission
+                        fetch("../endpoints/approve_admission.php?id=<?= $evacueeId; ?>", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
                             }
                         })
-                        .catch(error => {
-                            Swal.fire({
-                                title: 'Error!',
-                                text: 'Failed to communicate with the server.',
-                                icon: 'error',
-                                confirmButtonText: 'OK'
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        title: 'Success!',
+                                        text: 'Evacuee admission has been approved.',
+                                        icon: 'success',
+                                        confirmButtonText: 'OK'
+                                    }).then(() => {
+                                        window.location.href = 'requestTransfer.php';
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Error!',
+                                        text: data.message || 'An error occurred while approving the admission.',
+                                        icon: 'error',
+                                        confirmButtonText: 'OK'
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: 'Failed to communicate with the server.',
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                });
                             });
-                        });
-                }
-            });
+                    }
+                });
+            }
         });
+
 
 
         // JavaScript to filter table based on search input

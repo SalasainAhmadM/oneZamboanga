@@ -53,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
     if ($admin_id != $evacuation_center_admin_id) {
         // If admin_id doesn't match, update the admin_id to the one in the evacuation center
         $admin_id = $evacuation_center_admin_id;
-        $status = "Transfer"; // Set the status to Transfer if admin_id doesn't match
+        $status = "Admit"; // Set the status to Admit if admin_id doesn't match
     } else {
         $status = "Admitted"; // Otherwise, keep the status as Admitted
     }
@@ -71,7 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
         $evacuees_id = $stmt->insert_id;
 
         // Insert into `evacuees_log` table
-        $log_msg = ($status == "Transfer") ? "Pending for approval" : "Admitted"; // Change log message based on status
+        $log_msg = ($status == "Admit") ? "Pending for approval" : "Admitted";
         $log_sql = "INSERT INTO evacuees_log (log_msg, status, evacuees_id) VALUES (?, 'notify', ?)";
         $log_stmt = $conn->prepare($log_sql);
         $log_stmt->bind_param("si", $log_msg, $evacuees_id);
@@ -114,7 +114,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
 
         // Insert into `feeds` table
         $feed_msg = "$first_name $middle_name $last_name admitted to $evacuation_center_name.";
-        if ($status == "Transfer") {
+        if ($status == "Admit") {
             $feed_msg = "$first_name $middle_name $last_name is pending for approval in $evacuation_center_name.";
         }
         $feeds_sql = "INSERT INTO feeds (logged_in_id, user_type, feed_msg, status) VALUES (?, 'admin', ?, 'notify')";
@@ -123,7 +123,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
         $feeds_stmt->execute();
 
         // Set session success message
-        if ($status == "Transfer") {
+        if ($status == "Admit") {
             $_SESSION['message'] = "Evacuees are pending for approval.";
         } else {
             $_SESSION['message'] = "Evacuees admitted successfully.";

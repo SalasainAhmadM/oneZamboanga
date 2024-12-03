@@ -41,13 +41,14 @@ if (isset($_SESSION['user_id'])) {
         exit();
     }
 
-    // Fetch evacuees with status 'Transfer' for the logged-in admin
+    // Fetch evacuees with status 'Transfer' and 'Admit' for the logged-in admin
     $sql = "
     SELECT 
         e.id AS evacuee_id,
         CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
         e.contact,
         e.barangay,
+        e.status,
         e.date,
         e.disaster_type,
         COUNT(m.id) AS member_count,
@@ -55,11 +56,12 @@ if (isset($_SESSION['user_id'])) {
     FROM evacuees e
     LEFT JOIN members m ON e.id = m.evacuees_id
     WHERE e.admin_id = ? 
-      AND e.status = 'Transfer' 
-      AND e.evacuation_center_id != e.origin_evacuation_center_id
+      AND e.status IN ('Transfer', 'Admit') 
+      AND (e.status != 'Transfer' OR e.evacuation_center_id != e.origin_evacuation_center_id)
     GROUP BY e.id
     ORDER BY e.date DESC;
-";
+    ";
+
 
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $admin_id);
@@ -175,17 +177,14 @@ if (isset($_SESSION['user_id'])) {
                                 <!-- the modal or filter popup-->
                                 <div class="modal">
                                     <div class="modal-content">
-                                        <!-- <label for="modal-toggle" class="close">
-                                            <i class="fa-solid fa-xmark"></i>
-                                        </label> -->
                                         <div class="filter-option">
                                             <div class="option-content">
-                                                <input type="checkbox" name="evacuees" id="tetuan">
-                                                <label for="tetuan">Tetuan</label>
+                                                <input type="checkbox" name="evacuees" id="transfer">
+                                                <label for="transfer">For Transfer</label>
                                             </div>
                                             <div class="option-content">
-                                                <input type="checkbox" name="evacuees" id="tugbungan">
-                                                <label for="tugbungan">Tugbungan</label>
+                                                <input type="checkbox" name="evacuees" id="admit">
+                                                <label for="admit">For Admission</label>
                                             </div>
 
 
@@ -213,14 +212,16 @@ if (isset($_SESSION['user_id'])) {
                                         <th style="text-align: center;">Number of members</th>
                                         <th style="text-align: center;">Barangay</th>
                                         <th style="text-align: center;">Date</th>
-                                        <th>Calamity</th>
+                                        <th style="text-align: center;">Calamity</th>
+                                        <th style="text-align: center;">Status</th>
                                         <th style="text-align: center;">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="evacueesTableBody">
                                     <?php if ($evacueesResult->num_rows > 0): ?>
                                         <?php while ($row = $evacueesResult->fetch_assoc()): ?>
-                                            <tr
+                                            <tr class="evacuee-row"
+                                                data-status="<?php echo htmlspecialchars($row['status']); ?>"
                                                 onclick="window.location.href='viewEvacueesDetails.php?id=<?php echo $row['evacuee_id']; ?>'">
                                                 <td><?php echo htmlspecialchars($row['family_head']); ?></td>
                                                 <td><?php echo htmlspecialchars($row['contact']); ?></td>
@@ -239,7 +240,12 @@ if (isset($_SESSION['user_id'])) {
                                                 </td>
                                                 <td style="text-align: center;"><?php echo htmlspecialchars($row['date']); ?>
                                                 </td>
-                                                <td><?php echo htmlspecialchars($row['disaster_type']); ?></td>
+                                                <td style="text-align: center;">
+                                                    <?php echo htmlspecialchars($row['disaster_type']); ?>
+                                                </td>
+                                                <td style="text-align: center;">
+                                                    <?php echo ($row['status'] === 'Transfer') ? 'Request Transfer' : 'For Approval'; ?>
+                                                </td>
                                                 <td style="text-align: center;">
                                                     <a href="viewEvacueesDetails.php?id=<?php echo $row['evacuee_id']; ?>"
                                                         class="view-action">View</a>
@@ -248,12 +254,10 @@ if (isset($_SESSION['user_id'])) {
                                         <?php endwhile; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="7" style="text-align: center;">No evacuees with transfer request
-                                                found.</td>
+                                            <td colspan="8" style="text-align: center;">No evacuees found.</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
-
                             </table>
                         </section>
 
@@ -266,7 +270,35 @@ if (isset($_SESSION['user_id'])) {
 
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get filter checkboxes
+            const transferCheckbox = document.getElementById('transfer');
+            const admitCheckbox = document.getElementById('admit');
+            const evacueeRows = document.querySelectorAll('.evacuee-row');
 
+            // Function to filter evacuees based on selected filters
+            const filterEvacuees = () => {
+                const showTransfer = transferCheckbox.checked;
+                const showAdmit = admitCheckbox.checked;
+
+                evacueeRows.forEach(row => {
+                    const status = row.dataset.status;
+
+                    if ((showTransfer && status === 'Transfer') || (showAdmit && status === 'Admit') || (!showTransfer && !showAdmit)) {
+                        row.style.display = ''; // Show row
+                    } else {
+                        row.style.display = 'none'; // Hide row
+                    }
+                });
+            };
+
+            // Add event listeners to filter checkboxes
+            transferCheckbox.addEventListener('change', filterEvacuees);
+            admitCheckbox.addEventListener('change', filterEvacuees);
+        });
+
+    </script>
     <!-- sidebar import js -->
     <script src="../../includes/bgSidebar.js"></script>
 
