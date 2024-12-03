@@ -25,15 +25,12 @@ validateSession('worker');
 if (isset($_GET['id']) && isset($_GET['worker_id'])) {
     $evacuationCenterId = intval($_GET['id']);
     $workerId = intval($_GET['worker_id']);
-
-    // Proceed with fetching or processing based on $center_id and $worker_id
 } else {
-    // Handle missing parameters
-    // header("Location: ");
-    // exit;
+    echo "Invalid parameters.";
+    exit;
 }
 
-// Query to get evacuation center details along with admin's barangay
+// Fetch evacuation center details
 $sqlEvacuationCenter = "
     SELECT ec.*, a.barangay AS admin_barangay
     FROM evacuation_center ec
@@ -46,24 +43,45 @@ $resultEvacuationCenter = $stmtEvacuationCenter->get_result();
 
 if ($resultEvacuationCenter->num_rows > 0) {
     $evacuationCenter = $resultEvacuationCenter->fetch_assoc();
-
-    // Set image source, using default if none is provided
     $imageSrc = !empty($evacuationCenter['image']) ? "../../assets/img/" . $evacuationCenter['image'] : "../../assets/img/ecDeaultPhoto.svg";
 
-    // Query to count total families (evacuees) for this evacuation center
-    $sqlTotalFamilies = "SELECT COUNT(*) as total_families FROM evacuees WHERE evacuation_center_id = ?";
+    // Query to count total families (meeting specified conditions)
+    $sqlTotalFamilies = "
+        SELECT COUNT(*) AS total_families 
+        FROM evacuees 
+        WHERE evacuation_center_id = ? 
+          AND (
+            status = 'Admitted' 
+            OR (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+          )";
     $stmtTotalFamilies = $conn->prepare($sqlTotalFamilies);
     $stmtTotalFamilies->bind_param("i", $evacuationCenterId);
     $stmtTotalFamilies->execute();
     $resultTotalFamilies = $stmtTotalFamilies->get_result();
     $totalFamilies = $resultTotalFamilies->fetch_assoc()['total_families'];
 
-    // Query to count total evacuees and members for this evacuation center
+    // Query to count total evacuees and members
     $sqlTotalEvacuees = "
         SELECT 
-            (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) + 
-            (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-                (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
+            (SELECT COUNT(*) 
+             FROM evacuees 
+             WHERE evacuation_center_id = ? 
+               AND (
+                 status = 'Admitted' 
+                 OR (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+               )
+            ) + 
+            (SELECT COUNT(*) 
+             FROM members 
+             WHERE evacuees_id IN (
+                 SELECT id 
+                 FROM evacuees 
+                 WHERE evacuation_center_id = ? 
+                   AND (
+                     status = 'Admitted' 
+                     OR (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+                   )
+             )
             ) AS total_evacuees";
     $stmtTotalEvacuees = $conn->prepare($sqlTotalEvacuees);
     $stmtTotalEvacuees->bind_param("ii", $evacuationCenterId, $evacuationCenterId);
@@ -74,7 +92,7 @@ if ($resultEvacuationCenter->num_rows > 0) {
     // Calculate occupancy
     $occupancy = $totalFamilies . "/" . $evacuationCenter['capacity'];
 
-    // Determine status color based on occupancy
+    // Determine status color
     if ($totalFamilies == 0) {
         $statusColor = "grey";
     } else {
@@ -86,36 +104,29 @@ if ($resultEvacuationCenter->num_rows > 0) {
     exit;
 }
 
-// Array to store evacuee count per month
-$monthlyEvacuees = array_fill(1, 12, 0); // Fill with 0 for each month initially
-
-// Fetch the current year dynamically based on today's date
+// Fetch monthly evacuees data
 $currentYear = date("Y");
-
-// Fetch the selected year from the GET parameter or default to the current year
 $selectedYear = isset($_GET['year']) ? $_GET['year'] : $currentYear;
-
-// Determine whether the "All" option is selected
 $isAllYears = $selectedYear === "All";
-
-// Generate years for the dropdown (past 5 years + current year + "All")
 $pastYears = range($currentYear - 5, $currentYear);
 
 $sqlMonthlyEvacuees = "
     SELECT 
-        MONTH(e.date) as month, 
-        COUNT(e.id) as evacuees_count,
+        MONTH(e.date) AS month, 
+        COUNT(e.id) AS evacuees_count,
         (
             SELECT COUNT(m.id) 
             FROM members m 
             WHERE m.evacuees_id = e.id
-        ) as members_count
+        ) AS members_count
     FROM evacuees e
     WHERE e.evacuation_center_id = ? 
-      AND e.status NOT IN ('Transfer', 'Moved-out')"
-    . (!$isAllYears ? " AND YEAR(e.date) = ?" : "") .
+      AND (
+          e.status = 'Admitted' 
+          OR (e.status = 'Transfer' AND e.evacuation_center_id = e.origin_evacuation_center_id)
+      )" .
+    (!$isAllYears ? " AND YEAR(e.date) = ?" : "") .
     " GROUP BY MONTH(e.date)";
-
 $stmtMonthlyEvacuees = $conn->prepare($sqlMonthlyEvacuees);
 if ($isAllYears) {
     $stmtMonthlyEvacuees->bind_param("i", $evacuationCenterId);
@@ -125,18 +136,16 @@ if ($isAllYears) {
 $stmtMonthlyEvacuees->execute();
 $resultMonthlyEvacuees = $stmtMonthlyEvacuees->get_result();
 
-// Populate evacuee count per month
-$monthlyEvacuees = array_fill(1, 12, 0); // Fill with 0 for each month initially
+$monthlyEvacuees = array_fill(1, 12, 0);
 while ($row = $resultMonthlyEvacuees->fetch_assoc()) {
     $month = $row['month'];
     $evacueesCount = $row['evacuees_count'];
     $membersCount = $row['members_count'];
-    $monthlyEvacuees[$month] = $evacueesCount + $membersCount; // Total evacuees for the month
+    $monthlyEvacuees[$month] = $evacueesCount + $membersCount;
 }
-
-// Convert PHP array to JSON for JavaScript
 $monthlyEvacueesJson = json_encode(array_values($monthlyEvacuees));
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 

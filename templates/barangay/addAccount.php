@@ -300,7 +300,7 @@ if (isset($_SESSION['user_id'])) {
                                 <label for="position">Position</label>
                                 <div class="dropdown-container">
                                     <input type="text" id="position" name="position" class="input-position"
-                                        placeholder="e.g., Barangay Captain" required autocomplete="off" readonly>
+                                        placeholder="e.g., Barangay Captain" required autocomplete="off">
                                     <ul id="position-dropdown" class="dropdown-list">
                                         <li>Barangay Captain</li>
                                         <li>SK Kagawad</li>

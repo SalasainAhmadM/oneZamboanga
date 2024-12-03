@@ -64,21 +64,31 @@ $total_centers = ($evacuation_center_result->num_rows > 0) ? $evacuation_center_
 
 $evacuees_and_members_sql = "
     SELECT 
-        (SELECT COUNT(*) 
-         FROM evacuees 
-         WHERE status != 'Moved-out') +
-        (SELECT COUNT(*) 
-         FROM members 
-         WHERE evacuees_id IN (
-             SELECT id 
-             FROM evacuees 
-             WHERE status != 'Moved-out'
-         )) AS total_evacuees_with_members
+        (
+            SELECT COUNT(*) 
+            FROM evacuees 
+            WHERE 
+                (status = 'Admitted' OR 
+                (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id))
+        ) +
+        (
+            SELECT COUNT(*) 
+            FROM members 
+            WHERE evacuees_id IN (
+                SELECT id 
+                FROM evacuees 
+                WHERE 
+                    (status = 'Admitted' OR 
+                    (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id))
+            )
+        ) AS total_evacuees_with_members
 ";
 $evacuees_and_members_result = $conn->query($evacuees_and_members_sql);
+
 $total_evacuees_with_members = ($evacuees_and_members_result->num_rows > 0)
     ? $evacuees_and_members_result->fetch_assoc()['total_evacuees_with_members']
     : 0;
+
 
 // Fetch the admin's notifications
 $notif_sql = "SELECT notification_msg, created_at 

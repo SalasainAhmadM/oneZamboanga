@@ -80,12 +80,15 @@ while ($row = $all_centers_result->fetch_assoc()) {
     $center_id = $row['id'];
     $center_name = $row['name'];
 
-    // Count evacuees and their members for each center
+    // Count evacuees and their members for each center (modified to exclude the unwanted statuses)
     $count_total_sql = "
         SELECT 
-            (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
+            (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ? AND status = 'Admitted' 
+                OR (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)) +
             (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-                (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
+                (SELECT id FROM evacuees WHERE evacuation_center_id = ? AND status = 'Admitted' 
+                    OR (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+                )
             ) AS total_count
     ";
     $count_total_stmt = $conn->prepare($count_total_sql);
@@ -123,12 +126,15 @@ while ($row = $centers_result->fetch_assoc()) {
     $center_id = $row['id'];
     $center_name = $row['name'];
 
-    // Count evacuees and their members for each center
+    // Count evacuees and their members for each center (modified to exclude the unwanted statuses)
     $count_total_sql = "
         SELECT 
-            (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
+            (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ? AND status = 'Admitted' 
+                OR (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)) +
             (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-                (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
+                (SELECT id FROM evacuees WHERE evacuation_center_id = ? AND status = 'Admitted' 
+                    OR (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+                )
             ) AS total_count
     ";
     $count_total_stmt = $conn->prepare($count_total_sql);
@@ -158,9 +164,13 @@ $total_assigned_centers = ($assigned_centers_result->num_rows > 0) ? $assigned_c
 // Fetch the four latest assigned evacuation centers for the worker
 $latest_centers_sql = "
     SELECT ec.id, ec.name, 
-           (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ec.id) +
+           (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ec.id AND status = 'Admitted' 
+               OR (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+           ) +
            (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-               (SELECT id FROM evacuees WHERE evacuation_center_id = ec.id)
+               (SELECT id FROM evacuees WHERE evacuation_center_id = ec.id AND status = 'Admitted' 
+                   OR (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+               )
            ) AS total_evacuees
     FROM assigned_worker aw
     JOIN evacuation_center ec ON aw.evacuation_center_id = ec.id
@@ -182,6 +192,7 @@ while ($row = $latest_centers_result->fetch_assoc()) {
         'total_evacuees' => $row['total_evacuees']
     ];
 }
+
 
 
 // Fetch the admin's notifications
@@ -386,6 +397,12 @@ $feeds_result = $feeds_stmt->get_result();
                 <!-- <input type="date" value="2024-11-09"> -->
             </div>
 
+            <?php
+            usort($centers, function ($a, $b) {
+                return $b['total_evacuees'] - $a['total_evacuees'];
+            });
+            ?>
+
             <div class="ecenter">
                 <?php foreach ($centers as $center): ?>
                     <div class="item">
@@ -404,6 +421,7 @@ $feeds_result = $feeds_stmt->get_result();
                     </div>
                 <?php endforeach; ?>
             </div>
+
 
         </main>
 

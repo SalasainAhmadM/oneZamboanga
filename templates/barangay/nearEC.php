@@ -84,6 +84,13 @@ $centersResult = $centersStmt->get_result();
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+<style>
+    .bgEc-img {
+        display: block;
+        margin: 0 auto;
+        max-width: 100%;
+    }
+</style>
 
 <body>
 
@@ -128,7 +135,10 @@ $centersResult = $centersStmt->get_result();
 
 
 
-
+                        <select class="filter-admin" id="statusFilter" onchange="filterCenters()">
+                            <option value="active" selected>Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
                         <!-- <a class="addBg-admin" href="addEvacuees.php">
                             <i class="fa-solid fa-plus"></i>
                         </a> -->
@@ -145,24 +155,56 @@ $centersResult = $centersStmt->get_result();
                         <?php if ($centersResult->num_rows > 0): ?>
                             <?php while ($center = $centersResult->fetch_assoc()):
                                 $centerId = $center['id'];
+                                // Exclude the current evacuation center
+                                if ($centerId == $evacuationCenterId) {
+                                    continue;
+                                }
                                 $capacity = (int) $center['capacity'];
                                 $barangay = $center['barangay']; // Get barangay from the admin table
                         
-                                // Fetch total families
-                                $familyCountSql = "SELECT COUNT(*) AS total_families FROM evacuees WHERE evacuation_center_id = ?";
+                                // Fetch total families (with updated logic)
+                                $familyCountSql = "
+                        SELECT COUNT(*) AS total_families 
+                        FROM evacuees 
+                        WHERE evacuation_center_id = ? 
+                        AND status != 'Transferred' 
+                        AND status != 'Moved-out'
+                        AND (status = 'Admitted' 
+                            OR (status = 'Transfer' 
+                                AND evacuation_center_id = origin_evacuation_center_id)
+                        )
+                    ";
                                 $familyCountStmt = $conn->prepare($familyCountSql);
                                 $familyCountStmt->bind_param("i", $centerId);
                                 $familyCountStmt->execute();
                                 $familyCountResult = $familyCountStmt->get_result();
                                 $totalFamilies = ($familyCountResult->num_rows > 0) ? $familyCountResult->fetch_assoc()['total_families'] : 0;
 
-                                // Fetch total evacuees
+                                // Fetch total evacuees (with updated logic)
                                 $evacueesCountSql = "
-                SELECT 
-                (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
-                (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-                (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
-                 ) AS total_evacuees";
+                        SELECT 
+                            (SELECT COUNT(*) FROM evacuees 
+                             WHERE evacuation_center_id = ? 
+                             AND status != 'Transferred' 
+                             AND status != 'Moved-out'
+                             AND (status = 'Admitted' 
+                                 OR (status = 'Transfer' 
+                                     AND evacuation_center_id = origin_evacuation_center_id)
+                             )
+                            ) +
+                            (SELECT COUNT(*) FROM members 
+                             WHERE evacuees_id IN 
+                             (SELECT id FROM evacuees 
+                              WHERE evacuation_center_id = ? 
+                              AND status != 'Transferred' 
+                              AND status != 'Moved-out'
+                              AND (status = 'Admitted' 
+                                  OR (status = 'Transfer' 
+                                      AND evacuation_center_id = origin_evacuation_center_id)
+                              )
+                             )
+                            ) AS total_evacuees
+                    ";
                                 $evacueesCountStmt = $conn->prepare($evacueesCountSql);
                                 $evacueesCountStmt->bind_param("ii", $centerId, $centerId);
                                 $evacueesCountStmt->execute();
@@ -190,12 +232,11 @@ $centersResult = $centersStmt->get_result();
 
                                 if ($showCenter):
                                     ?>
-                                    <div class="bgEc-cards"
+                                    <div class="bgEc-cards" data-status="<?php echo $statusColor; ?>"
                                         onclick="window.location.href='evacueesForm.php?id=<?php echo $centerId; ?>'">
                                         <div class="bgEc-status <?php echo $statusColor; ?>"></div>
                                         <img src="<?php echo !empty($center['image']) ? htmlspecialchars($center['image']) : '../../assets/img/evacuation-default.svg'; ?>"
                                             alt="" class="bgEc-img">
-
                                         <ul class="bgEc-info">
                                             <li><strong><?php echo htmlspecialchars($center['name']); ?></strong></li>
                                             <li>Location: <strong><?php echo htmlspecialchars($barangay); ?></strong>,
@@ -206,6 +247,7 @@ $centersResult = $centersStmt->get_result();
                                             <li>Total Evacuees: <?php echo $totalEvacuees; ?></li>
                                         </ul>
                                     </div>
+
                                     <?php
                                 endif;
                             endwhile; ?>
@@ -215,9 +257,40 @@ $centersResult = $centersStmt->get_result();
                     </div>
                 </div>
             </div>
+
         </main>
 
     </div>
+    <script>
+        function filterCenters() {
+            const filterValue = document.getElementById('statusFilter').value;
+            const centers = document.querySelectorAll('.bgEc-cards');
+
+            centers.forEach(center => {
+                const status = center.getAttribute('data-status');
+                if (filterValue === 'active') {
+                    // Show only centers that are not grey (active)
+                    if (status === 'grey') {
+                        center.style.display = 'none';
+                    } else {
+                        center.style.display = 'block';
+                    }
+                } else if (filterValue === 'inactive') {
+                    // Show only centers that are grey (inactive)
+                    if (status === 'grey') {
+                        center.style.display = 'block';
+                    } else {
+                        center.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        // Initial filter on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            filterCenters(); // Call filter on page load to apply the default filter (active)
+        });
+    </script>
 
 
     <!-- sidebar import js -->

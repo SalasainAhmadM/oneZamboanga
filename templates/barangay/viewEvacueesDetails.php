@@ -139,11 +139,13 @@ $logsResult = $logsStmt->get_result();
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="viewEC.php">Tetuan Central School</a>
+                            <a href="viewEC.php?id=<?php echo $evacuationCenter['id']; ?>">
+                                <?php echo $evacuationCenter['name']; ?>
+                            </a>
 
                             <!-- next page -->
                             <i class="fa-solid fa-chevron-right"></i>
-                            <a href="evacueesPage.php">Evacuees</a>
+                            <a href="evacueesPage.php?id=<?php echo $evacuationCenter['id']; ?>">Evacuees</a>
 
                             <i class="fa-solid fa-chevron-right"></i>
                             <a href="#">Profile</a>
@@ -344,13 +346,13 @@ $logsResult = $logsStmt->get_result();
             event.preventDefault(); // Prevent default button action
 
             Swal.fire({
-                title: 'Are you sure?',
-                text: "This will mark the evacuee as transferred.",
+                title: 'Approve?',
+                text: "Confirm the request for transfer.",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Confirm!',
+                confirmButtonText: 'Confirm',
                 cancelButtonText: 'Cancel'
             }).then((result) => {
                 if (result.isConfirmed) {

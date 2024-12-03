@@ -43,21 +43,24 @@ if (isset($_SESSION['user_id'])) {
 
     // Fetch evacuees with status 'Transfer' for the logged-in admin
     $sql = "
-        SELECT 
-            e.id AS evacuee_id,
-            CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
-            e.contact,
-            e.barangay,
-            e.date,
-            e.disaster_type,
-            COUNT(m.id) AS member_count,
-            GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) ORDER BY m.first_name ASC SEPARATOR ', ') AS member_names
-        FROM evacuees e
-        LEFT JOIN members m ON e.id = m.evacuees_id
-        WHERE e.admin_id = ? AND e.status = 'Transfer'
-        GROUP BY e.id
-        ORDER BY e.date DESC;
-    ";
+    SELECT 
+        e.id AS evacuee_id,
+        CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
+        e.contact,
+        e.barangay,
+        e.date,
+        e.disaster_type,
+        COUNT(m.id) AS member_count,
+        GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) ORDER BY m.first_name ASC SEPARATOR ', ') AS member_names
+    FROM evacuees e
+    LEFT JOIN members m ON e.id = m.evacuees_id
+    WHERE e.admin_id = ? 
+      AND e.status = 'Transfer' 
+      AND e.evacuation_center_id != e.origin_evacuation_center_id
+    GROUP BY e.id
+    ORDER BY e.date DESC;
+";
+
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $admin_id);
     $stmt->execute();

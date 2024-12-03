@@ -270,12 +270,6 @@ $result = $stmt->get_result();
                         <section class="tblheader">
 
 
-
-
-                            <!-- <div class="filter-popup">
-                                <i class="fa-solid fa-filter"></i>
-                            </div> -->
-
                             <div class="filter-popup">
                                 <label for="modal-toggle" class="modal-button">
                                     <i class="fa-solid fa-filter"></i>
@@ -288,18 +282,23 @@ $result = $stmt->get_result();
                                         <div class="filter-option">
                                             <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="admit"
-                                                    class="filter-checkbox" data-filter="Admitted">
+                                                    class="filter-checkbox" data-filter="Admitted" checked>
                                                 <label for="admit">Admitted</label>
+                                            </div>
+                                            <!-- <div class="option-content">
+                                                <input type="checkbox" name="evacuees" id="transfer"
+                                                    class="filter-checkbox" data-filter="Transfer">
+                                                <label for="transfer">Transfer</label>
+                                            </div> -->
+                                            <div class="option-content">
+                                                <input type="checkbox" name="evacuees" id="transferred"
+                                                    class="filter-checkbox" data-filter="Transferred">
+                                                <label for="transferred">Transferred</label>
                                             </div>
                                             <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="moveout"
                                                     class="filter-checkbox" data-filter="Moved-out">
                                                 <label for="moveout">Moved-out</label>
-                                            </div>
-                                            <div class="option-content">
-                                                <input type="checkbox" name="evacuees" id="transfer"
-                                                    class="filter-checkbox" data-filter="Transferred">
-                                                <label for="transfer">Transferred</label>
                                             </div>
                                         </div>
                                     </div>
@@ -397,7 +396,11 @@ $result = $stmt->get_result();
             filterCheckboxes.forEach(checkbox => {
                 checkbox.addEventListener("change", filterTable);
             });
+
+            // Call filterTable to apply the default filter on page load
+            filterTable();
         });
+
         document.addEventListener("DOMContentLoaded", function () {
             const filterCheckboxes = document.querySelectorAll(".filter-checkbox");
             const searchInput = document.querySelector(".input_group input[type='search']");
@@ -440,17 +443,6 @@ $result = $stmt->get_result();
             const urlParams = new URLSearchParams(window.location.search);
             const isAll = urlParams.get('id') === 'All';
 
-            // document.querySelectorAll('a[href*="viewAssignedEC.php"]').forEach(link => {
-            //     link.addEventListener('click', (event) => {
-            //         event.preventDefault(); // Prevent the default action
-            //         Swal.fire({
-            //             icon: 'info',
-            //             text: 'Please select a specific evacuation center first.',
-            //             confirmButtonText: 'OK'
-            //         });
-            //     });
-            // });
-            // Add event listeners to buttons with the class `addBg-admin`
             document.querySelectorAll('.addBg-admin').forEach(button => {
                 button.addEventListener('click', (event) => {
                     event.preventDefault(); // Prevent the default action

@@ -184,12 +184,15 @@ $centers_result = $stmt->get_result();
                                         $center_id = $center['id'];
                                         $capacity = (int) $center['capacity'];
 
-                                        // Count total families in the evacuation center, excluding Transfer and Moved-out
+                                        // Count total families in the evacuation center with the updated logic
                                         $family_count_sql = "
                         SELECT COUNT(*) AS total_families 
                         FROM evacuees 
                         WHERE evacuation_center_id = ? 
-                        AND status NOT IN ('Transfer', 'Moved-out')
+                        AND (
+                            status = 'Admitted' OR 
+                            (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+                        )
                     ";
                                         $family_count_stmt = $conn->prepare($family_count_sql);
                                         $family_count_stmt->bind_param("i", $center_id);
@@ -197,20 +200,28 @@ $centers_result = $stmt->get_result();
                                         $family_count_result = $family_count_stmt->get_result();
                                         $total_families = ($family_count_result->num_rows > 0) ? $family_count_result->fetch_assoc()['total_families'] : 0;
 
-                                        // Count total evacuees and their members, excluding Transfer and Moved-out
+                                        // Count total evacuees and their members with the updated logic
                                         $evacuees_count_sql = "
                         SELECT 
                         (SELECT COUNT(*) 
                          FROM evacuees 
                          WHERE evacuation_center_id = ? 
-                         AND status NOT IN ('Transfer', 'Moved-out')) +
+                         AND (
+                            status = 'Admitted' OR 
+                            (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+                         )
+                        ) +
                         (SELECT COUNT(*) 
                          FROM members 
                          WHERE evacuees_id IN 
                              (SELECT id 
                               FROM evacuees 
                               WHERE evacuation_center_id = ? 
-                              AND status NOT IN ('Transfer', 'Moved-out'))
+                              AND (
+                                status = 'Admitted' OR 
+                                (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+                              )
+                             )
                         ) AS total_evacuees
                     ";
                                         $evacuees_count_stmt = $conn->prepare($evacuees_count_sql);
@@ -255,6 +266,7 @@ $centers_result = $stmt->get_result();
                             </div>
                         </div>
                     </div>
+
 
                     <script>
                         function filterCenters() {

@@ -91,26 +91,32 @@ if ($result->num_rows > 0) {
 
     // Fetch evacuees who have not been distributed this supply
     $evacueesQuery = "
-    SELECT 
-        e.id AS evacuee_id,
-        CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
-        e.status
-    FROM 
-        evacuees e
-    WHERE 
-        e.evacuation_center_id = ? 
-        AND e.status != 'Moved-out' 
-        AND NOT EXISTS (
-            SELECT 1 
-            FROM distribute d 
-            WHERE d.evacuees_id = e.id 
-              AND d.supply_id = ?
-        )
+SELECT 
+    e.id AS evacuee_id,
+    CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
+    e.status
+FROM 
+    evacuees e
+WHERE 
+    e.evacuation_center_id = ? 
+    AND (
+        e.status = 'Admitted' 
+        OR (e.status = 'Transfer' AND e.evacuation_center_id = e.origin_evacuation_center_id)
+    ) 
+    AND e.status != 'Transferred' 
+    AND e.status != 'Moved-out'
+    AND NOT EXISTS (
+        SELECT 1 
+        FROM distribute d 
+        WHERE d.evacuees_id = e.id 
+          AND d.supply_id = ?
+    )
 ";
     $evacueesStmt = $conn->prepare($evacueesQuery);
     $evacueesStmt->bind_param("ii", $evacuationCenterId, $supplyId);
     $evacueesStmt->execute();
     $evacueesResult = $evacueesStmt->get_result();
+
 
 } else {
     // Handle the case where the supply or evacuation center is not found

@@ -169,27 +169,50 @@ if (isset($_SESSION['user_id'])) {
                                     $center_id = $center['id'];
                                     $capacity = (int) $center['capacity'];
 
-                                    // Fetch total families in this center
-                                    $family_count_sql = "SELECT COUNT(*) AS total_families FROM evacuees WHERE evacuation_center_id = ?";
+                                    // Fetch total families in this center with status 'Admitted' and 'Transfer' with matching center_id and origin_center_id
+                                    $family_count_sql = "
+                            SELECT COUNT(*) AS total_families 
+                            FROM evacuees 
+                            WHERE evacuation_center_id = ? 
+                            AND status = 'Admitted'
+                            UNION ALL
+                            SELECT COUNT(*) AS total_families 
+                            FROM evacuees 
+                            WHERE origin_evacuation_center_id = ? 
+                            AND evacuation_center_id = ? 
+                            AND status = 'Transfer'
+                        ";
                                     $family_count_stmt = $conn->prepare($family_count_sql);
-                                    $family_count_stmt->bind_param("i", $center_id);
+                                    $family_count_stmt->bind_param("iii", $center_id, $center_id, $center_id);
                                     $family_count_stmt->execute();
                                     $family_count_result = $family_count_stmt->get_result();
-                                    $total_families = ($family_count_result->num_rows > 0) ? $family_count_result->fetch_assoc()['total_families'] : 0;
+                                    $total_families = 0;
+                                    while ($row = $family_count_result->fetch_assoc()) {
+                                        $total_families += (int) $row['total_families'];
+                                    }
 
-                                    // Fetch total evacuees (families + members)
+                                    // Fetch total evacuees (families + members) with the same logic applied for 'Admitted' and valid 'Transfer' status
                                     $evacuees_count_sql = "
-                SELECT 
-                    (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
-                    (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-                    (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
-                    ) AS total_evacuees
-            ";
+                            SELECT 
+                                (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ? AND status = 'Admitted') +
+                                (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
+                                    (SELECT id FROM evacuees WHERE evacuation_center_id = ? AND status = 'Admitted')
+                                ) AS total_evacuees
+                            UNION ALL
+                            SELECT 
+                                (SELECT COUNT(*) FROM evacuees WHERE origin_evacuation_center_id = ? AND evacuation_center_id = ? AND status = 'Transfer') +
+                                (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
+                                    (SELECT id FROM evacuees WHERE origin_evacuation_center_id = ? AND evacuation_center_id = ? AND status = 'Transfer')
+                                ) AS total_evacuees
+                        ";
                                     $evacuees_count_stmt = $conn->prepare($evacuees_count_sql);
-                                    $evacuees_count_stmt->bind_param("ii", $center_id, $center_id);
+                                    $evacuees_count_stmt->bind_param("iiiiii", $center_id, $center_id, $center_id, $center_id, $center_id, $center_id);
                                     $evacuees_count_stmt->execute();
                                     $evacuees_count_result = $evacuees_count_stmt->get_result();
-                                    $total_evacuees = ($evacuees_count_result->num_rows > 0) ? $evacuees_count_result->fetch_assoc()['total_evacuees'] : 0;
+                                    $total_evacuees = 0;
+                                    while ($row = $evacuees_count_result->fetch_assoc()) {
+                                        $total_evacuees += (int) $row['total_evacuees'];
+                                    }
 
                                     // Determine occupancy status color
                                     if ($total_families === 0) {
@@ -236,27 +259,50 @@ if (isset($_SESSION['user_id'])) {
                                     $center_id = $center['id'];
                                     $capacity = (int) $center['capacity'];
 
-                                    // Fetch total families in this center
-                                    $family_count_sql = "SELECT COUNT(*) AS total_families FROM evacuees WHERE evacuation_center_id = ?";
+                                    // Fetch total families in this center with status 'Admitted' and 'Transfer' with matching center_id and origin_center_id
+                                    $family_count_sql = "
+                            SELECT COUNT(*) AS total_families 
+                            FROM evacuees 
+                            WHERE evacuation_center_id = ? 
+                            AND status = 'Admitted'
+                            UNION ALL
+                            SELECT COUNT(*) AS total_families 
+                            FROM evacuees 
+                            WHERE origin_evacuation_center_id = ? 
+                            AND evacuation_center_id = ? 
+                            AND status = 'Transfer'
+                        ";
                                     $family_count_stmt = $conn->prepare($family_count_sql);
-                                    $family_count_stmt->bind_param("i", $center_id);
+                                    $family_count_stmt->bind_param("iii", $center_id, $center_id, $center_id);
                                     $family_count_stmt->execute();
                                     $family_count_result = $family_count_stmt->get_result();
-                                    $total_families = ($family_count_result->num_rows > 0) ? $family_count_result->fetch_assoc()['total_families'] : 0;
+                                    $total_families = 0;
+                                    while ($row = $family_count_result->fetch_assoc()) {
+                                        $total_families += (int) $row['total_families'];
+                                    }
 
-                                    // Fetch total evacuees (families + members)
+                                    // Fetch total evacuees (families + members) with the same logic applied for 'Admitted' and valid 'Transfer' status
                                     $evacuees_count_sql = "
-            SELECT 
-                (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
-                (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-                (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
-                ) AS total_evacuees
-            ";
+                            SELECT 
+                                (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ? AND status = 'Admitted') +
+                                (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
+                                    (SELECT id FROM evacuees WHERE evacuation_center_id = ? AND status = 'Admitted')
+                                ) AS total_evacuees
+                            UNION ALL
+                            SELECT 
+                                (SELECT COUNT(*) FROM evacuees WHERE origin_evacuation_center_id = ? AND evacuation_center_id = ? AND status = 'Transfer') +
+                                (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
+                                    (SELECT id FROM evacuees WHERE origin_evacuation_center_id = ? AND evacuation_center_id = ? AND status = 'Transfer')
+                                ) AS total_evacuees
+                        ";
                                     $evacuees_count_stmt = $conn->prepare($evacuees_count_sql);
-                                    $evacuees_count_stmt->bind_param("ii", $center_id, $center_id);
+                                    $evacuees_count_stmt->bind_param("iiiiii", $center_id, $center_id, $center_id, $center_id, $center_id, $center_id);
                                     $evacuees_count_stmt->execute();
                                     $evacuees_count_result = $evacuees_count_stmt->get_result();
-                                    $total_evacuees = ($evacuees_count_result->num_rows > 0) ? $evacuees_count_result->fetch_assoc()['total_evacuees'] : 0;
+                                    $total_evacuees = 0;
+                                    while ($row = $evacuees_count_result->fetch_assoc()) {
+                                        $total_evacuees += (int) $row['total_evacuees'];
+                                    }
 
                                     // Determine occupancy status color
                                     if ($total_families === 0) {
@@ -287,20 +333,19 @@ if (isset($_SESSION['user_id'])) {
                                             <li>Total Evacuees: <?php echo $total_evacuees; ?></li>
                                         </ul>
                                     </div>
+
                                 <?php endwhile; ?>
                             <?php else: ?>
-                                <p>No evacuation centers found for this admin.</p>
+                                <p>No evacuation centers found.</p>
                             <?php endif; ?>
                         </div>
                     </div>
-
-
                     <button id="scroll-btn" class="scroll-btn at-top">
                         <i class="fa-solid fa-chevron-down"></i>
                     </button>
                 </div>
-
             </div>
+
 
         </main>
 

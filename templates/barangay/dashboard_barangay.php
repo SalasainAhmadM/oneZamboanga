@@ -81,13 +81,16 @@ while ($row = $centers_result->fetch_assoc()) {
     $center_id = $row['id'];
     $center_name = $row['name'];
 
-    // Count evacuees and their members for each center, excluding 'Transfer' and 'Moved-out'
+    // Count evacuees and their members for each center with the updated logic
     $count_total_sql = "
         SELECT 
             (SELECT COUNT(*) 
              FROM evacuees 
              WHERE evacuation_center_id = ? 
-             AND status NOT IN ('Transfer', 'Moved-out')
+             AND (
+                status = 'Admitted' OR 
+                (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+             )
             ) +
             (SELECT COUNT(*) 
              FROM members 
@@ -95,7 +98,11 @@ while ($row = $centers_result->fetch_assoc()) {
                  (SELECT id 
                   FROM evacuees 
                   WHERE evacuation_center_id = ? 
-                  AND status NOT IN ('Transfer', 'Moved-out'))
+                  AND (
+                    status = 'Admitted' OR 
+                    (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+                  )
+                 )
             ) AS total_count
     ";
     $count_total_stmt = $conn->prepare($count_total_sql);
@@ -124,13 +131,16 @@ while ($row = $all_centers_result->fetch_assoc()) {
     $center_id = $row['id'];
     $center_name = $row['name'];
 
-    // Count evacuees and their members for each center, excluding 'Transfer' and 'Moved-out'
+    // Count evacuees and their members for each center with the updated logic
     $count_total_sql = "
         SELECT 
             (SELECT COUNT(*) 
              FROM evacuees 
              WHERE evacuation_center_id = ? 
-             AND status NOT IN ('Transfer', 'Moved-out')
+             AND (
+                status = 'Admitted' OR 
+                (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+             )
             ) +
             (SELECT COUNT(*) 
              FROM members 
@@ -138,7 +148,11 @@ while ($row = $all_centers_result->fetch_assoc()) {
                  (SELECT id 
                   FROM evacuees 
                   WHERE evacuation_center_id = ? 
-                  AND status NOT IN ('Transfer', 'Moved-out'))
+                  AND (
+                    status = 'Admitted' OR 
+                    (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+                  )
+                 )
             ) AS total_count
     ";
     $count_total_stmt = $conn->prepare($count_total_sql);

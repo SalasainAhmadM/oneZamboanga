@@ -165,7 +165,15 @@ if (isset($_GET['admin_id']) && $_GET['admin_id'] !== "all") {
                                 $capacity = (int) $row['capacity'];
 
                                 // Get total families
-                                $family_count_sql = "SELECT COUNT(*) AS total_families FROM evacuees WHERE evacuation_center_id = ?";
+                                $family_count_sql = "
+                        SELECT COUNT(*) AS total_families 
+                        FROM evacuees 
+                        WHERE evacuation_center_id = ? 
+                        AND (
+                            status = 'Admitted' OR 
+                            (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+                        )
+                    ";
                                 $family_count_stmt = $conn->prepare($family_count_sql);
                                 $family_count_stmt->bind_param("i", $center_id);
                                 $family_count_stmt->execute();
@@ -174,11 +182,28 @@ if (isset($_GET['admin_id']) && $_GET['admin_id'] !== "all") {
 
                                 // Get total evacuees (families + members)
                                 $evacuees_count_sql = "
-                                    SELECT 
-                                    (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) +
-                                    (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-                                    (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
-                                    ) AS total_evacuees";
+                        SELECT 
+                            (SELECT COUNT(*) 
+                             FROM evacuees 
+                             WHERE evacuation_center_id = ? 
+                             AND (
+                                status = 'Admitted' OR 
+                                (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+                             )
+                            ) +
+                            (SELECT COUNT(*) 
+                             FROM members 
+                             WHERE evacuees_id IN (
+                                 SELECT id 
+                                 FROM evacuees 
+                                 WHERE evacuation_center_id = ? 
+                                 AND (
+                                    status = 'Admitted' OR 
+                                    (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+                                 )
+                             )
+                            ) AS total_evacuees
+                    ";
                                 $evacuees_count_stmt = $conn->prepare($evacuees_count_sql);
                                 $evacuees_count_stmt->bind_param("ii", $center_id, $center_id);
                                 $evacuees_count_stmt->execute();
@@ -223,6 +248,7 @@ if (isset($_GET['admin_id']) && $_GET['admin_id'] !== "all") {
                     </div>
                 </div>
             </div>
+
         </main>
 
     </div>

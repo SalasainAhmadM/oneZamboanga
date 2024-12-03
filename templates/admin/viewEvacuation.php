@@ -35,7 +35,6 @@ $stmtEvacuationCenter = $conn->prepare($sqlEvacuationCenter);
 $stmtEvacuationCenter->bind_param("i", $evacuationCenterId);
 $stmtEvacuationCenter->execute();
 $resultEvacuationCenter = $stmtEvacuationCenter->get_result();
-
 if ($resultEvacuationCenter->num_rows > 0) {
     $evacuationCenter = $resultEvacuationCenter->fetch_assoc();
 
@@ -43,7 +42,15 @@ if ($resultEvacuationCenter->num_rows > 0) {
     $imageSrc = !empty($evacuationCenter['image']) ? "../../assets/img/" . $evacuationCenter['image'] : "../../assets/img/ecDeaultPhoto.svg";
 
     // Query to count total families (evacuees) for this evacuation center
-    $sqlTotalFamilies = "SELECT COUNT(*) as total_families FROM evacuees WHERE evacuation_center_id = ?";
+    $sqlTotalFamilies = "
+        SELECT COUNT(*) AS total_families 
+        FROM evacuees 
+        WHERE evacuation_center_id = ? 
+        AND (
+            status = 'Admitted' OR 
+            (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+        )
+    ";
     $stmtTotalFamilies = $conn->prepare($sqlTotalFamilies);
     $stmtTotalFamilies->bind_param("i", $evacuationCenterId);
     $stmtTotalFamilies->execute();
@@ -53,10 +60,27 @@ if ($resultEvacuationCenter->num_rows > 0) {
     // Query to count total evacuees and members for this evacuation center
     $sqlTotalEvacuees = "
         SELECT 
-            (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ?) + 
-            (SELECT COUNT(*) FROM members WHERE evacuees_id IN 
-                (SELECT id FROM evacuees WHERE evacuation_center_id = ?)
-            ) AS total_evacuees";
+            (SELECT COUNT(*) 
+             FROM evacuees 
+             WHERE evacuation_center_id = ? 
+             AND (
+                status = 'Admitted' OR 
+                (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+             )
+            ) + 
+            (SELECT COUNT(*) 
+             FROM members 
+             WHERE evacuees_id IN (
+                 SELECT id 
+                 FROM evacuees 
+                 WHERE evacuation_center_id = ? 
+                 AND (
+                    status = 'Admitted' OR 
+                    (status = 'Transfer' AND evacuation_center_id = origin_evacuation_center_id)
+                 )
+             )
+            ) AS total_evacuees
+    ";
     $stmtTotalEvacuees = $conn->prepare($sqlTotalEvacuees);
     $stmtTotalEvacuees->bind_param("ii", $evacuationCenterId, $evacuationCenterId);
     $stmtTotalEvacuees->execute();
@@ -98,16 +122,19 @@ $pastYears = range($currentYear - 5, $currentYear);
 
 $sqlMonthlyEvacuees = "
     SELECT 
-        MONTH(e.date) as month, 
-        COUNT(e.id) as evacuees_count,
+        MONTH(e.date) AS month, 
+        COUNT(e.id) AS evacuees_count,
         (
             SELECT COUNT(m.id) 
             FROM members m 
             WHERE m.evacuees_id = e.id
-        ) as members_count
+        ) AS members_count
     FROM evacuees e
     WHERE e.evacuation_center_id = ? 
-      AND e.status NOT IN ('Transfer', 'Moved-out')"
+      AND (
+          e.status = 'Admitted' OR 
+          (e.status = 'Transfer' AND e.evacuation_center_id = e.origin_evacuation_center_id)
+      )"
     . (!$isAllYears ? " AND YEAR(e.date) = ?" : "") .
     " GROUP BY MONTH(e.date)";
 

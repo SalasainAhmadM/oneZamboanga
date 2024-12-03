@@ -94,14 +94,19 @@ if ($result->num_rows > 0) {
         evacuees e
     WHERE 
         e.evacuation_center_id = ? 
-        AND e.status != 'Moved-out' 
+        AND (
+            e.status = 'Admitted' 
+            OR (e.status = 'Transfer' AND e.evacuation_center_id = e.origin_evacuation_center_id)
+        ) 
+        AND e.status != 'Transferred' 
+        AND e.status != 'Moved-out'
         AND NOT EXISTS (
             SELECT 1 
             FROM distribute d 
             WHERE d.evacuees_id = e.id 
               AND d.supply_id = ?
         )
-";
+    ";
 
     $evacueesStmt = $conn->prepare($evacueesQuery);
     $evacueesStmt->bind_param("ii", $evacuationCenterId, $supplyId);

@@ -71,7 +71,7 @@ if ($evacuationCenterId === 'All') {
     FROM evacuees e
     LEFT JOIN members m ON e.id = m.evacuees_id
     LEFT JOIN evacuation_center ec ON e.evacuation_center_id = ec.id
-    WHERE ec.admin_id = ? AND e.status != 'Transfer'
+    WHERE ec.admin_id = ? AND e.status != 'Transferred'
     GROUP BY e.id
     ORDER BY e.date DESC;";
     $stmt = $conn->prepare($sql);
@@ -99,7 +99,7 @@ if ($evacuationCenterId === 'All') {
         GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) ORDER BY m.first_name ASC SEPARATOR ', ') AS member_names
     FROM evacuees e
     LEFT JOIN members m ON e.id = m.evacuees_id
-    WHERE e.evacuation_center_id = ? AND e.status != 'Transfer'
+    WHERE e.evacuation_center_id = ?
     GROUP BY e.id
     ORDER BY e.date DESC;";
     $stmt = $conn->prepare($sql);
@@ -265,18 +265,23 @@ $result = $stmt->get_result();
                                         <div class="filter-option">
                                             <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="admit"
-                                                    class="filter-checkbox" data-filter="Admitted">
+                                                    class="filter-checkbox" data-filter="Admitted" checked>
                                                 <label for="admit">Admitted</label>
+                                            </div>
+                                            <!-- <div class="option-content">
+                                                <input type="checkbox" name="evacuees" id="transfer"
+                                                    class="filter-checkbox" data-filter="Transfer">
+                                                <label for="transfer">Transfer</label>
+                                            </div> -->
+                                            <div class="option-content">
+                                                <input type="checkbox" name="evacuees" id="transferred"
+                                                    class="filter-checkbox" data-filter="Transferred">
+                                                <label for="transferred">Transferred</label>
                                             </div>
                                             <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="moveout"
                                                     class="filter-checkbox" data-filter="Moved-out">
                                                 <label for="moveout">Moved-out</label>
-                                            </div>
-                                            <div class="option-content">
-                                                <input type="checkbox" name="evacuees" id="transfer"
-                                                    class="filter-checkbox" data-filter="Transferred">
-                                                <label for="transfer">Transferred</label>
                                             </div>
                                         </div>
                                     </div>
@@ -355,7 +360,6 @@ $result = $stmt->get_result();
 
     <script>
 
-
         document.addEventListener("DOMContentLoaded", function () {
             const filterCheckboxes = document.querySelectorAll(".filter-checkbox");
             const tableRows = document.querySelectorAll("#mainTable tbody tr");
@@ -379,6 +383,9 @@ $result = $stmt->get_result();
             filterCheckboxes.forEach(checkbox => {
                 checkbox.addEventListener("change", filterTable);
             });
+
+            // Call filterTable to apply the default filter on page load
+            filterTable();
         });
         document.addEventListener("DOMContentLoaded", function () {
             const filterCheckboxes = document.querySelectorAll(".filter-checkbox");

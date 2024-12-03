@@ -6,13 +6,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $admin_id = isset($data['admin_id']) ? intval($data['admin_id']) : 0;
 
     if ($admin_id > 0) {
-        // Updated query to include capacity and evacuees count
+        // Updated query to include filtered evacuees count
         $query = "
             SELECT 
                 ec.id, 
                 ec.name, 
                 ec.capacity, 
-                (SELECT COUNT(*) FROM evacuees WHERE evacuation_center_id = ec.id) AS evacuees_count 
+                (
+                    SELECT COUNT(*) 
+                    FROM evacuees e 
+                    WHERE e.evacuation_center_id = ec.id 
+                    AND (e.status = 'Admitted' 
+                         OR (e.status = 'Transfer' AND e.evacuation_center_id = e.origin_evacuation_center_id))
+                ) AS evacuees_count 
             FROM evacuation_center ec 
             WHERE ec.admin_id = ?";
         $stmt = $conn->prepare($query);
