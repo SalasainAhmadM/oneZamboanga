@@ -272,10 +272,24 @@ $monthlyEvacueesJson = json_encode(array_values($monthlyEvacuees));
                             <i class="fa-solid fa-plus"></i>
                         </a> -->
                         <button class="addBg-admin"
-                            onclick="window.location.href='evacueesForm.php?id=<?php echo $evacuationCenterId; ?>'">
+                            onclick="handleAdmit('<?php echo $statusColor; ?>', '<?php echo $evacuationCenterId; ?>')">
                             Admit
-                            <!-- <i class="fa-solid fa-plus"></i> -->
                         </button>
+
+                        <script>
+                            function handleAdmit(statusColor, evacuationCenterId) {
+                                if (statusColor === 'red') {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        text: 'You cannot admit more evacuees because the evacuation center is currently at full capacity.',
+                                    });
+                                } else {
+                                    // Redirect if not full
+                                    window.location.href = 'evacueesForm.php?id=' + evacuationCenterId;
+                                }
+                            }
+                        </script>
+
 
                     </div>
                 </div>

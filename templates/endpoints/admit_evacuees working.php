@@ -36,42 +36,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
         // Evacuee already exists
         $_SESSION['message'] = "Family Head already admitted.";
         $_SESSION['message_type'] = "error";
-        header("Location: ../barangay/evacueesForm.php?id=$evacuation_center");
+        header("Location: ../barangay/evacueesForm.php");
         exit();
     }
-
-    // Fetch the admin_id associated with the evacuation center
-    $evacuation_center_admin_query = "SELECT admin_id FROM evacuation_center WHERE id = ?";
-    $evacuation_center_admin_stmt = $conn->prepare($evacuation_center_admin_query);
-    $evacuation_center_admin_stmt->bind_param("i", $evacuation_center);
-    $evacuation_center_admin_stmt->execute();
-    $evacuation_center_admin_result = $evacuation_center_admin_stmt->get_result();
-    $evacuation_center_admin_data = $evacuation_center_admin_result->fetch_assoc();
-    $evacuation_center_admin_id = $evacuation_center_admin_data['admin_id'] ?? null;
-
-    // Check if the current admin matches the evacuation center's admin
-    if ($admin_id != $evacuation_center_admin_id) {
-        // If admin_id doesn't match, update the admin_id to the one in the evacuation center
-        $admin_id = $evacuation_center_admin_id;
-        $status = "Transfer"; // Set the status to Transfer if admin_id doesn't match
-    } else {
-        $status = "Admitted"; // Otherwise, keep the status as Admitted
-    }
-
     // Begin a transaction
     $conn->begin_transaction();
 
     try {
         // Insert into `evacuees` table including `evacuation_center`
-        $sql = "INSERT INTO evacuees (first_name, middle_name, last_name, extension_name, gender, disaster_type, barangay, birthday, age, occupation, contact, monthly_income, damage, cost_damage, position, house_owner, admin_id, evacuation_center_id, origin_evacuation_center_id, status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO evacuees (first_name, middle_name, last_name, extension_name, gender, disaster_type, barangay, birthday, age, occupation, contact, monthly_income, damage, cost_damage, position, house_owner, admin_id, evacuation_center_id, origin_evacuation_center_id) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssssssssisisisssiiis", $first_name, $middle_name, $last_name, $extension_name, $gender, $disaster_type, $barangay, $birthday, $age, $occupation, $contact, $monthly_income, $damage, $cost_damage, $position, $house_owner, $admin_id, $evacuation_center, $evacuation_center, $status);
+        $stmt->bind_param("ssssssssisisisssiii", $first_name, $middle_name, $last_name, $extension_name, $gender, $disaster_type, $barangay, $birthday, $age, $occupation, $contact, $monthly_income, $damage, $cost_damage, $position, $house_owner, $admin_id, $evacuation_center, $evacuation_center);
         $stmt->execute();
         $evacuees_id = $stmt->insert_id;
 
         // Insert into `evacuees_log` table
-        $log_msg = ($status == "Transfer") ? "Pending for approval" : "Admitted"; // Change log message based on status
+        $log_msg = "Admitted";
         $log_sql = "INSERT INTO evacuees_log (log_msg, status, evacuees_id) VALUES (?, 'notify', ?)";
         $log_stmt = $conn->prepare($log_sql);
         $log_stmt->bind_param("si", $log_msg, $evacuees_id);
@@ -114,20 +95,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
 
         // Insert into `feeds` table
         $feed_msg = "$first_name $middle_name $last_name admitted to $evacuation_center_name.";
-        if ($status == "Transfer") {
-            $feed_msg = "$first_name $middle_name $last_name is pending for approval in $evacuation_center_name.";
-        }
         $feeds_sql = "INSERT INTO feeds (logged_in_id, user_type, feed_msg, status) VALUES (?, 'admin', ?, 'notify')";
         $feeds_stmt = $conn->prepare($feeds_sql);
         $feeds_stmt->bind_param("is", $admin_id, $feed_msg);
         $feeds_stmt->execute();
 
         // Set session success message
-        if ($status == "Transfer") {
-            $_SESSION['message'] = "Evacuees are pending for approval.";
-        } else {
-            $_SESSION['message'] = "Evacuees admitted successfully.";
-        }
+        $_SESSION['message'] = "Evacuees admitted successfully.";
         $_SESSION['message_type'] = "success";
         header("Location: ../barangay/evacueesForm.php?id=$evacuation_center");
         exit();
@@ -148,3 +122,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
     header("Location: ../barangay/evacueesForm.php?id=$evacuation_center");
     exit();
 }
+?>

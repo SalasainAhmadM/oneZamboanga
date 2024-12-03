@@ -6,7 +6,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
     $admin_id = $_SESSION['user_id'];
 
     // Retrieve and sanitize inputs for the main evacuee
-    $evacuation_center = $_POST['evacuation_center'];
+    $evacuation_center_id = $_POST['evacuation_center']; // This is the evacuation center ID
     $barangay = $_POST['barangay'];
     $disaster = $_POST['disaster'];
     $disaster_type = ($disaster == "others") ? $_POST['disaster_specify'] : $disaster;
@@ -36,14 +36,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
         // Evacuee already exists
         $_SESSION['message'] = "Family Head already admitted.";
         $_SESSION['message_type'] = "error";
-        header("Location: ../barangay/evacueesForm.php?id=$evacuation_center");
+        header("Location: ../barangay/evacueesForm.php");
         exit();
     }
 
     // Fetch the admin_id associated with the evacuation center
     $evacuation_center_admin_query = "SELECT admin_id FROM evacuation_center WHERE id = ?";
     $evacuation_center_admin_stmt = $conn->prepare($evacuation_center_admin_query);
-    $evacuation_center_admin_stmt->bind_param("i", $evacuation_center);
+    $evacuation_center_admin_stmt->bind_param("i", $evacuation_center_id);
     $evacuation_center_admin_stmt->execute();
     $evacuation_center_admin_result = $evacuation_center_admin_stmt->get_result();
     $evacuation_center_admin_data = $evacuation_center_admin_result->fetch_assoc();
@@ -62,16 +62,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
     $conn->begin_transaction();
 
     try {
-        // Insert into `evacuees` table including `evacuation_center`
+        // Insert into `evacuees` table including `evacuation_center_id`
         $sql = "INSERT INTO evacuees (first_name, middle_name, last_name, extension_name, gender, disaster_type, barangay, birthday, age, occupation, contact, monthly_income, damage, cost_damage, position, house_owner, admin_id, evacuation_center_id, origin_evacuation_center_id, status) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssssssssisisisssiiis", $first_name, $middle_name, $last_name, $extension_name, $gender, $disaster_type, $barangay, $birthday, $age, $occupation, $contact, $monthly_income, $damage, $cost_damage, $position, $house_owner, $admin_id, $evacuation_center, $evacuation_center, $status);
+        $stmt->bind_param("ssssssssisisisssiisi", $first_name, $middle_name, $last_name, $extension_name, $gender, $disaster_type, $barangay, $birthday, $age, $occupation, $contact, $monthly_income, $damage, $cost_damage, $position, $house_owner, $admin_id, $evacuation_center_id, $evacuation_center_id, $status);
         $stmt->execute();
         $evacuees_id = $stmt->insert_id;
 
         // Insert into `evacuees_log` table
-        $log_msg = ($status == "Transfer") ? "Pending for approval" : "Admitted"; // Change log message based on status
+        $log_msg = $status; // Use the determined status (Admitted or Transfer) for logging
         $log_sql = "INSERT INTO evacuees_log (log_msg, status, evacuees_id) VALUES (?, 'notify', ?)";
         $log_stmt = $conn->prepare($log_sql);
         $log_stmt->bind_param("si", $log_msg, $evacuees_id);
@@ -106,30 +106,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
         // Retrieve the name of the evacuation center based on the evacuation_center ID
         $evacuation_center_name_query = "SELECT name FROM evacuation_center WHERE id = ?";
         $evacuation_center_name_stmt = $conn->prepare($evacuation_center_name_query);
-        $evacuation_center_name_stmt->bind_param("i", $evacuation_center);
+        $evacuation_center_name_stmt->bind_param("i", $evacuation_center_id);
         $evacuation_center_name_stmt->execute();
         $evacuation_center_name_result = $evacuation_center_name_stmt->get_result();
         $evacuation_center_name_data = $evacuation_center_name_result->fetch_assoc();
         $evacuation_center_name = $evacuation_center_name_data['name'] ?? '';
 
         // Insert into `feeds` table
-        $feed_msg = "$first_name $middle_name $last_name admitted to $evacuation_center_name.";
-        if ($status == "Transfer") {
-            $feed_msg = "$first_name $middle_name $last_name is pending for approval in $evacuation_center_name.";
-        }
+        $feed_msg = "$first_name $middle_name $last_name $status at $evacuation_center_name.";
         $feeds_sql = "INSERT INTO feeds (logged_in_id, user_type, feed_msg, status) VALUES (?, 'admin', ?, 'notify')";
         $feeds_stmt = $conn->prepare($feeds_sql);
         $feeds_stmt->bind_param("is", $admin_id, $feed_msg);
         $feeds_stmt->execute();
 
         // Set session success message
-        if ($status == "Transfer") {
-            $_SESSION['message'] = "Evacuees are pending for approval.";
-        } else {
-            $_SESSION['message'] = "Evacuees admitted successfully.";
-        }
+        $_SESSION['message'] = "Evacuees $status successfully.";
         $_SESSION['message_type'] = "success";
-        header("Location: ../barangay/evacueesForm.php?id=$evacuation_center");
+        header("Location: ../barangay/evacueesForm.php?id=$evacuation_center_id");
         exit();
 
     } catch (Exception $e) {
@@ -139,12 +132,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
         // Set session failure message
         $_SESSION['message'] = "Failed to admit evacuee: " . $e->getMessage();
         $_SESSION['message_type'] = "error";
-        header("Location: ../barangay/evacueesForm.php?id=$evacuation_center");
+        header("Location: ../barangay/evacueesForm.php?id=$evacuation_center_id");
         exit();
     }
 } else {
     $_SESSION['message'] = "Invalid request.";
     $_SESSION['message_type'] = "error";
-    header("Location: ../barangay/evacueesForm.php?id=$evacuation_center");
+    header("Location: ../barangay/evacueesForm.php?id=$evacuation_center_id");
     exit();
 }
+?>

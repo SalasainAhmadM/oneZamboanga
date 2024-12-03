@@ -110,6 +110,39 @@ if ($evacuationCenterId === 'All') {
 // Execute the query
 $stmt->execute();
 $result = $stmt->get_result();
+
+$capacity = 0; // Default value
+$evacueesCount = 0; // Default value
+
+if ($evacuationCenterId !== 'All') {
+    // Fetch evacuation center capacity and evacuees count
+    $centerDetailsQuery = "
+        SELECT 
+            ec.capacity,
+            (SELECT COUNT(*) FROM evacuees e WHERE e.evacuation_center_id = ec.id AND e.status != 'Transfer') AS evacuees_count
+        FROM evacuation_center ec
+        WHERE ec.id = ?";
+    $centerDetailsStmt = $conn->prepare($centerDetailsQuery);
+    $centerDetailsStmt->bind_param("i", $evacuationCenterId);
+    $centerDetailsStmt->execute();
+    $centerDetailsResult = $centerDetailsStmt->get_result();
+    $centerDetails = $centerDetailsResult->fetch_assoc();
+
+    if ($centerDetails) {
+        $capacity = intval($centerDetails['capacity']);
+        $evacueesCount = intval($centerDetails['evacuees_count']);
+    }
+} else {
+    // If "All" is selected, skip fetching specific center details
+    $capacity = PHP_INT_MAX; // Arbitrarily large number to avoid conflicts
+    $evacueesCount = 0; // Reset to 0 to represent no specific count
+}
+
+// Pass the data to the frontend for SweetAlert logic
+echo "<script>
+    const evacuationCenterCapacity = $capacity;
+    const currentEvacueesCount = $evacueesCount;
+</script>";
 ?>
 
 
@@ -233,6 +266,7 @@ $result = $stmt->get_result();
                             Admit
                             <!-- <i class="fa-solid fa-plus"></i> -->
                         </button>
+
 
 
                     </div>
@@ -440,6 +474,7 @@ $result = $stmt->get_result();
             //     });
             // });
             // Add event listeners to buttons with the class `addBg-admin`
+
             document.querySelectorAll('.addBg-admin').forEach(button => {
                 button.addEventListener('click', (event) => {
                     event.preventDefault(); // Prevent the default action
@@ -450,10 +485,18 @@ $result = $stmt->get_result();
                             confirmButtonText: 'OK'
                         });
                     } else {
-                        // Get the evacuation center ID from the `data-ec-id` attribute
-                        const evacuationCenterId = button.getAttribute('data-ec-id');
-                        // Redirect to the appropriate URL
-                        window.location.href = `evacueesForm.php?id=${evacuationCenterId}`;
+                        // Check if the center is full
+                        if (currentEvacueesCount >= evacuationCenterCapacity) {
+                            Swal.fire({
+                                icon: 'error',
+                                text: 'You cannot admit more evacuees because the evacuation center has reached its full capacity.',
+                                confirmButtonText: 'OK'
+                            });
+                        } else {
+                            // Proceed to redirect if not full
+                            const evacuationCenterId = button.getAttribute('data-ec-id');
+                            window.location.href = `evacueesForm.php?id=${evacuationCenterId}`;
+                        }
                     }
                 });
             });
