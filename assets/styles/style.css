@@ -352,6 +352,46 @@ select.filter-admin option {
     border-radius: 5px;
     border: 1px solid #ddd;
 }
+  .swal2-popup {
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  #forgotPasswordForm {
+    margin: 0;
+    padding: 0;
+  }
+
+  #forgotPasswordForm .form-label {
+    font-weight: bold;
+    margin-bottom: 8px;
+    display: block;
+    color: #333;
+  }
+
+  #forgotPasswordForm .form-control {
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 16px;
+    color: #495057;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s, box-shadow 0.3s;
+    width: 80%;
+    text-align: center;
+  }
+
+  #forgotPasswordForm .form-control:focus {
+    border-color: #80bdff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  }
+
+  .swal2-validation-message {
+    font-size: 14px;
+    color: #e74c3c;
+  }
 /* .no-personnel, .no-activity-log {
     display: none; 
     text-align: center;
