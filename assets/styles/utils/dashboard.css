@@ -310,6 +310,7 @@ main .analytics .item {
     min-width: 214px;
     padding: 20px;
     border-radius: 20px;
+    cursor: pointer;
 }
 
 main .analytics .item.spanning {
