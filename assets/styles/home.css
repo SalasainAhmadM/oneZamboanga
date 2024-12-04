@@ -231,7 +231,8 @@ button {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    background-color: #a6a6a6;
+    /* background-color: #a6a6a6; */
+    background-color: #D7D3BF;
     /* padding: 2em 2em 0; */
 }
 
@@ -256,7 +257,8 @@ button {
 }
 
 .contact__title {
-    color: #fff847;
+    /* color: #fff847; */
+    color: #eab308;
     font-family: "Rowdies", sans-serif;
 }
 
