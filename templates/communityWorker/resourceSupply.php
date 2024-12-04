@@ -324,12 +324,15 @@ $supplyResult = $supplyStmt->get_result();
                     </div>
 
                     <ul class="supply-filter">
-                        <li class="active" data-category-id="all">All</li>
-                        <?php foreach ($categories as $category): ?>
-                            <li data-category-id="<?php echo htmlspecialchars($category['id']); ?>">
-                                <?php echo htmlspecialchars($category['name']); ?>
-                            </li>
-                        <?php endforeach; ?>
+                        <div class="filter-list">
+                            <li class="active" data-category-id="all">All</li>
+                            <?php foreach ($categories as $category): ?>
+                                <li data-category-id="<?php echo htmlspecialchars($category['id']); ?>">
+                                    <?php echo htmlspecialchars($category['name']); ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </div>
+                        
                         <li class="addCategory" data-category-id="all" style="background-color: transparent;">
                             <label for="category-modal">
                                 <i class="fa-solid fa-ellipsis-vertical"></i>
