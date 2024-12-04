@@ -19,7 +19,9 @@
 
 .ecNavbar ul {
     display: flex;
-    justify-content: space-around;
+    /* justify-content: space-around; */
+    justify-content: center;
+    gap: 2em;
     flex-wrap: wrap;
     align-items: center;
     list-style: none;
