@@ -301,12 +301,14 @@ $supplyResult = $supplyStmt->get_result();
                     </div>
 
                     <ul class="supply-filter">
-                        <li class="active" data-category-id="all">All</li>
-                        <?php foreach ($categories as $category): ?>
-                            <li data-category-id="<?php echo htmlspecialchars($category['id']); ?>">
-                                <?php echo htmlspecialchars($category['name']); ?>
-                            </li>
-                        <?php endforeach; ?>
+                        <div class="filter-list">
+                            <li class="active" data-category-id="all">All</li>
+                            <?php foreach ($categories as $category): ?>
+                                <li data-category-id="<?php echo htmlspecialchars($category['id']); ?>">
+                                    <?php echo htmlspecialchars($category['name']); ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </div>
                     </ul>
 
                     <!-- popup supply add -->

@@ -59,6 +59,13 @@
     list-style: none;
     gap: 1em;
 
+    .filter-list {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 2em;
+    }
+
     li {
         padding: .5em 1em;
         /* border-right: 1px solid var(--clr-slate600);
