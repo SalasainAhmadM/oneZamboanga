@@ -91,8 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['message_type'] = "warning";
             }
 
-            // Retrieve the category_id for "Starter Kit" linked to the admin_id
-            $starterKitQuery = "SELECT id FROM category WHERE name = 'Starter Kit' AND admin_id = '$admin_id' LIMIT 1";
+            // Retrieve the category_id for "Starting Kit" linked to the admin_id
+            $starterKitQuery = "SELECT id FROM category WHERE name = 'Starting Kit' AND admin_id = '$admin_id' LIMIT 1";
             $starterKitResult = mysqli_query($conn, $starterKitQuery);
 
             if ($starterKitResult && mysqli_num_rows($starterKitResult) > 0) {
@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $_SESSION['message_type'] = "warning";
                 }
             } else {
-                $_SESSION['message'] = "Evacuation Center created, but Starter Kit category not found.";
+                $_SESSION['message'] = "Evacuation Center created, but Starting Kit category not found.";
                 $_SESSION['message_type'] = "warning";
             }
 
