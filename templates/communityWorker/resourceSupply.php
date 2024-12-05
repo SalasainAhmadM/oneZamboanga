@@ -328,7 +328,7 @@ $supplyResult = $supplyStmt->get_result();
                             <li class="active" data-category-id="all">All</li>
                             <?php
                             foreach ($categories as $index => $category):
-                                if ($category['name'] === 'Supply Kit'): ?>
+                                if ($category['name'] === 'Starting Kit'): ?>
                                     <li data-category-id="<?php echo htmlspecialchars($category['id']); ?>">
                                         <?php echo htmlspecialchars($category['name']); ?>
                                     </li>
@@ -471,7 +471,7 @@ $supplyResult = $supplyStmt->get_result();
                             </thead>
                             <tbody>
                                 <?php foreach ($categories as $category): ?>
-                                    <?php if ($category['name'] === 'Supply Kit')
+                                    <?php if ($category['name'] === 'Starting Kit')
                                         continue; ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($category['name']); ?></td>

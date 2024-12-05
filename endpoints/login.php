@@ -133,9 +133,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Redirect based on the user role
             if ($user['role'] === 'admin') {
-                // Ensure a "Supply Kit" category exists for this admin
+                // Ensure a "Starting Kit" category exists for this admin
                 $adminId = $user['id'];
-                $category = "Supply Kit";
+                $category = "Starting Kit";
 
                 // Check if the category already exists for the admin
                 $checkCategorySql = "SELECT 1 FROM category WHERE name = ? AND admin_id = ?";

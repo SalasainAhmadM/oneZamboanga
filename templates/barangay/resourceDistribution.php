@@ -303,12 +303,22 @@ $supplyResult = $supplyStmt->get_result();
                     <ul class="supply-filter">
                         <div class="filter-list">
                             <li class="active" data-category-id="all">All</li>
+                            <?php
+                            foreach ($categories as $key => $category) {
+                                if ($category['name'] === 'Starting Kit') {
+                                    echo '<li data-category-id="' . htmlspecialchars($category['id']) . '">' . htmlspecialchars($category['name']) . '</li>';
+                                    unset($categories[$key]);
+                                    break;
+                                }
+                            }
+                            ?>
                             <?php foreach ($categories as $category): ?>
                                 <li data-category-id="<?php echo htmlspecialchars($category['id']); ?>">
                                     <?php echo htmlspecialchars($category['name']); ?>
                                 </li>
                             <?php endforeach; ?>
                         </div>
+
                     </ul>
 
                     <!-- popup supply add -->
