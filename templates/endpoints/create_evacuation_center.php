@@ -91,26 +91,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['message_type'] = "warning";
             }
 
-            // Retrieve the category_id for "Supply Kit" linked to the admin_id
-            // $starterKitQuery = "SELECT id FROM category WHERE name = 'Supply Kit' AND admin_id = '$admin_id' LIMIT 1";
-            // $starterKitResult = mysqli_query($conn, $starterKitQuery);
+            // Retrieve the category_id for "Starter Kit" linked to the admin_id
+            $starterKitQuery = "SELECT id FROM category WHERE name = 'Starter Kit' AND admin_id = '$admin_id' LIMIT 1";
+            $starterKitResult = mysqli_query($conn, $starterKitQuery);
 
-            // if ($starterKitResult && mysqli_num_rows($starterKitResult) > 0) {
-            //     $starterKit = mysqli_fetch_assoc($starterKitResult);
-            //     $category_id = $starterKit['id'];
+            if ($starterKitResult && mysqli_num_rows($starterKitResult) > 0) {
+                $starterKit = mysqli_fetch_assoc($starterKitResult);
+                $category_id = $starterKit['id'];
 
-            //     // Insert a new supply entry
-            //     $supplyQuery = "INSERT INTO supply (name, description, quantity, original_quantity, unit, `from`, evacuation_center_id, category_id, date, time, approved) 
-            //         VALUES ('Starter Kit', 'Required before moving out.', 0, 0, 'pack', 'Barangay', '$evacuation_center_id', '$category_id', CURDATE(), CURTIME(), 1)";
+                // Insert a new supply entry
+                $supplyQuery = "INSERT INTO supply (name, description, quantity, original_quantity, unit, `from`, evacuation_center_id, category_id, date, time, approved) 
+                    VALUES ('Starter Kit', 'Required before moving out.', 0, 0, 'pack', 'Barangay', '$evacuation_center_id', '$category_id', CURDATE(), CURTIME(), 1)";
 
-            //     if (!mysqli_query($conn, $supplyQuery)) {
-            //         $_SESSION['message'] = "Evacuation Center created, but supply entry failed.";
-            //         $_SESSION['message_type'] = "warning";
-            //     }
-            // } else {
-            //     $_SESSION['message'] = "Evacuation Center created, but Supply Kit category not found.";
-            //     $_SESSION['message_type'] = "warning";
-            // }
+                if (!mysqli_query($conn, $supplyQuery)) {
+                    $_SESSION['message'] = "Evacuation Center created, but supply entry failed.";
+                    $_SESSION['message_type'] = "warning";
+                }
+            } else {
+                $_SESSION['message'] = "Evacuation Center created, but Starter Kit category not found.";
+                $_SESSION['message_type'] = "warning";
+            }
 
         } else {
             $_SESSION['message'] = "Error creating Evacuation Center.";
