@@ -91,38 +91,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if ($insertStmt->execute()) {
                             $newEvacueeId = $conn->insert_id;
 
-                            // Duplicate members associated with the evacuee
-                            $fetchMembersQuery = "SELECT first_name, middle_name, last_name, extension_name, relation, education, gender, age, occupation 
-                                                  FROM members WHERE evacuees_id = ?";
-                            $fetchMembersStmt = $conn->prepare($fetchMembersQuery);
-                            $fetchMembersStmt->bind_param("i", $evacuee_id);
-                            $fetchMembersStmt->execute();
-                            $fetchMembersResult = $fetchMembersStmt->get_result();
-
-                            if ($fetchMembersResult->num_rows > 0) {
-                                $insertMemberQuery = "INSERT INTO members (first_name, middle_name, last_name, extension_name, relation, education, gender, age, occupation, evacuees_id)
-                                                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                                $insertMemberStmt = $conn->prepare($insertMemberQuery);
-
-                                while ($member = $fetchMembersResult->fetch_assoc()) {
-                                    $insertMemberStmt->bind_param(
-                                        "sssssssisi",
-                                        $member['first_name'],
-                                        $member['middle_name'],
-                                        $member['last_name'],
-                                        $member['extension_name'],
-                                        $member['relation'],
-                                        $member['education'],
-                                        $member['gender'],
-                                        $member['age'],
-                                        $member['occupation'],
-                                        $newEvacueeId
-                                    );
-
-                                    $insertMemberStmt->execute();
-                                }
-                            }
-
                             // Log the transfer for the new evacuee
                             $newLogMsg = "Requesting transfer to $centerName";
                             $newLogQuery = "INSERT INTO evacuees_log (log_msg, status, evacuees_id) VALUES (?, ?, ?)";
@@ -140,7 +108,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'message' => 'Failed to insert new evacuee record.'
                             ]);
                         }
-
                     } else {
                         echo json_encode([
                             'success' => false,
