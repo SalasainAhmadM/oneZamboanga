@@ -289,7 +289,7 @@ if (isset($_GET['id'])) {
                                                     confirmButtonColor: "#3085d6"
                                                 }).then(() => {
                                                     // Redirect or reload page
-                                                    window.location.href = 'viewProfile.php?id=<?php echo $admin_id; ?>';
+                                                    window.location.href = `viewProfile.php?id=${formData.get('admin_id')}`;
                                                 });
                                             } else {
                                                 Swal.fire({
@@ -312,6 +312,7 @@ if (isset($_GET['id'])) {
                                 }
                             });
                         });
+
                     </script>
 
 
@@ -353,55 +354,6 @@ if (isset($_GET['id'])) {
 
     </div>
     <script>
-        document.getElementById('save').addEventListener('click', function (event) {
-            event.preventDefault();
-
-            Swal.fire({
-                title: 'Save Changes?',
-                text: "Are you sure you want to save your changes?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Confirm',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Collect form data
-                    const formData = new FormData();
-                    formData.append('first_name', document.getElementById('first_name').value);
-                    formData.append('middle_name', document.getElementById('middle_name').value);
-                    formData.append('last_name', document.getElementById('last_name').value);
-                    formData.append('extension_name', document.getElementById('extension_name').value);
-                    formData.append('email', document.getElementById('email').value);
-
-                    // Add the image file to formData
-                    const imageFile = document.getElementById('image').files[0];
-                    if (imageFile) {
-                        formData.append('image', imageFile);
-                    }
-
-                    // Send AJAX request
-                    fetch('../endpoints/update_superadmin_profile.php', {
-                        method: 'POST',
-                        body: formData
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                Swal.fire('Saved!', 'Your changes have been saved.', 'success');
-                            } else {
-                                Swal.fire('Error!', data.message || 'Something went wrong.', 'error');
-                            }
-                        })
-                        .catch(error => {
-                            Swal.fire('Error!', 'Failed to update profile.', 'error');
-                            console.error('Error:', error);
-                        });
-                }
-            });
-        });
-
 
     </script>
 
