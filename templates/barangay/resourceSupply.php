@@ -319,13 +319,25 @@ $supplyResult = $supplyStmt->get_result();
 
                         <div class="filter-list">
                             <li class="active" data-category-id="all">All</li>
+                            <?php
+                            foreach ($categories as $index => $category):
+                                if ($category['name'] === 'Supply Kit'): ?>
+                                    <li data-category-id="<?php echo htmlspecialchars($category['id']); ?>">
+                                        <?php echo htmlspecialchars($category['name']); ?>
+                                    </li>
+                                    <?php
+                                    unset($categories[$index]);
+                                    break;
+                                endif;
+                            endforeach;
+                            ?>
                             <?php foreach ($categories as $category): ?>
                                 <li data-category-id="<?php echo htmlspecialchars($category['id']); ?>">
                                     <?php echo htmlspecialchars($category['name']); ?>
                                 </li>
                             <?php endforeach; ?>
                         </div>
-                        
+
                         <li class="addCategory" data-category-id="all" style="background-color: transparent;">
                             <label for="category-modal">
                                 <i class="fa-solid fa-ellipsis-vertical"></i>
@@ -450,6 +462,8 @@ $supplyResult = $supplyStmt->get_result();
                             </thead>
                             <tbody>
                                 <?php foreach ($categories as $category): ?>
+                                    <?php if ($category['name'] === 'Supply Kit')
+                                        continue; ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($category['name']); ?></td>
                                         <td>

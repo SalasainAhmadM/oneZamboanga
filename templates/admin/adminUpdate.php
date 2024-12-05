@@ -20,44 +20,45 @@ if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 
 $_SESSION['LAST_ACTIVITY'] = time();
 
 // Validate session role
-validateSession('admin');
+validateSession('superadmin');
 
 if (isset($_GET['id'])) {
-    $worker_id = $_GET['id'];
+    $admin_id = $_GET['id'];
 
-    // Fetch the worker's details based on their ID
-    $worker_query = "SELECT first_name, middle_name, last_name, extension_name, email, image, city, barangay, 
+    // Fetch the admin's details based on their ID
+    $admin_query = "SELECT first_name, middle_name, last_name, extension_name, email, image, city, barangay, 
                      contact, gender, position, proof_image 
-                     FROM worker 
+                     FROM admin 
                      WHERE id = ?";
-    $worker_stmt = $conn->prepare($worker_query);
-    $worker_stmt->bind_param("i", $worker_id);
-    $worker_stmt->execute();
-    $worker_result = $worker_stmt->get_result();
+    $admin_stmt = $conn->prepare($admin_query);
+    $admin_stmt->bind_param("i", $admin_id);
+    $admin_stmt->execute();
+    $admin_result = $admin_stmt->get_result();
 
-    // Check if the worker exists
-    if ($worker_result->num_rows > 0) {
-        $worker = $worker_result->fetch_assoc();
+    // Check if the admin exists
+    if ($admin_result->num_rows > 0) {
+        $admin = $admin_result->fetch_assoc();
 
-        // Define variables for worker's details
-        $worker_name = trim($worker['first_name'] . ' ' . $worker['middle_name'] . ' ' . $worker['last_name'] . ' ' . $worker['extension_name']);
-        $worker_image = !empty($worker['image']) ? htmlspecialchars($worker['image']) : "../../assets/img/undraw_male_avatar_g98d.svg";
-        $address = htmlspecialchars($worker['city']);
-        $gender = htmlspecialchars($worker['gender']);
-        $barangay = htmlspecialchars($worker['barangay']);
-        $contact = htmlspecialchars($worker['contact']);
-        $email = htmlspecialchars($worker['email']);
-        $position = htmlspecialchars($worker['position']);
-        $proof_image = htmlspecialchars($worker['proof_image']);
+        // Define variables for admin's details
+        $admin_name = trim($admin['first_name'] . ' ' . $admin['middle_name'] . ' ' . $admin['last_name'] . ' ' . $admin['extension_name']);
+        $admin_image = !empty($admin['image']) ? htmlspecialchars($admin['image']) : "../../assets/img/undraw_male_avatar_g98d.svg";
+        $address = htmlspecialchars($admin['city']);
+        $gender = htmlspecialchars($admin['gender']);
+        $barangay = htmlspecialchars($admin['barangay']);
+        $contact = htmlspecialchars($admin['contact']);
+        $email = htmlspecialchars($admin['email']);
+        $position = htmlspecialchars($admin['position']);
+        $proof_image = htmlspecialchars($admin['proof_image']);
     } else {
-        echo "Worker not found.";
+        echo "admin not found.";
         exit;
     }
 } else {
-    echo "No worker ID provided.";
+    echo "No admin ID provided.";
     exit;
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -66,6 +67,7 @@ if (isset($_GET['id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="icon" href="../../assets/img/zambo.png">
+
     <!--Font Awesome-->
     <link rel="stylesheet" href="../../assets/fontawesome/all.css">
     <link rel="stylesheet" href="../../assets/fontawesome/fontawesome.min.css">
@@ -109,19 +111,7 @@ if (isset($_GET['id'])) {
                 <img src="../../assets/img/zambo.png" alt="">
             </div>
 
-            <div class="logout">
-                <!-- <h5>Barangay Name or idk</h5> -->
-                <div class="link">
-                    <a href="login.php">
-                        <p>Click to <b>Logout</b></p>
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                    </a>
-                </div>
-
-            </div>
-            <a class="logout logout-icon" href="login.php">
-                <i class="fa-solid fa-right-from-bracket"></i>
-            </a>
+            <special-logout></special-logout>
 
         </aside>
 
@@ -133,13 +123,12 @@ if (isset($_GET['id'])) {
                 <!-- <h5>Hello <b>Mark</b>, welcome back!</h5> -->
                 <div class="separator">
                     <div class="info">
-
                         <div class="info-header">
-                            <a href="personnelPage.php">Accounts</a>
+                            <a href="#">Admin Profile</a>
 
                             <!-- next page -->
-                            <i class="fa-solid fa-chevron-right"></i>
-                            <a href="workersProfile.php">Profile</a>
+                            <!-- <i class="fa-solid fa-chevron-right"></i>
+                            <a href="#">Tetuan Evacuation Centers</a> -->
                         </div>
 
 
@@ -158,137 +147,95 @@ if (isset($_GET['id'])) {
                     <div class="profile-left">
                         <div class="left-wrapper">
 
-                            <div class="profileOption active" id="profile">
+                            <!-- <div class="profileOption" id="profile">
                                 <i class="fa-regular fa-user"></i>
-                                <p>Profile</p>
-                            </div>
+                                <p>My Profile</p>
+                            </div> -->
 
-
-                            <div class="profileOption" id="edit">
+                            <div class="profileOption active" id="edit">
                                 <i class="fa-regular fa-pen-to-square"></i>
-                                <p>Edit Profile</p>
+                                <p>Edit Admin Profile</p>
                             </div>
-
-                            <div class="profileOption" id="deleteWorker"
-                                onclick="confirmDelete(<?php echo $worker_id; ?>)">
-                                <i class="fa-solid fa-trash"></i>
-                                <p>Delete</p>
-                            </div>
-
 
                             <!-- <div class="profileOption" id="password">
-                                <i class="fa-solid fa-lock"></i>
-                                <p>Change Password</p>
+                                <i class="fa-solid fa-gear"></i>
+                                <p>Settings</p>
                             </div> -->
                         </div>
                     </div>
 
 
-                    <!-- ======myProfile====== -->
+
+
                     <div class="profile-right" id="myProfile">
-                        <h2><?php echo $worker_name; ?></h2>
+                        <h2>Edit Admin Profile</h2>
 
-                        <div class="right-wrapper">
-                            <img src="<?php echo $worker_image; ?>" alt="Profile Image">
-
-                            <ul class="profileDetails">
-                                <li>
-                                    <p>Address: <span><?php echo $address; ?></span></p>
-                                </li>
-                                <li>
-                                    <p>Gender: <span><?php echo $gender; ?></span></p>
-                                </li>
-                                <li>
-                                    <p>Barangay: <span><?php echo $barangay; ?></span></p>
-                                </li>
-                                <li>
-                                    <p>Contact Information: <span><?php echo $contact; ?></span></p>
-                                </li>
-                                <li>
-                                    <p>Email: <span><?php echo $email; ?></span></p>
-                                </li>
-                                <li>
-                                    <p>Position: <span><?php echo $position; ?></span></p>
-                                </li>
-                            </ul>
-
-                            <button id="openProof">Proof of Appointment</button>
-                        </div>
-
-                        <div class="proof">
-                            <i class="fa-solid fa-xmark" id="closeProof"></i>
-                            <img src="<?php echo $proof_image; ?>" alt="Proof Image">
-                        </div>
-                    </div>
-
-                    <div class="profile-right" id="editProfile">
-                        <h2>Edit Worker Profile</h2>
-
-                        <form id="editProfileForm" action="../endpoints/update_worker.php" method="POST"
+                        <form id="editProfileForm" action="../endpoints/update_admin.php" method="POST"
                             class="editProfile-container" enctype="multipart/form-data">
-                            <input type="hidden" name="worker_id" value="<?php echo $worker_id; ?>">
+                            <input type="hidden" name="admin_id" value="<?php echo $admin_id; ?>">
 
                             <div class="inputProfile-wrapper">
                                 <div class="inputProfile">
                                     <label for="last_name">Last Name</label>
                                     <input type="text" name="last_name"
-                                        value="<?php echo htmlspecialchars($worker['last_name']); ?>" required>
+                                        value="<?php echo htmlspecialchars($admin['last_name']); ?>" required>
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="first_name">First Name</label>
                                     <input type="text" name="first_name"
-                                        value="<?php echo htmlspecialchars($worker['first_name']); ?>" required>
+                                        value="<?php echo htmlspecialchars($admin['first_name']); ?>" required>
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="middle_name">Middle Name</label>
                                     <input type="text" name="middle_name"
-                                        value="<?php echo htmlspecialchars($worker['middle_name']); ?>">
+                                        value="<?php echo htmlspecialchars($admin['middle_name']); ?>">
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="extension_name">Extension Name</label>
                                     <input type="text" name="extension_name"
-                                        value="<?php echo htmlspecialchars($worker['extension_name']); ?>">
+                                        value="<?php echo htmlspecialchars($admin['extension_name']); ?>">
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="gender">Gender</label>
                                     <select name="gender" required>
-                                        <option value="Male" <?php echo $worker['gender'] === 'Male' ? 'selected' : ''; ?>>Male</option>
-                                        <option value="Female" <?php echo $worker['gender'] === 'Female' ? 'selected' : ''; ?>>Female</option>
+                                        <option value="Male" <?php echo $admin['gender'] === 'Male' ? 'selected' : ''; ?>>
+                                            Male</option>
+                                        <option value="Female" <?php echo $admin['gender'] === 'Female' ? 'selected' : ''; ?>>Female</option>
                                     </select>
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="city">Full Address</label>
                                     <input type="text" name="city"
-                                        value="<?php echo htmlspecialchars($worker['city']); ?>" required>
+                                        value="<?php echo htmlspecialchars($admin['city']); ?>" required>
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="barangay">Barangay</label>
                                     <input type="text" name="barangay"
-                                        value="<?php echo htmlspecialchars($worker['barangay']); ?>" required>
+                                        value="<?php echo htmlspecialchars($admin['barangay']); ?>" required>
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="contact">Contact Information</label>
                                     <input type="text" name="contact"
-                                        value="<?php echo htmlspecialchars($worker['contact']); ?>" required>
+                                        value="<?php echo htmlspecialchars($admin['contact']); ?>" required>
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="email">Email</label>
                                     <input type="email" name="email"
-                                        value="<?php echo htmlspecialchars($worker['email']); ?>" required>
+                                        value="<?php echo htmlspecialchars($admin['email']); ?>" required>
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="position">Position</label>
                                     <input type="text" name="position"
-                                        value="<?php echo htmlspecialchars($worker['position']); ?>" required>
+                                        value="<?php echo htmlspecialchars($admin['position']); ?>" required>
                                 </div>
 
                                 <div class="inputProfile">
@@ -300,6 +247,12 @@ if (isset($_GET['id'])) {
                                     <label for="proof_image">Proof of Appointment</label>
                                     <input type="file" name="proof_image" accept="image/*">
                                 </div>
+
+                                <div class="inputProfile">
+                                    <label for="barangay_logo">Barangay Logo</label>
+                                    <input type="file" name="barangay_logo" accept="image/*">
+                                </div>
+
                             </div>
 
                             <button type="button" class="mainBtn" id="save">Save</button>
@@ -336,7 +289,7 @@ if (isset($_GET['id'])) {
                                                     confirmButtonColor: "#3085d6"
                                                 }).then(() => {
                                                     // Redirect or reload page
-                                                    window.location.href = 'workersProfile.php?id=<?php echo $worker_id; ?>';
+                                                    window.location.href = 'viewProfile.php?id=<?php echo $admin_id; ?>';
                                                 });
                                             } else {
                                                 Swal.fire({
@@ -364,32 +317,34 @@ if (isset($_GET['id'])) {
 
 
 
-
                     <!-- ======change password====== -->
-                    <div class="profile-right" id="passProfile">
-                        <h2>Change Password</h2>
+                    <!-- <div class="profile-right" id="passProfile">
+                        <h2>Settings</h2>
 
                         <form action="" class="passProfile-container">
                             <div class="inputProfile-wrapper">
-
                                 <div class="inputProfile">
-                                    <label for="">New Password</label>
-                                    <input type="password">
+                                    <label for="new_password">New Password</label>
+                                    <input type="password" id="new_password">
                                 </div>
 
                                 <div class="inputProfile">
-                                    <label for="">Confirm Password</label>
-                                    <input type="text">
+                                    <label for="confirm_password">Confirm Password</label>
+                                    <input type="password" id="confirm_password">
                                 </div>
 
-
+                                <div class="inputProfile">
+                                    <label for="username">Change username</label>
+                                    <input type="text" id="username"
+                                        value="<?php echo htmlspecialchars($admin['username']); ?>">
+                                </div>
                             </div>
 
-                            <button class="mainBtn" id="save" style="margin-top: 1em;">Save</button>
-
+                            <button class="mainBtn" id="save_settings" style="margin-top: 1em;">Save</button>
                         </form>
 
-                    </div>
+
+                    </div> -->
 
 
                 </div>
@@ -397,72 +352,70 @@ if (isset($_GET['id'])) {
         </main>
 
     </div>
-
     <script>
+        document.getElementById('save').addEventListener('click', function (event) {
+            event.preventDefault();
 
-
-
-
-        function confirmDelete(workerId) {
-            // SweetAlert confirmation
             Swal.fire({
-                title: "Are you sure?",
-                text: "Do you really want to delete this worker? This action cannot be undone.",
-                icon: "warning",
+                title: 'Save Changes?',
+                text: "Are you sure you want to save your changes?",
+                icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: "#d33",
-                cancelButtonColor: "#3085d6",
-                confirmButtonText: "Yes, delete it!",
-                cancelButtonText: "Cancel"
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Confirm',
+                cancelButtonText: 'Cancel'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // If confirmed, send AJAX request to delete worker
-                    fetch(`../endpoints/delete_worker.php?id=${workerId}`, {
-                        method: 'GET'
+                    // Collect form data
+                    const formData = new FormData();
+                    formData.append('first_name', document.getElementById('first_name').value);
+                    formData.append('middle_name', document.getElementById('middle_name').value);
+                    formData.append('last_name', document.getElementById('last_name').value);
+                    formData.append('extension_name', document.getElementById('extension_name').value);
+                    formData.append('email', document.getElementById('email').value);
+
+                    // Add the image file to formData
+                    const imageFile = document.getElementById('image').files[0];
+                    if (imageFile) {
+                        formData.append('image', imageFile);
+                    }
+
+                    // Send AJAX request
+                    fetch('../endpoints/update_superadmin_profile.php', {
+                        method: 'POST',
+                        body: formData
                     })
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                Swal.fire({
-                                    title: "Deleted!",
-                                    text: "The worker has been deleted.",
-                                    icon: "success",
-                                    confirmButtonColor: "#3085d6"
-                                }).then(() => {
-                                    window.location.href = 'personnelPage.php';
-                                });
+                                Swal.fire('Saved!', 'Your changes have been saved.', 'success');
                             } else {
-                                Swal.fire({
-                                    title: "Error",
-                                    text: "Failed to delete the worker.",
-                                    icon: "error",
-                                    confirmButtonColor: "#3085d6"
-                                });
+                                Swal.fire('Error!', data.message || 'Something went wrong.', 'error');
                             }
                         })
                         .catch(error => {
-                            console.error("Error:", error);
-                            Swal.fire({
-                                title: "Error",
-                                text: "An error occurred while trying to delete the worker.",
-                                icon: "error",
-                                confirmButtonColor: "#3085d6"
-                            });
+                            Swal.fire('Error!', 'Failed to update profile.', 'error');
+                            console.error('Error:', error);
                         });
                 }
             });
-        }
+        });
+
+
     </script>
 
-
     <!-- sidebar import js -->
-    <script src="../../includes/bgSidebar.js"></script>
+    <script src="../../includes/sidebar.js"></script>
+
+    <!-- import logo -->
+    <script src="../../includes/logo.js"></script>
 
     <!-- sidebar menu -->
     <script src="../../assets/src/utils/menu-btn.js"></script>
 
-    <!-- import logo -->
-    <script src="../../includes/logo.js"></script>
+    <!-- import logout -->
+    <script src="../../includes/logout.js"></script>
 
 
     <!-- pop up add form -->
@@ -471,7 +424,7 @@ if (isset($_GET['id'])) {
 
     <script>
         // Select all profileOption elements
-        const profileOptions = document.querySelectorAll('.profileOption');
+        const profileOptions = document.querySelectorAll('.editProfile');
 
         // Function to handle click event
         profileOptions.forEach(option => {
@@ -489,19 +442,17 @@ if (isset($_GET['id'])) {
 
     <!-- profile options -->
     <script>
-        const profileBtn = document.getElementById('profile')
         const editBtn = document.getElementById('edit');
         const passBtn = document.getElementById('password');
-        const myProfile = document.getElementById('myProfile');
         const editProfile = document.getElementById('editProfile');
         const passProfile = document.getElementById('passProfile');
 
         // show profile
-        profileBtn.addEventListener('click', function () {
-            myProfile.style.display = 'block';
-            editProfile.style.display = 'none';
-            passProfile.style.display = 'none';
-        });
+        // profileBtn.addEventListener('click', function () {
+        //     myProfile.style.display = 'block';
+        //     editProfile.style.display = 'none';
+        //     passProfile.style.display = 'none';
+        // });
 
         // show edit
         editBtn.addEventListener('click', function () {
@@ -538,17 +489,7 @@ if (isset($_GET['id'])) {
     </script>
 
 
-
-    <!-- sweetalert popup messagebox add form-->
-    <script>
-
-    </script>
-
-
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
-
 
 </body>
 

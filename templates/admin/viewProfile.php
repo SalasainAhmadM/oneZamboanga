@@ -170,7 +170,10 @@ $admin_status = $row['status'];
                                 <?php } else { ?>
                                     <a href="javascript:void(0);" onclick="showActiveAdminWarning()">Delete</a>
                                 <?php } ?>
+                                <a href="adminUpdate.php?id=<?php echo $admin_id; ?>">Edit</a>
                             </div>
+
+
                         </div>
 
                     </div>

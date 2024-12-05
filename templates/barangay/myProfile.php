@@ -229,24 +229,24 @@ $proof_image = !empty($admin['proof_image']) ? $admin['proof_image'] : "../../as
                                 <div class="inputProfile">
                                     <label for="last_name">Last Name</label>
                                     <input type="text" id="last_name" class="last_name" name="last_name"
-                                        value="<?php echo htmlspecialchars($last_name); ?>">
+                                        value="<?php echo htmlspecialchars($last_name); ?>" readonly>
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="first_name">First Name</label>
                                     <input type="text" id="first_name" class="first_name" name="first_name"
-                                        value="<?php echo htmlspecialchars($first_name); ?>">
+                                        value="<?php echo htmlspecialchars($first_name); ?>" readonly>
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="middle_name">Middle Name</label>
                                     <input type="text" id="middle_name" class="middle_name" name="middle_name"
-                                        value="<?php echo htmlspecialchars($middle_name); ?>">
+                                        value="<?php echo htmlspecialchars($middle_name); ?>" readonly>
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="extension_name">Extension Name</label>
-                                    <select id="extension_name" class="extension_name" name="extension_name">
+                                    <select id="extension_name" class="extension_name" name="extension_name" disabled>
                                         <option value="" <?php echo ($extension_name === "") ? 'selected' : ''; ?>>
                                             None</option>
                                         <option value="Jr." <?php echo ($extension_name === "Jr.") ? 'selected' : ''; ?>>
@@ -266,7 +266,7 @@ $proof_image = !empty($admin['proof_image']) ? $admin['proof_image'] : "../../as
 
                                 <div class="inputProfile">
                                     <label for="gender">Gender</label>
-                                    <select name="gender" id="gender" class="gender">
+                                    <select name="gender" id="gender" class="gender" disabled>
                                         <option value="" <?php echo empty($admin['gender']) ? 'selected' : ''; ?>>Select
                                         </option>
                                         <option value="Male" <?php echo ($admin['gender'] === 'Male') ? 'selected' : ''; ?>>Male</option>
@@ -277,21 +277,21 @@ $proof_image = !empty($admin['proof_image']) ? $admin['proof_image'] : "../../as
                                 <div class="inputProfile">
                                     <label for="city">City/Province</label>
                                     <input type="text" id="city" class="city" name="city"
-                                        value="<?php echo htmlspecialchars($admin['city']); ?>">
+                                        value="<?php echo htmlspecialchars($admin['city']); ?>" readonly>
                                 </div>
 
                                 <div class="inputProfile">
                                     <label for="barangay">Barangay</label>
                                     <input type="text" name="barangay" id="barangay" class="barangay"
                                         value="<?php echo htmlspecialchars($admin['barangay']); ?>"
-                                        placeholder="Enter Barangay" required>
+                                        placeholder="Enter Barangay" required readonly>
                                 </div>
 
 
                                 <div class="inputProfile">
                                     <label for="contact">Contact Information</label>
                                     <input type="number" id="contact" class="contact" name="contact"
-                                        value="<?php echo htmlspecialchars($admin['contact']); ?>">
+                                        value="<?php echo htmlspecialchars($admin['contact']); ?>" readonly>
                                 </div>
 
                                 <div class="inputProfile">
@@ -303,7 +303,7 @@ $proof_image = !empty($admin['proof_image']) ? $admin['proof_image'] : "../../as
                                 <div class="inputProfile">
                                     <label for="position">Position</label>
                                     <input type="text" id="position" class="position" name="position"
-                                        value="<?php echo htmlspecialchars($admin['position']); ?>">
+                                        value="<?php echo htmlspecialchars($admin['position']); ?>" readonly>
                                 </div>
 
                                 <div class="inputProfile">

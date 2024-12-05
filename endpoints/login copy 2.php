@@ -133,24 +133,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Redirect based on the user role
             if ($user['role'] === 'admin') {
-                // Ensure a "Supply Kit" category exists for this admin
-                $adminId = $user['id'];
-                $category = "Supply Kit";
-
-                // Check if the category already exists for the admin
-                $checkCategorySql = "SELECT 1 FROM category WHERE name = ? AND admin_id = ?";
-                $checkCategoryStmt = $conn->prepare($checkCategorySql);
-                $checkCategoryStmt->bind_param("si", $category, $adminId);
-                $checkCategoryStmt->execute();
-                $checkCategoryResult = $checkCategoryStmt->get_result();
-
-                if ($checkCategoryResult->num_rows === 0) {
-                    // Prepare the SQL query to insert the new category
-                    $insertCategorySql = "INSERT INTO category (name, admin_id) VALUES (?, ?)";
-                    $insertCategoryStmt = $conn->prepare($insertCategorySql);
-                    $insertCategoryStmt->bind_param("si", $category, $adminId);
-                    $insertCategoryStmt->execute();
-                }
                 header("Location: ../templates/barangay/dashboard_barangay.php");
             } elseif ($user['role'] === 'superadmin') {
                 header("Location: ../templates/admin/dashboard.php");

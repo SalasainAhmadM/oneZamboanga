@@ -106,7 +106,13 @@ $distributeQuery = "
         distribute.evacuees_id,
         DATE_FORMAT(distribute.date, '%m-%d-%Y') AS date,
         DATE_FORMAT(distribute.date, '%h:%i %p') AS time,
-        CONCAT('-', distribute.quantity, ' pcs') AS quantity,
+        CASE 
+            WHEN supply.unit = 'piece' AND distribute.quantity <= 1 THEN CONCAT(distribute.quantity, ' piece')
+            WHEN supply.unit = 'piece' AND distribute.quantity > 1 THEN CONCAT(distribute.quantity, ' pieces')
+            WHEN supply.unit = 'pack' AND distribute.quantity <= 1 THEN CONCAT(distribute.quantity, ' pack')
+            WHEN supply.unit = 'pack' AND distribute.quantity > 1 THEN CONCAT(distribute.quantity, ' packs')
+            ELSE CONCAT(distribute.quantity, ' units')
+        END AS quantity,
         CASE 
             WHEN distribute.distributor_type = 'admin' THEN CONCAT(admin.first_name, ' ', admin.middle_name, ' ', admin.last_name)
             WHEN distribute.distributor_type = 'worker' THEN CONCAT(worker.first_name, ' ', worker.middle_name, ' ', worker.last_name)
@@ -117,6 +123,7 @@ $distributeQuery = "
     LEFT JOIN admin ON distribute.distributor_id = admin.id AND distribute.distributor_type = 'admin'
     LEFT JOIN worker ON distribute.distributor_id = worker.id AND distribute.distributor_type = 'worker'
     LEFT JOIN evacuees ON distribute.evacuees_id = evacuees.id
+    LEFT JOIN supply ON distribute.supply_id = supply.id
     WHERE distribute.supply_id = ?
 ";
 $distributeStmt = $conn->prepare($distributeQuery);
@@ -539,7 +546,7 @@ $distributeResult = $distributeStmt->get_result();
                                                     echo "<td>" . htmlspecialchars($distributeRow['distributed_to']) . "</td>";
                                                     echo "<td>" . htmlspecialchars($distributeRow['date']) . "</td>";
                                                     echo "<td>" . htmlspecialchars($distributeRow['time']) . "</td>";
-                                                    echo "<td>" . htmlspecialchars($distributeRow['quantity']) . "</td>";
+                                                    echo "<td>" . '-' . htmlspecialchars($distributeRow['quantity']) . "</td>";
                                                     echo "</tr>";
                                                 }
                                             } else {
