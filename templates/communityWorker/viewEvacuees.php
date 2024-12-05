@@ -457,9 +457,9 @@ while ($center = $otherCentersResult->fetch_assoc()) {
         <label for="centerSelect">Select a new evacuation center:</label>
         <select id="centerSelect" class="swal2-select" style="width: 400px; font-size: 14px;">
             <?php foreach ($otherCenters as $center): ?>
-                                            <option value="<?= $center['id']; ?>" <?= $center['capacity'] <= $center['evacuees_count'] ? 'disabled' : ''; ?>>
-                                                <?= htmlspecialchars($center['name'] . ' (Evacuees: ' . $center['evacuees_count'] . '/' . $center['capacity'] . ')'); ?>
-                                            </option>
+                                                                                                            <option value="<?= $center['id']; ?>" <?= $center['capacity'] <= $center['evacuees_count'] ? 'disabled' : ''; ?>>
+                                                                                                                <?= htmlspecialchars($center['name'] . ' (Evacuees: ' . $center['evacuees_count'] . '/' . $center['capacity'] . ')'); ?>
+                                                                                                            </option>
             <?php endforeach; ?>
         </select>
     `,
@@ -484,17 +484,20 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                     Swal.fire({
                         title: 'Transfer to Other Barangay',
                         html: `
-                <label for="barangaySelect">Select a Barangay:</label>
-                <select id="barangaySelect" class="swal2-select" style="width: 400px;">
-                    <option value="" disabled selected>Select a Barangay</option>
-                    <?php foreach ($admins as $admin): ?>
-                                                                        <option value="<?= $admin['id']; ?>"><?= htmlspecialchars($admin['barangay']); ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <label for="centerSelect">Select an Evacuation Center:</label>
-                <select id="centerSelect" class="swal2-select" style="width: 400px; font-size: 14px;" disabled>
-                    <option value="" disabled selected>Select a Barangay first</option>
-                </select>
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px;">
+    <label for="barangaySelect">Select a Barangay:</label>
+    <select id="barangaySelect" class="swal2-select" style="width: 400px;">
+        <option value="" disabled selected>Select a Barangay</option>
+        <?php foreach ($admins as $admin): ?> <option value="<?= $admin['id']; ?>"><?= htmlspecialchars($admin['barangay']); ?></option>
+        <?php endforeach; ?>
+    </select>
+
+    <label for="centerSelect">Select an Evacuation Center:</label>
+    <select id="centerSelect" class="swal2-select" style="width: 400px; font-size: 14px;" disabled>
+        <option value="" disabled selected>Select a Barangay first</option>
+    </select>
+</div>
+
                 `,
                         showCancelButton: true,
                         confirmButtonText: 'Transfer',
@@ -565,7 +568,7 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                 if (data.success) {
                     Swal.fire('Success!', 'Evacuee transfer to the new barangay successfull and is pending for approval.', 'success')
                         .then(() => {
-                            window.location.href = `evacueesPage.php?id=${centerId}&worker_id=<?php echo $workerId; ?>`;
+                            window.location.href = `evacueesPage.php?id=<?php echo $centerId; ?>&worker_id=<?php echo $workerId; ?>`;
                         });
                 } else {
                     Swal.fire('Error!', data.message, 'error');
