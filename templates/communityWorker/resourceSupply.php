@@ -51,12 +51,23 @@ while ($row = $categoryResult->fetch_assoc()) {
 
 // Fetch supplies associated with the evacuation center, including the dynamic `quantity` calculation
 $supplySql = "
-    SELECT s.id, s.name, s.description, s.quantity, s.original_quantity, s.unit, s.image, s.category_id,
-           (s.quantity + COALESCE(SUM(st.quantity), 0)) AS total_quantity
+    SELECT 
+        s.id, 
+        s.name, 
+        s.description, 
+        s.quantity AS supply_quantity, 
+        s.original_quantity AS supply_original_quantity, 
+        s.unit, 
+        s.image, 
+        s.category_id, 
+        s.approved,
+        (s.quantity + COALESCE(SUM(st.quantity), 0)) AS total_quantity,
+        (s.original_quantity + COALESCE(SUM(st.original_quantity), 0)) AS total_original_quantity
     FROM supply s
     LEFT JOIN stock st ON s.id = st.supply_id
-    WHERE s.evacuation_center_id = ? AND s.approved = 1
-    GROUP BY s.id";
+    WHERE s.evacuation_center_id = ?
+    GROUP BY s.id
+    ORDER BY s.approved ASC, s.name ASC";
 
 $supplyStmt = $conn->prepare($supplySql);
 $supplyStmt->bind_param("i", $evacuationCenterId);
@@ -498,8 +509,8 @@ $supplyResult = $supplyStmt->get_result();
                         <?php if ($supplyResult->num_rows > 0): ?>
                             <?php while ($supply = $supplyResult->fetch_assoc()): ?>
                                 <?php
-                                $currentQuantity = $supply['quantity'];
-                                $originalQuantity = $supply['original_quantity'];
+                                $currentQuantity = $supply['total_quantity'];
+                                $originalQuantity = $supply['total_original_quantity'];
 
                                 // Determine color status
                                 if ($currentQuantity == 0) {
@@ -511,7 +522,6 @@ $supplyResult = $supplyStmt->get_result();
                                 } else {
                                     $statusColor = "yellow";
                                 }
-
                                 $imagePath = !empty($supply['image']) ? "../../assets/img/" . htmlspecialchars($supply['image']) : "../../assets/img/supplies.png";
                                 ?>
                                 <div class="supply-card" data-category="<?php echo htmlspecialchars($supply['category_id']); ?>"
@@ -525,7 +535,7 @@ $supplyResult = $supplyStmt->get_result();
                                         <li>Name: <?php echo htmlspecialchars($supply['name']); ?></li>
                                         <li>Description: <?php echo htmlspecialchars($supply['description']); ?></li>
                                         <li>Quantity:
-                                            <?php echo htmlspecialchars($supply['quantity']) . ' ' . htmlspecialchars($supply['unit']); ?>s
+                                            <?php echo htmlspecialchars($supply['total_quantity']) . ' ' . htmlspecialchars($supply['unit']); ?>s
                                         </li>
                                     </ul>
                                     <a href="viewSupply.php?id=<?php echo htmlspecialchars($supply['id']); ?>&center_id=<?php echo htmlspecialchars($evacuationCenterId); ?>&worker_id=<?php echo htmlspecialchars($workerId); ?>"

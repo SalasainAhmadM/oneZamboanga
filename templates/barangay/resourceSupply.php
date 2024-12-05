@@ -48,13 +48,24 @@ while ($row = $categoryResult->fetch_assoc()) {
 
 // Fetch supplies associated with the evacuation center, including the dynamic `quantity` calculation
 $supplySql = "
-    SELECT s.id, s.name, s.description, s.quantity, s.original_quantity, s.unit, s.image, s.category_id, s.approved,
-           (s.quantity + COALESCE(SUM(st.quantity), 0)) AS total_quantity
+    SELECT 
+        s.id, 
+        s.name, 
+        s.description, 
+        s.quantity AS supply_quantity, 
+        s.original_quantity AS supply_original_quantity, 
+        s.unit, 
+        s.image, 
+        s.category_id, 
+        s.approved,
+        (s.quantity + COALESCE(SUM(st.quantity), 0)) AS total_quantity,
+        (s.original_quantity + COALESCE(SUM(st.original_quantity), 0)) AS total_original_quantity
     FROM supply s
     LEFT JOIN stock st ON s.id = st.supply_id
     WHERE s.evacuation_center_id = ?
     GROUP BY s.id
     ORDER BY s.approved ASC, s.name ASC";
+
 
 
 $supplyStmt = $conn->prepare($supplySql);
@@ -487,8 +498,8 @@ $supplyResult = $supplyStmt->get_result();
                         <?php if ($supplyResult->num_rows > 0): ?>
                             <?php while ($supply = $supplyResult->fetch_assoc()): ?>
                                 <?php
-                                $currentQuantity = $supply['quantity'];
-                                $originalQuantity = $supply['original_quantity'];
+                                $currentQuantity = $supply['total_quantity'];
+                                $originalQuantity = $supply['total_original_quantity'];
 
                                 // Determine color status
                                 if ($currentQuantity == 0) {
