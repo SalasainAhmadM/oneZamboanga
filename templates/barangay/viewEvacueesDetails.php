@@ -375,7 +375,7 @@ $logsResult = $logsStmt->get_result();
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Send AJAX request to decline the transfer
-                    fetch("../endpoints/decline_transfer.php?id=<?= $evacueeId; ?>", {
+                    fetch("../endpoints/decline_transfer_delete.php?id=<?= $evacueeId; ?>", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json"
