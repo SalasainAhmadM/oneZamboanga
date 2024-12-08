@@ -83,7 +83,7 @@ if ($evacuationCenterId === 'All') {
     LEFT JOIN members m ON e.id = m.evacuees_id
     LEFT JOIN evacuation_center ec ON e.evacuation_center_id = ec.id
     INNER JOIN assigned_worker aw ON ec.id = aw.evacuation_center_id
-    WHERE aw.worker_id = ? AND aw.status = 'assigned' AND e.status != 'Transfer'
+    WHERE aw.worker_id = ? AND aw.status = 'assigned'
     GROUP BY e.id
     ORDER BY e.date DESC;";
     $stmt = $conn->prepare($sql);
@@ -111,7 +111,7 @@ if ($evacuationCenterId === 'All') {
         GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) ORDER BY m.first_name ASC SEPARATOR ', ') AS member_names
     FROM evacuees e
     LEFT JOIN members m ON e.id = m.evacuees_id
-    WHERE e.evacuation_center_id = ? AND e.status != 'Transfer'
+    WHERE e.evacuation_center_id = ?
     GROUP BY e.id
     ORDER BY e.date DESC;";
     $stmt = $conn->prepare($sql);
@@ -318,11 +318,11 @@ echo "<script>
                                                     class="filter-checkbox" data-filter="Admitted" checked>
                                                 <label for="admit">Admitted</label>
                                             </div>
-                                            <!-- <div class="option-content">
+                                            <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="transfer"
                                                     class="filter-checkbox" data-filter="Transfer">
                                                 <label for="transfer">Transfer</label>
-                                            </div> -->
+                                            </div>
                                             <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="transferred"
                                                     class="filter-checkbox" data-filter="Transferred">

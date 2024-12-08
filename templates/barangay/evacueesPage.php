@@ -302,11 +302,11 @@ echo "<script>
                                                     class="filter-checkbox" data-filter="Admitted" checked>
                                                 <label for="admit">Admitted</label>
                                             </div>
-                                            <!-- <div class="option-content">
+                                            <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="transfer"
                                                     class="filter-checkbox" data-filter="Transfer">
                                                 <label for="transfer">Transfer</label>
-                                            </div> -->
+                                            </div>
                                             <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="transferred"
                                                     class="filter-checkbox" data-filter="Transferred">

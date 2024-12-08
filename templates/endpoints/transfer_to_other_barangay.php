@@ -8,6 +8,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $admin_id = isset($data['admin_id']) ? intval($data['admin_id']) : 0;
     $center_id = isset($data['center_id']) ? intval($data['center_id']) : 0;
 
+    // Retrieve evacuee's data
+    $evacueeQuery = "SELECT * FROM evacuees WHERE id = ?";
+    $evacueeStmt = $conn->prepare($evacueeQuery);
+    $evacueeStmt->bind_param("i", $evacuee_id);
+    $evacueeStmt->execute();
+    $evacueeResult = $evacueeStmt->get_result();
+
+    if ($evacueeResult->num_rows === 0) {
+        echo json_encode(['success' => false, 'message' => 'Evacuee not found.']);
+        exit;
+    }
+
+    $evacueeData = $evacueeResult->fetch_assoc();
+    $evacueeFullName = trim($evacueeData['first_name'] . ' ' . $evacueeData['middle_name'] . ' ' . $evacueeData['last_name']);
+
     if ($evacuee_id > 0 && $admin_id > 0 && $center_id > 0) {
         // Fetch the barangay of the selected admin
         $barangayQuery = "SELECT barangay FROM admin WHERE id = ?";
@@ -129,6 +144,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $newLogStmt = $conn->prepare($newLogQuery);
                             $newLogStmt->bind_param("ssi", $newLogMsg, $status, $newEvacueeId);
                             $newLogStmt->execute();
+
+                            // Create notification for admin
+                            $notificationMsg = "$evacueeFullName is requesting to transfer to $centerName";
+                            $notificationStatus = "notify";
+                            $notificationQuery = "INSERT INTO notifications (logged_in_id, user_type, notification_msg, status) VALUES (?, 'admin', ?, ?)";
+                            $notificationStmt = $conn->prepare($notificationQuery);
+                            $notificationStmt->bind_param("iss", $admin_id, $notificationMsg, $notificationStatus);
+                            $notificationStmt->execute();
 
                             echo json_encode([
                                 'success' => true,

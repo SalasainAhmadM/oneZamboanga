@@ -266,6 +266,66 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                                             });
                                         });
                                     </script>
+                                <?php elseif ($evacuee['status'] === 'Transfer'): ?>
+                                    <a href="#" id="declineButton">Decline</a>
+                                    <script>
+                                        document.getElementById('declineButton').addEventListener('click', function (event) {
+                                            event.preventDefault(); // Prevent default anchor action
+
+                                            Swal.fire({
+                                                title: 'Decline Transfer',
+                                                text: 'Are you sure you want to decline the transfer request?',
+                                                icon: 'warning',
+                                                showCancelButton: true,
+                                                confirmButtonColor: '#d33',
+                                                cancelButtonColor: '#3085d6',
+                                                confirmButtonText: 'Confirm',
+                                                cancelButtonText: 'Cancel'
+                                            }).then((result) => {
+                                                if (result.isConfirmed) {
+                                                    // Send AJAX request to decline the transfer
+                                                    fetch("../endpoints/decline_transfer.php?id=<?= $evacueeId; ?>", {
+                                                        method: "POST",
+                                                        headers: {
+                                                            "Content-Type": "application/json"
+                                                        }
+                                                    })
+                                                        .then(response => response.json())
+                                                        .then(data => {
+                                                            if (data.success) {
+                                                                // Show success SweetAlert
+                                                                Swal.fire({
+                                                                    title: 'Declined!',
+                                                                    text: 'The transfer request has been declined successfully.',
+                                                                    icon: 'success',
+                                                                    confirmButtonText: 'OK'
+                                                                }).then(() => {
+                                                                    // Optionally reload or redirect to update the UI
+                                                                    location.reload();
+                                                                });
+                                                            } else {
+                                                                // Show error SweetAlert
+                                                                Swal.fire({
+                                                                    title: 'Error!',
+                                                                    text: data.message || 'An error occurred while declining the transfer request.',
+                                                                    icon: 'error',
+                                                                    confirmButtonText: 'OK'
+                                                                });
+                                                            }
+                                                        })
+                                                        .catch(error => {
+                                                            // Handle any network or server errors
+                                                            Swal.fire({
+                                                                title: 'Error!',
+                                                                text: 'Failed to communicate with the server.',
+                                                                icon: 'error',
+                                                                confirmButtonText: 'OK'
+                                                            });
+                                                        });
+                                                }
+                                            });
+                                        });
+                                    </script>
                                 <?php else: ?>
                                     <a href="evacueesFormEdit.php?id=<?php echo $evacueeId; ?>">Edit</a>
                                     <a href="#" id="transferBtn">Transfer</a>
@@ -297,13 +357,16 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                                     <p class="details-profile">Age: <?php echo $evacuee['age']; ?></p>
                                     <p class="details-profile">Contact Number: <?php echo $evacuee['contact']; ?></p>
                                     <p class="details-profile">Occupation: <?php echo $evacuee['occupation']; ?></p>
-                                    <p class="details-profile">Status of Occupancy: <?php echo $evacuee['status']; ?>
+                                    <p class="details-profile">Status of Occupancy: <?php echo $evacuee['position']; ?>
+                                    </p>
+                                    <p class="details-profile">Status: <?php echo $evacuee['status']; ?>
                                     </p>
                                     <p class="details-profile">Calamity:
                                         <?php echo ucfirst($evacuee['disaster_type']); ?>
                                     </p>
                                     <p class="details-profile">Damaged: <?php echo ucfirst($evacuee['damage']); ?></p>
                                     <p class="details-profile">Cost of damaged: <?php echo $evacuee['cost_damage']; ?>
+                                    <p class="details-profile">House Owner: <?php echo $evacuee['house_owner']; ?>
                                     </p>
                                 </div>
                             </div>
@@ -455,9 +518,9 @@ while ($center = $otherCentersResult->fetch_assoc()) {
         <label for="centerSelect">Select a new evacuation center:</label>
         <select id="centerSelect" class="swal2-select" style="width: 400px; font-size: 14px;">
             <?php foreach ($otherCenters as $center): ?>
-                                                                                    <option value="<?= $center['id']; ?>" <?= $center['capacity'] <= $center['evacuees_count'] ? 'disabled' : ''; ?>>
-                                                                                        <?= htmlspecialchars($center['name'] . ' (Evacuees: ' . $center['evacuees_count'] . '/' . $center['capacity'] . ')'); ?>
-                                                                                    </option>
+                                                                                                                <option value="<?= $center['id']; ?>" <?= $center['capacity'] <= $center['evacuees_count'] ? 'disabled' : ''; ?>>
+                                                                                                                    <?= htmlspecialchars($center['name'] . ' (Evacuees: ' . $center['evacuees_count'] . '/' . $center['capacity'] . ')'); ?>
+                                                                                                                </option>
             <?php endforeach; ?>
         </select>
     `,
@@ -487,7 +550,7 @@ while ($center = $otherCentersResult->fetch_assoc()) {
     <select id="barangaySelect" class="swal2-select" style="width: 400px;">
         <option value="" disabled selected>Select a Barangay</option>
         <?php foreach ($admins as $admin): ?>                         
-                            <option value="<?= $admin['id']; ?>"><?= htmlspecialchars($admin['barangay']); ?></option>
+                                                        <option value="<?= $admin['id']; ?>"><?= htmlspecialchars($admin['barangay']); ?></option>
         <?php endforeach; ?>
     </select>
 

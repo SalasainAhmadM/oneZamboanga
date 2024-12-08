@@ -147,7 +147,8 @@ $centers_result = $stmt->get_result();
 
 
                         <select class="filter-admin" id="statusFilter" onchange="filterCenters()">
-                            <option value="active" selected>Active</option>
+                            <option value="all" selected>All</option>
+                            <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                         </select>
 
@@ -276,25 +277,23 @@ $centers_result = $stmt->get_result();
                             centers.forEach(center => {
                                 const status = center.getAttribute('data-status');
                                 if (filterValue === 'active') {
-                                    // Show only centers that are not grey
-                                    if (status === 'grey') {
-                                        center.style.display = 'none';
-                                    } else {
-                                        center.style.display = 'block';
-                                    }
+                                    // Show only active centers (not grey)
+                                    center.style.display = (status === 'grey') ? 'none' : 'block';
                                 } else if (filterValue === 'inactive') {
-                                    // Show only centers that are grey
-                                    if (status === 'grey') {
-                                        center.style.display = 'block';
-                                    } else {
-                                        center.style.display = 'none';
-                                    }
+                                    // Show only inactive centers (grey)
+                                    center.style.display = (status === 'grey') ? 'block' : 'none';
+                                } else if (filterValue === 'all') {
+                                    // Show all centers
+                                    center.style.display = 'block';
                                 }
                             });
                         }
 
-                        // Initial filter on page load
-                        document.addEventListener('DOMContentLoaded', filterCenters);
+                        // Initial filter on page load: Show all centers by default
+                        document.addEventListener('DOMContentLoaded', () => {
+                            document.getElementById('statusFilter').value = 'all';
+                            filterCenters();
+                        });
                     </script>
 
 

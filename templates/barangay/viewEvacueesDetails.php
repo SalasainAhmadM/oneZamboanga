@@ -164,7 +164,7 @@ $logsResult = $logsStmt->get_result();
             <div class="main-wrapper">
                 <div class="main-container eProfile">
                     <!-- modal -->
-                    <!-- <div class="profile-cta">
+                    <div class="profile-cta">
                         <label for="cta-toggle" class="cta-button">
                             <i class="fa-solid fa-ellipsis-vertical"></i>
                         </label>
@@ -172,11 +172,21 @@ $logsResult = $logsStmt->get_result();
 
                         <div class="cta-modal">
                             <div class="cta-options" style="text-align: center;">
-                                <a href="evacueesForm.php">Admit</a>
+                                <a href="#" class="admit">Admit</a>
                             </div>
+                            <?php if ($evacuee['status'] === 'Transfer'): ?>
+                                <div class="cta-options" style="text-align: center;">
+                                    <a href="#" class="btnDeclineTransfer"><span style="color: red;">Decline
+                                            Transfer</span></a>
+                                </div>
+                            <?php elseif ($evacuee['status'] === 'Admit'): ?>
+                                <div class="cta-options" style="text-align: center; margin-top: 10px;">
+                                    <a href="#" class="btnDeclineAdmit"><span style="color: red;">Decline Admit</span></a>
+                                </div>
+                            <?php endif; ?>
                         </div>
-                    </div> -->
-                    <button class="profile-cta btnAdmit">Admit</button>
+                    </div>
+                    <!-- <button class="profile-cta btnAdmit">Admit</button> -->
 
                     <div class="eprofile-top">
                         <div class="evacueesProfile">
@@ -200,13 +210,16 @@ $logsResult = $logsStmt->get_result();
                                     <p class="details-profile">Contact Number: <?php echo $evacuee['contact']; ?></p>
                                     <p class="details-profile">Occupation: <?php echo $evacuee['occupation']; ?></p>
                                     <p class="details-profile">Status of Occupancy:
+                                        <?php echo $evacuee['position']; ?>
+                                    </p>
+                                    <p class="details-profile">Status:
                                         <?php
                                         echo ($evacuee['status'] === 'Transfer') ? 'Request Transfer' : 'For Approval';
                                         ?>
                                     </p>
-
                                     <p class="details-profile">Damaged: <?php echo ucfirst($evacuee['damage']); ?></p>
                                     <p class="details-profile">Cost of damaged: <?php echo $evacuee['cost_damage']; ?>
+                                    <p class="details-profile">House Owner: <?php echo $evacuee['house_owner']; ?>
                                     </p>
                                 </div>
                             </div>
@@ -346,7 +359,115 @@ $logsResult = $logsStmt->get_result();
     </div>
 
     <script>
-        document.querySelector('.btnAdmit').addEventListener('click', function (event) {
+        // Event listener for Decline Transfer button
+        document.querySelector('.btnDeclineTransfer')?.addEventListener('click', function (event) {
+            event.preventDefault();
+
+            Swal.fire({
+                title: 'Decline Transfer',
+                text: 'Are you sure you want to decline this evacuee\'s transfer?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Confirm',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Send AJAX request to decline the transfer
+                    fetch("../endpoints/decline_transfer.php?id=<?= $evacueeId; ?>", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    title: 'Declined!',
+                                    text: 'The transfer request has been successfully declined.',
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                }).then(() => {
+                                    window.location.href = 'requestTransfer.php';
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: data.message || 'An error occurred while declining the transfer request.',
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: 'Failed to communicate with the server.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        });
+                }
+            });
+        });
+
+        document.querySelector('.btnDeclineAdmit')?.addEventListener('click', function (event) {
+            event.preventDefault();
+
+            Swal.fire({
+                title: 'Decline Admit',
+                text: 'Are you sure you want to decline admitting this evacuee? This will remove their record.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Confirm',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Send an AJAX request to delete the evacuee
+                    fetch("../endpoints/delete_evacuee.php?id=<?= $evacueeId; ?>", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    title: 'Deleted!',
+                                    text: 'The evacuee record has been successfully removed.',
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                }).then(() => {
+                                    window.location.href = 'requestTransfer.php';
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: data.message || 'An error occurred while removing the evacuee.',
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: 'Failed to communicate with the server.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        });
+                }
+            });
+        });
+
+
+        document.querySelector('.admit').addEventListener('click', function (event) {
             event.preventDefault(); // Prevent default button action
 
             // Check the status of the evacuee
