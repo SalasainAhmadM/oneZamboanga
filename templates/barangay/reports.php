@@ -5,23 +5,30 @@ require_once '../../connection/auth.php';
 date_default_timezone_set('Asia/Manila');
 
 // Set the timeout duration (in seconds)
-define('INACTIVITY_LIMIT', 300); // 5 minutes
+// define('INACTIVITY_LIMIT', 300); // 5 minutes
 
-// Check if the user has been inactive for the defined limit
-if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > INACTIVITY_LIMIT)) {
-    // Destroy the session and redirect to the login page
-    session_unset();
-    session_destroy();
-    header("Location: ../../login.php?message=Session expired due to inactivity.");
-    exit();
-}
+// // Check if the user has been inactive for the defined limit
+// if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > INACTIVITY_LIMIT)) {
+//     // Destroy the session and redirect to the login page
+//     session_unset();
+//     session_destroy();
+//     header("Location: ../../login.php?message=Session expired due to inactivity.");
+//     exit();
+// }
 
-// Update the last activity time
-$_SESSION['LAST_ACTIVITY'] = time();
+// // Update the last activity time
+// $_SESSION['LAST_ACTIVITY'] = time();
 
 // Validate session role
 validateSession('admin');
 
+if (isset($_SESSION['user_id'])) {
+    $admin_id = $_SESSION['user_id'];
+
+} else {
+    header("Location: ../../login.php");
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

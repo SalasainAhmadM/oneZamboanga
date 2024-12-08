@@ -107,6 +107,7 @@ if (!empty($startDate) && !empty($endDate)) {
 if ($centerId !== 'All') {
     $evacueesQuery = "
         SELECT 
+            e.id AS evacuees_id,
             CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
             e.contact,
             e.age,
@@ -114,14 +115,14 @@ if ($centerId !== 'All') {
             e.barangay,
             e.`date`,
             e.status,
-            e.disaster_type AS calamity,
-            (SELECT COUNT(*) FROM members m WHERE m.evacuees_id = e.id) AS number_of_members
+            e.disaster_type AS calamity
         FROM evacuees e
         WHERE e.admin_id = ? AND e.evacuation_center_id = ? $statusCondition $dateCondition";
     array_splice($params, 1, 0, $centerId); // Insert centerId into params
 } else {
     $evacueesQuery = "
         SELECT 
+            e.id AS evacuees_id,
             CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
             e.contact,
             e.age,
@@ -129,8 +130,7 @@ if ($centerId !== 'All') {
             e.barangay,
             e.`date`,
             e.status,
-            e.disaster_type AS calamity,
-            (SELECT COUNT(*) FROM members m WHERE m.evacuees_id = e.id) AS number_of_members
+            e.disaster_type AS calamity
         FROM evacuees e
         WHERE e.admin_id = ? $statusCondition $dateCondition";
 }
@@ -144,30 +144,59 @@ $evacueesResult = $stmt->get_result();
 // Populate table in Word document
 $section->addTextBreak(1);
 $section->addText("Evacuees List", ['name' => 'Arial', 'size' => 14, 'bold' => true], ['alignment' => 'center']);
+$textStyle = ['name' => 'Arial', 'size' => 10];
 
-$table = $section->addTable(['borderSize' => 6, 'borderColor' => '000000', 'cellMargin' => 50]);
-$table->addRow();
-$table->addCell(2000)->addText("Family Head", ['bold' => true]);
-$table->addCell(1800)->addText("Contact #", ['bold' => true]);
-$table->addCell(1000)->addText("Age", ['bold' => true]);
-$table->addCell(1000)->addText("Sex", ['bold' => true]);
-$table->addCell(1500)->addText("Members", ['bold' => true]);
-$table->addCell(1500)->addText("Barangay", ['bold' => true]);
-$table->addCell(1500)->addText("Date", ['bold' => true]);
-$table->addCell(1500)->addText("Calamity", ['bold' => true]);
-$table->addCell(1800)->addText("Status", ['bold' => true]);
+$table = $section->addTable([
+    'borderSize' => 6,
+    'borderColor' => '000000',
+    'cellMargin' => 50,
+    'alignment' => 'center',
+]);
+
+$table->addRow(null, ['cantSplit' => true]); // Prevents the row from splitting
+$table->addCell(2000)->addText("Family Head", ['bold' => true, 'size' => 11]);
+$table->addCell(1800)->addText("Contact #", ['bold' => true, 'size' => 11]);
+$table->addCell(1000)->addText("Age", ['bold' => true, 'size' => 11]);
+$table->addCell(1000)->addText("Sex", ['bold' => true, 'size' => 11]);
+$table->addCell(3000)->addText("Members", ['bold' => true, 'size' => 11]);
+$table->addCell(1800)->addText("Barangay", ['bold' => true, 'size' => 11]);
+$table->addCell(1500)->addText("Date", ['bold' => true, 'size' => 11]);
+$table->addCell(1500)->addText("Calamity", ['bold' => true, 'size' => 11]);
+$table->addCell(1800)->addText("Status", ['bold' => true, 'size' => 11]);
 
 while ($evacuee = $evacueesResult->fetch_assoc()) {
-    $table->addRow();
-    $table->addCell(2000)->addText($evacuee['family_head']);
-    $table->addCell(1800)->addText($evacuee['contact']);
-    $table->addCell(1000)->addText($evacuee['age']);
-    $table->addCell(1000)->addText($evacuee['sex']);
-    $table->addCell(1500)->addText($evacuee['number_of_members']);
-    $table->addCell(1800)->addText($evacuee['barangay']);
-    $table->addCell(1500)->addText($evacuee['date']);
-    $table->addCell(1500)->addText($evacuee['calamity']);
-    $table->addCell(1800)->addText($evacuee['status']);
+    $table->addRow(null, ['cantSplit' => true]);
+    $table->addCell(2000)->addText($evacuee['family_head'], $textStyle);
+    $table->addCell(1800)->addText($evacuee['contact'], $textStyle);
+    $table->addCell(1000)->addText($evacuee['age'], $textStyle);
+    $table->addCell(1000)->addText($evacuee['sex'], $textStyle);
+
+    // Fetch member details for the evacuee
+    $memberQuery = "SELECT CONCAT(first_name, ' ', middle_name, ' ', last_name, ' ', extension_name) AS full_name 
+FROM members WHERE evacuees_id = ?";
+    $memberStmt = $conn->prepare($memberQuery);
+    $memberStmt->bind_param("i", $evacuee['evacuees_id']);
+    $memberStmt->execute();
+    $memberResult = $memberStmt->get_result();
+
+    if ($memberResult->num_rows > 0) {
+        $members = [];
+        while ($member = $memberResult->fetch_assoc()) {
+            $members[] = $member['full_name'];
+        }
+        // Join members with a new line and add to the Word document
+        $table->addCell(3000)->addText(implode("\n", $members), $textStyle); // Use "\n" for line breaks
+    } else {
+        $table->addCell(3000)->addText("No members", $textStyle); // Default text when no members found
+    }
+
+    $memberStmt->close();
+
+
+    $table->addCell(1800)->addText($evacuee['barangay'], $textStyle);
+    $table->addCell(1500)->addText($evacuee['date'], $textStyle);
+    $table->addCell(1500)->addText($evacuee['calamity'], $textStyle);
+    $table->addCell(1800)->addText($evacuee['status'], $textStyle);
 }
 
 $stmt->close();
