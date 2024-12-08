@@ -132,9 +132,10 @@ $result_centers = $stmt_centers->get_result();
                             <i class="fa-solid fa-user-plus"></i>
                             <img src="/assets/img/hero.jpg">
                         </button> -->
-                        <a class="addBg-admin" href="../admin/addAdmin.php">
-                            <i class="fa-solid fa-user-plus"></i>
-                        </a>
+                        <button class="addBg-admin" onclick="confirmExport()">
+                            Export
+                        </button>
+
                     </div>
                 </div>
             </header>
@@ -303,6 +304,23 @@ GROUP BY
                     window.location.href = `../export/export_evacuation_center.php?id=${evacuationCenterId}`;
                 } else {
                     console.log("Action canceled.");
+                }
+            });
+        }
+        function confirmExport() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You are about to export all evacuation centers.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, export!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirect to the PHP script for exporting data
+                    window.location.href = '../export/export_all_evacuation_centers.php';
                 }
             });
         }

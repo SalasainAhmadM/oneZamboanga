@@ -71,7 +71,14 @@ if (file_exists($logoRightPath)) {
 } else {
     $headerTable->addCell(2500)->addText("Logo Right", ['alignment' => 'center']);
 }
-
+// Add a horizontal line with spacing
+// $lineTable = $section->addTable();
+// $lineTable->addRow();
+// $lineTable->addCell(9000, [
+//     'borderBottomSize' => 18,
+//     'borderBottomColor' => '000000',
+//     'valign' => 'bottom',
+// ])->addText('', [], ['spaceBefore' => 200, 'spaceAfter' => 200]);
 // Evacuation Center Header (if specific center is selected)
 if ($centerId !== 'All') {
     $centerQuery = "SELECT name FROM evacuation_center WHERE id = ? AND admin_id = ?";
@@ -155,13 +162,13 @@ $table = $section->addTable([
 
 $table->addRow(null, ['cantSplit' => true]); // Prevents the row from splitting
 $table->addCell(2000)->addText("Family Head", ['bold' => true, 'size' => 11]);
-$table->addCell(1800)->addText("Contact #", ['bold' => true, 'size' => 11]);
+$table->addCell(1800)->addText("Contact", ['bold' => true, 'size' => 11]);
 $table->addCell(1000)->addText("Age", ['bold' => true, 'size' => 11]);
 $table->addCell(1000)->addText("Sex", ['bold' => true, 'size' => 11]);
 $table->addCell(3000)->addText("Members", ['bold' => true, 'size' => 11]);
-$table->addCell(1800)->addText("Barangay", ['bold' => true, 'size' => 11]);
+$table->addCell(1850)->addText("Barangay", ['bold' => true, 'size' => 11]);
 $table->addCell(1500)->addText("Date", ['bold' => true, 'size' => 11]);
-$table->addCell(1500)->addText("Calamity", ['bold' => true, 'size' => 11]);
+$table->addCell(1800)->addText("Calamity", ['bold' => true, 'size' => 11]);
 $table->addCell(1800)->addText("Status", ['bold' => true, 'size' => 11]);
 
 while ($evacuee = $evacueesResult->fetch_assoc()) {
@@ -187,15 +194,15 @@ FROM members WHERE evacuees_id = ?";
         // Join members with a new line and add to the Word document
         $table->addCell(3000)->addText(implode("\n", $members), $textStyle); // Use "\n" for line breaks
     } else {
-        $table->addCell(3000)->addText("No members", $textStyle); // Default text when no members found
+        $table->addCell(3000)->addText("No member", $textStyle); // Default text when no members found
     }
 
     $memberStmt->close();
 
 
-    $table->addCell(1800)->addText($evacuee['barangay'], $textStyle);
+    $table->addCell(1850)->addText($evacuee['barangay'], $textStyle);
     $table->addCell(1500)->addText($evacuee['date'], $textStyle);
-    $table->addCell(1500)->addText($evacuee['calamity'], $textStyle);
+    $table->addCell(1800)->addText($evacuee['calamity'], $textStyle);
     $table->addCell(1800)->addText($evacuee['status'], $textStyle);
 }
 

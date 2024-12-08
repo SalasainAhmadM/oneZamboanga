@@ -310,15 +310,15 @@ $stmt->close();
 
     <script>
         function exportEvacuees() {
-            const centerId = document.getElementById('filterBarangay').value; // Get selected center
-            const checkboxes = document.querySelectorAll('.filter-checkbox:checked'); // Get checked statuses
-            const selectedStatuses = Array.from(checkboxes).map(checkbox => checkbox.getAttribute('data-filter')); // Map to data-filter values
+            const centerId = document.getElementById('filterBarangay').value || ''; // Selected center ID
+            const checkboxes = document.querySelectorAll('.filter-checkbox:checked'); // Checked statuses
+            const selectedStatuses = Array.from(checkboxes).map(cb => cb.getAttribute('data-filter'));
 
-            // Get selected date range (default to empty if no date selected)
+            // Get selected date range or default to empty strings
             const startDate = document.getElementById('startDate').value || '';
             const endDate = document.getElementById('endDate').value || '';
 
-            // SweetAlert confirmation before proceeding with export
+            // Confirm export with SweetAlert
             Swal.fire({
                 title: 'Are you sure?',
                 text: "Do you want to export the evacuees' data?",
@@ -328,30 +328,59 @@ $stmt->close();
                 cancelButtonText: 'No, cancel'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Generate the export URL
-                    const url = `../export/export_evacuees.php?center_id=${centerId}&statuses=${encodeURIComponent(selectedStatuses.join(','))}&start_date=${startDate}&end_date=${endDate}`;
-                    window.location.href = url; // Navigate to the export endpoint
+                    // Build the export URL with query parameters
+                    const url = `../export/export_evacuees.php?center_id=${encodeURIComponent(centerId)}&statuses=${encodeURIComponent(selectedStatuses.join(','))}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`;
+                    window.location.href = url; // Navigate to export endpoint
                 }
             });
         }
 
-        function filterTableByDate() {
+
+
+        function filterTable() {
             const startDate = new Date(document.getElementById('startDate').value);
             const endDate = new Date(document.getElementById('endDate').value);
             const rows = document.querySelectorAll('#mainTable tbody tr');
 
+            // Get active status filters
+            const checkboxes = document.querySelectorAll('.filter-checkbox');
+            const activeFilters = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.dataset.filter);
+
             rows.forEach(row => {
                 const dateStr = row.getAttribute('data-date');
+                const status = row.getAttribute('data-status');
                 const rowDate = new Date(dateStr);
 
-                // Show or hide the row based on the date range
-                if ((!isNaN(startDate) && rowDate < startDate) || (!isNaN(endDate) && rowDate > endDate)) {
-                    row.style.display = 'none';
-                } else {
+                // Check date range condition
+                const inDateRange =
+                    (!isNaN(startDate) ? rowDate >= startDate : true) &&
+                    (!isNaN(endDate) ? rowDate <= endDate : true);
+
+                // Show or hide the row based on both conditions
+                if (inDateRange && activeFilters.includes(status)) {
                     row.style.display = '';
+                } else {
+                    row.style.display = 'none';
                 }
             });
         }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Attach event listeners
+            document.getElementById('startDate').addEventListener('change', filterTable);
+            document.getElementById('endDate').addEventListener('change', filterTable);
+
+            const checkboxes = document.querySelectorAll('.filter-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', filterTable);
+            });
+
+            // Trigger filter on page load
+            filterTable();
+        });
+
 
         document.getElementById('searchInput').addEventListener('input', function () {
             const filter = this.value.toLowerCase();
@@ -364,32 +393,7 @@ $stmt->close();
         });
 
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const checkboxes = document.querySelectorAll('.filter-checkbox');
-            const tableRows = document.querySelectorAll('#mainTable tbody tr');
 
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', () => {
-                    // Collect all checked filter values
-                    const activeFilters = Array.from(checkboxes)
-                        .filter(cb => cb.checked)
-                        .map(cb => cb.dataset.filter);
-
-                    // Show/Hide rows based on active filters
-                    tableRows.forEach(row => {
-                        const status = row.dataset.status;
-                        if (activeFilters.includes(status)) {
-                            row.style.display = ""; // Show row
-                        } else {
-                            row.style.display = "none"; // Hide row
-                        }
-                    });
-                });
-            });
-
-            // Trigger the change event on page load to apply default filters
-            checkboxes.forEach(checkbox => checkbox.dispatchEvent(new Event('change')));
-        });
 
         function filterEvacuationCenter() {
             const centerId = document.getElementById('filterBarangay').value;

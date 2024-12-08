@@ -168,13 +168,13 @@ if (isset($_SESSION['user_id'])) {
                                 <thead>
 
                                     <tr>
-                                        <th>Family Head</th>
-                                        <th>Contact #</th>
-                                        <th style="text-align: center;">Number of members</th>
-                                        <th style="text-align: center;">Barangay</th>
-                                        <th style="text-align: center;">Date</th>
-                                        <th>Calamity</th>
-                                        <th style="text-align: center;">Action</th>
+                                        <th>Evacuation Center</th>
+                                        <th>Address</th>
+                                        <th>Status</th>
+                                        <th>Capacity</th>
+                                        <th>Total Families</th>
+                                        <th>Total Evacuees</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
 
