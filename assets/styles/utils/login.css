@@ -40,6 +40,13 @@ body::before {
     background-color: #3b4765;
     border-radius: .5em .7em .7em .5em;
     position: relative;
+    text-align: center;
+
+    h2 {
+        margin-top: 3em;
+        font-family: "Rowdies", sans-serif;
+        color: #fff847;
+    }
 
     img {
         max-width: 400px;

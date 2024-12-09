@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
+@import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
 
 * {
     /* font-family: "Rowdies", sans-serif; */
@@ -345,7 +347,93 @@ footer {
 }
 
 
+.hotline {
+    position: fixed;
+    bottom: 30px;
+    left: 20px;
+    background-color: var(--clr-red);
+    color: var(--clr-white);
+    font-weight: 600;
+    padding: .5em 1em;
+    border-radius: .5em;
+    transition: all 0.3s ease;
 
+    &:hover {
+        background-color: red;
+    }
+    
+}
+
+dialog {
+    margin: auto;
+    border: none;
+    outline: none;
+    border-radius: 1em;
+    padding: 0;
+
+    .hotline-wrapper {
+        padding: 2em 1em;
+    }
+
+
+    h2, h3, h4 {
+        font-family: "Roboto", sans-serif;
+    }
+
+    h2 {
+        font-weight: 800;
+        color: var(--clr-red);
+    }
+
+    .hotline-title {
+        text-align: center;
+    }
+
+    .hotline-numbers {
+        display: flex;
+        flex-direction: column;
+        gap: .8em;
+
+        margin-top: 1em;
+
+        .hotline-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--clr-white);
+            color: var(--clr-dark);
+            padding: 1.5em 1em;
+            border-radius: 1em;
+            width: 450px;
+            border: 2px solid var(--clr-red);
+
+            h3 {
+                width: 195px;
+                color: var(--clr-red);
+            }
+
+            h4 {
+                width: 175px;
+            }
+        }
+
+        .hotline-divider {
+            background-color: var(--clr-red);
+            width: 3px;
+            height: 35px;
+            border-right: 2px;
+        }
+
+        .hotline-item:nth-child(1),
+        .hotline-item:nth-child(3) {
+            /* background-color: var(--clr-blue); */
+        }
+
+        .hotline-item:nth-child(2) {
+            /* background-color: var(--clr-red); */
+        }
+    }
+}
 
 
 /* media queries */

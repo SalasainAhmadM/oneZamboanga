@@ -171,10 +171,50 @@
 
   <!-- <footer class="container"></footer> -->
 
+  <button onclick="showHotline()" class="hotline">Emergency Hotline</button>
+
+  <dialog id="hotline-modal">
+    <div class="hotline-wrapper">
+
+      <h2 class="hotline-title">EMERGENCY HOTLINES</h2>
+  
+      <div class="hotline-numbers">
+        <div class="hotline-item">
+          <h3>POLICE EMERGENCY</h3>
+          <div class="hotline-divider"></div>
+          <h4>991 OR (02) 723-0401</h4>
+        </div>
+  
+        <div class="hotline-item">
+          <h3>FIRE EMERGENCY</h3>
+          <div class="hotline-divider"></div>
+          <h4>117 OR (02) 426-0219</h4>
+        </div>
+  
+        <div class="hotline-item">
+          <h3>MEDICAL EMERGENCY</h3>
+          <div class="hotline-divider"></div>
+          <h4>991 OR (02) 8820-2246</h4>
+        </div>
+      </div>
+
+    </div>
+  </dialog>
+
   <button id="backToTop" onclick="scrollToTop()">↑ Back to Top</button>
 
 
+  <script>
+    const dialog = document.getElementById('hotline-modal');
+    const wrapper = document.querySelector('.hotline-wrapper');
 
+    function showHotline() {
+      dialog.showModal()
+    }
+
+    dialog.addEventListener('click', (e) => !wrapper.contains(e.target) && dialog.close())
+
+  </script>
 
 
 
