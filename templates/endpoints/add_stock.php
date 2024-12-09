@@ -9,9 +9,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $unit = $_POST['unitStock'];
     $supplyId = $_POST['supply_id'];
 
-    $query = "INSERT INTO stock (date, time, `from`, quantity, unit, supply_id) VALUES (?, ?, ?, ?, ?, ?)";
+    $query = "INSERT INTO stock (date, time, `from`, quantity, original_quantity, unit, supply_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("sssisi", $date, $time, $from, $quantity, $unit, $supplyId);
+    $stmt->bind_param("sssiisi", $date, $time, $from, $quantity, $quantity, $unit, $supplyId);
 
     if ($stmt->execute()) {
         echo json_encode(["status" => "success", "message" => "Stock added successfully!"]);

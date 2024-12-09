@@ -29,6 +29,31 @@ if (isset($_SESSION['user_id'])) {
     header("Location: ../../login.php");
     exit;
 }
+
+// Fetch evacuation center details including members of evacuees
+$sql = "SELECT ec.id, ec.name, ec.location, ec.capacity, 
+        COUNT(DISTINCT ev.id) AS total_families,
+        (
+            COUNT(ev.id) + 
+            (SELECT COUNT(*) FROM members m WHERE m.evacuees_id = ev.id)
+        ) AS total_evacuees 
+        FROM evacuation_center ec
+        LEFT JOIN evacuees ev ON ec.id = ev.evacuation_center_id
+        WHERE ec.admin_id = ?
+        GROUP BY ec.id";
+
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $admin_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$evacuation_centers = [];
+while ($row = $result->fetch_assoc()) {
+    $row['status'] = ($row['total_evacuees'] > 0) ? 'Active' : 'Inactive'; // Determine status
+    $evacuation_centers[] = $row;
+}
+
+$stmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -54,6 +79,17 @@ if (isset($_SESSION['user_id'])) {
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+<style>
+    .status.active {
+        background-color: var(--clr-green);
+        color: var(--clr-white);
+    }
+
+    .status.inactive {
+        background-color: var(--clr-red);
+        color: var(--clr-light);
+    }
+</style>
 
 <body>
 
@@ -88,7 +124,7 @@ if (isset($_SESSION['user_id'])) {
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="#">Prints Reports</a>
+                            <a href="#">Evacuation Center Reports</a>
 
                             <!-- next page -->
                             <!-- <i class="fa-solid fa-chevron-right"></i>
@@ -102,14 +138,14 @@ if (isset($_SESSION['user_id'])) {
                             <i class="fa-solid fa-plus"></i>
                         </a> -->
 
-                        <!-- <button class="addBg-admin" onclick="window.location.href='evacueesForm.php'">
-                            Admit
-                        </button> -->
+                        <button class="addBg-admin" onclick="confirmExport()">
+                            Export
+                        </button>
                     </div>
                 </div>
             </header>
 
-            <div class="main-wrapper">
+            <div class=" main-wrapper">
                 <div class="main-container overview">
                     <special-personnel></special-personnel>
 
@@ -139,16 +175,15 @@ if (isset($_SESSION['user_id'])) {
                                         </label> -->
                                         <div class="filter-option">
                                             <div class="option-content">
-                                                <input type="checkbox" name="evacuees" id="tetuan">
-                                                <label for="tetuan">Tetuan</label>
+                                                <input type="checkbox" name="evacuees" id="active-filter"
+                                                    onclick="filterEvacuationCenters()">
+                                                <label for="active-filter">Active</label>
                                             </div>
                                             <div class="option-content">
-                                                <input type="checkbox" name="evacuees" id="tugbungan">
-                                                <label for="tugbungan">Tugbungan</label>
+                                                <input type="checkbox" name="evacuees" id="inactive-filter"
+                                                    onclick="filterEvacuationCenters()">
+                                                <label for="inactive-filter">Inactive</label>
                                             </div>
-
-
-
                                         </div>
 
                                     </div>
@@ -157,7 +192,7 @@ if (isset($_SESSION['user_id'])) {
 
 
                             <div class="input_group">
-                                <input type="search" placeholder="Search...">
+                                <input type="search" id="searchInput" placeholder="Search...">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                             </div>
 
@@ -166,23 +201,55 @@ if (isset($_SESSION['user_id'])) {
                         <section class="tblbody">
                             <table id="mainTable">
                                 <thead>
-
                                     <tr>
                                         <th>Evacuation Center</th>
                                         <th>Address</th>
-                                        <th>Status</th>
-                                        <th>Capacity</th>
-                                        <th>Total Families</th>
-                                        <th>Total Evacuees</th>
-                                        <th>Action</th>
+                                        <th style="text-align: center;">Status</th>
+                                        <th style="text-align: center;">Capacity</th>
+                                        <th style="text-align: center;">Total Families</th>
+                                        <th style="text-align: center;">Total Evacuees</th>
+                                        <th style="text-align: center;">Action</th>
                                     </tr>
                                 </thead>
-
                                 <tbody>
-
+                                    <?php if (!empty($evacuation_centers)): ?>
+                                        <?php foreach ($evacuation_centers as $center): ?>
+                                            <tr class="evacuation-row"
+                                                data-status="<?php echo strtolower($center['status']); ?>">
+                                                <td><?php echo htmlspecialchars($center['name']); ?></td>
+                                                <td><?php echo htmlspecialchars($center['location']); ?></td>
+                                                <td style="text-align: center;">
+                                                    <p class="status <?php echo strtolower($center['status']); ?>">
+                                                        <?php echo $center['status']; ?>
+                                                    </p>
+                                                </td>
+                                                <td style="text-align: center;">
+                                                    <?php echo htmlspecialchars($center['total_families']); ?>/<?php echo htmlspecialchars($center['capacity']); ?>
+                                                </td>
+                                                <td style="text-align: center;">
+                                                    <?php echo htmlspecialchars($center['total_families']); ?>
+                                                </td>
+                                                <td style="text-align: center;">
+                                                    <?php echo htmlspecialchars($center['total_evacuees']); ?>
+                                                </td>
+                                                <td style="text-align: center;">
+                                                    <a class="view-action" href="javascript:void(0);"
+                                                        onclick="confirmAction(<?php echo $center['id']; ?>)">Print</a>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="7" style="text-align: center;">No evacuation centers
+                                                found.</td>
+                                        </tr>
+                                    <?php endif; ?>
                                 </tbody>
+
                             </table>
                         </section>
+
+
 
                         <div class="no-match-message">No matching data found</div>
                     </div>
@@ -193,7 +260,75 @@ if (isset($_SESSION['user_id'])) {
 
     </div>
 
+    <script>
+        function confirmAction(evacuationCenterId) {
+            Swal.fire({
+                title: 'Print Report?',
+                text: "Confirm to print the report for this evacuation center.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Confirm'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    console.log("Action confirmed for ID:", evacuationCenterId);
+                    // Perform action, e.g., redirect to a report page
+                    window.location.href = `../export/export_evacuation_center.php?id=${evacuationCenterId}`;
+                } else {
+                    console.log("Action canceled.");
+                }
+            });
+        }
+        function confirmExport() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You are about to export all evacuation centers.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, export!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirect to the PHP script for exporting all evacuation centers
+                    window.location.href = '../export/export_admin_centers.php?admin_id=<?php echo $admin_id; ?>';
+                }
+            });
+        }
+        document.getElementById('searchInput').addEventListener('input', function () {
+            const filter = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#mainTable tbody tr');
 
+            rows.forEach(row => {
+                const familyHead = row.querySelector('td:first-child').textContent.toLowerCase();
+                row.style.display = familyHead.includes(filter) ? '' : 'none';
+            });
+        });
+
+        function filterEvacuationCenters() {
+
+            const activeFilter = document.getElementById('active-filter');
+            const inactiveFilter = document.getElementById('inactive-filter');
+
+            const rows = document.querySelectorAll('.evacuation-row');
+
+            rows.forEach(row => {
+                const status = row.getAttribute('data-status');
+
+                if (
+                    (activeFilter.checked && status === 'active') ||
+                    (inactiveFilter.checked && status === 'inactive') ||
+                    (!activeFilter.checked && !inactiveFilter.checked)
+                ) {
+                    row.style.display = ''; // Show row
+                } else {
+                    row.style.display = 'none'; // Hide row
+                }
+            });
+        }
+    </script>
     <!-- sidebar import js -->
     <script src="../../includes/bgSidebar.js"></script>
 

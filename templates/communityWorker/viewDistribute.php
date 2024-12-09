@@ -350,7 +350,7 @@ $distributedResult = $distributedStmt->get_result();
                                                         <td class="selectName" style="text-align: center;">
                                                             <input type="checkbox" name="evacuee_ids[]"
                                                                 value="<?php echo $evacuee['evacuee_id']; ?>"
-                                                                data-name="<?php echo htmlspecialchars($evacuee['family_head']); ?>">
+                                                                data-distribute="<?php echo htmlspecialchars($evacuee['family_head']); ?>">
                                                             <?php echo htmlspecialchars($evacuee['family_head']); ?>
                                                         </td>
                                                         <td class="ecMembers" style="text-align: center;">
@@ -417,7 +417,7 @@ $distributedResult = $distributedStmt->get_result();
                                                         <td class="selectName" style="text-align: center;">
                                                             <input type="checkbox" name="evacuee_ids[]"
                                                                 value="<?php echo $distributed['evacuees_id']; ?>"
-                                                                data-name="<?php echo htmlspecialchars($distributed['family_head']); ?>">
+                                                                data-redistribute="<?php echo htmlspecialchars($distributed['family_head']); ?>">
                                                             <?php echo htmlspecialchars($distributed['family_head']); ?>
                                                         </td>
                                                         <td class="ecMembers" style="text-align: center;">
@@ -493,10 +493,12 @@ $distributedResult = $distributedStmt->get_result();
 
                                     function confirmRedistribute() {
                                         const selectedEvacuees = Array.from(document.querySelectorAll('input[name="evacuee_ids[]"]:checked'))
-                                            .map(checkbox => ({
-                                                id: checkbox.value,
-                                                name: checkbox.getAttribute('data-name')
-                                            }));
+                                            .map(checkbox => {
+                                                const id = checkbox.value;
+                                                const name = checkbox.getAttribute('data-redistribute');
+                                                return id && name ? { id, name } : null;
+                                            })
+                                            .filter(evacuee => evacuee !== null);
 
                                         if (selectedEvacuees.length === 0) {
                                             Swal.fire({
@@ -652,10 +654,12 @@ $distributedResult = $distributedStmt->get_result();
 
         function confirmDistribute() {
             const selectedEvacuees = Array.from(document.querySelectorAll('input[name="evacuee_ids[]"]:checked'))
-                .map(checkbox => ({
-                    id: checkbox.value,
-                    name: checkbox.getAttribute('data-name')
-                }));
+                .map(checkbox => {
+                    const id = checkbox.value;
+                    const name = checkbox.getAttribute('data-distribute');
+                    return id && name ? { id, name } : null;
+                })
+                .filter(evacuee => evacuee !== null);
 
             if (selectedEvacuees.length === 0) {
                 Swal.fire({

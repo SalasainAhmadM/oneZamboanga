@@ -11,7 +11,10 @@ class SpecialPersonnel extends HTMLElement {
                         <li><a href="reportsEvacuees.php">Evacuees</a></li>
                         <div class="indicator assign"></div>
                     </div>
-                    
+                    <div class="navList">
+                        <li><a href="reportsSupply.php">Supplies</a></li>
+                        <div class="indicator assign"></div>
+                    </div>
                 </ul>
             </div>
         `;

@@ -169,7 +169,7 @@ $table->addCell(3000)->addText("Members", ['bold' => true, 'size' => 11]);
 $table->addCell(1850)->addText("Barangay", ['bold' => true, 'size' => 11]);
 $table->addCell(1500)->addText("Date", ['bold' => true, 'size' => 11]);
 $table->addCell(1800)->addText("Calamity", ['bold' => true, 'size' => 11]);
-$table->addCell(1800)->addText("Status", ['bold' => true, 'size' => 11]);
+$table->addCell(1850)->addText("Status", ['bold' => true, 'size' => 11]);
 
 while ($evacuee = $evacueesResult->fetch_assoc()) {
     $table->addRow(null, ['cantSplit' => true]);
@@ -192,9 +192,9 @@ FROM members WHERE evacuees_id = ?";
             $members[] = $member['full_name'];
         }
         // Join members with a new line and add to the Word document
-        $table->addCell(3000)->addText(implode("\n", $members), $textStyle); // Use "\n" for line breaks
+        $table->addCell(3000)->addText(implode("\n", $members), $textStyle);
     } else {
-        $table->addCell(3000)->addText("No member", $textStyle); // Default text when no members found
+        $table->addCell(3000)->addText("No member", $textStyle);
     }
 
     $memberStmt->close();
@@ -203,7 +203,7 @@ FROM members WHERE evacuees_id = ?";
     $table->addCell(1850)->addText($evacuee['barangay'], $textStyle);
     $table->addCell(1500)->addText($evacuee['date'], $textStyle);
     $table->addCell(1800)->addText($evacuee['calamity'], $textStyle);
-    $table->addCell(1800)->addText($evacuee['status'], $textStyle);
+    $table->addCell(1850)->addText($evacuee['status'], $textStyle);
 }
 
 $stmt->close();

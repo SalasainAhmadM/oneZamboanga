@@ -146,7 +146,7 @@ $stmt->close();
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="#">Prints Reports</a>
+                            <a href="#">Evacuees Reports</a>
 
                             <!-- next page -->
                             <!-- <i class="fa-solid fa-chevron-right"></i>
@@ -215,17 +215,17 @@ $stmt->close();
                                             </div>
                                             <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="transfer"
-                                                    class="filter-checkbox" data-filter="Transfer" checked>
+                                                    class="filter-checkbox" data-filter="Transfer">
                                                 <label for="transfer">Transfer</label>
                                             </div>
                                             <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="transferred"
-                                                    class="filter-checkbox" data-filter="Transferred" checked>
+                                                    class="filter-checkbox" data-filter="Transferred">
                                                 <label for="transferred">Transferred</label>
                                             </div>
                                             <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="moveout"
-                                                    class="filter-checkbox" data-filter="Moved-out" checked>
+                                                    class="filter-checkbox" data-filter="Moved-out">
                                                 <label for="moveout">Moved-out</label>
                                             </div>
                                         </div>
@@ -309,6 +309,8 @@ $stmt->close();
     </div>
 
     <script>
+
+
         function exportEvacuees() {
             const centerId = document.getElementById('filterBarangay').value || ''; // Selected center ID
             const checkboxes = document.querySelectorAll('.filter-checkbox:checked'); // Checked statuses

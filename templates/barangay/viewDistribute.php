@@ -325,7 +325,7 @@ $distributedResult = $distributedStmt->get_result();
                                             </div>
 
                                             <div class="filterStatus">
-                                                <div class="statusFilter">
+                                                <!-- <div class="statusFilter">
                                                     <label for="statusEC"><i class="fa-solid fa-filter"></i></label>
                                                     <input type="checkbox" id="statusEC" class="statusEC">
 
@@ -333,7 +333,7 @@ $distributedResult = $distributedStmt->get_result();
                                                         <p>Admitted</p>
                                                         <p>Transferred</p>
                                                     </div>
-                                                </div>
+                                                </div> -->
 
                                                 <div class="searchFilter">
                                                     <input type="text" placeholder="Search...">
@@ -368,7 +368,7 @@ $distributedResult = $distributedStmt->get_result();
                                                         <td class="selectName" style="text-align: center;">
                                                             <input type="checkbox" name="evacuee_ids[]"
                                                                 value="<?php echo $evacuee['evacuee_id']; ?>"
-                                                                data-name="<?php echo htmlspecialchars($evacuee['family_head']); ?>">
+                                                                data-distribute="<?php echo htmlspecialchars($evacuee['family_head']); ?>">
                                                             <?php echo htmlspecialchars($evacuee['family_head']); ?>
                                                         </td>
                                                         <td class="ecMembers" style="text-align: center;">
@@ -437,7 +437,7 @@ $distributedResult = $distributedStmt->get_result();
                                                         <td class="selectName" style="text-align: center;">
                                                             <input type="checkbox" name="evacuee_ids[]"
                                                                 value="<?php echo $distributed['evacuees_id']; ?>"
-                                                                data-name="<?php echo htmlspecialchars($distributed['family_head']); ?>">
+                                                                data-redistribute="<?php echo htmlspecialchars($distributed['family_head']); ?>">
                                                             <?php echo htmlspecialchars($distributed['family_head']); ?>
                                                         </td>
                                                         <td class="ecMembers" style="text-align: center;">
@@ -448,7 +448,7 @@ $distributedResult = $distributedStmt->get_result();
                                                                 <?php endwhile; ?>
                                                             </ul>
                                                         </td>
-                                                        <td style="text-align: center;"><?php echo $memberCount; ?></td>
+                                                        <!-- <td style="text-align: center;"><?php echo $memberCount; ?></td> -->
                                                         <td style="text-align: center;">
                                                             <?php echo htmlspecialchars($distributed['status']); ?>
                                                         </td>
@@ -513,10 +513,12 @@ $distributedResult = $distributedStmt->get_result();
 
                                     function confirmRedistribute() {
                                         const selectedEvacuees = Array.from(document.querySelectorAll('input[name="evacuee_ids[]"]:checked'))
-                                            .map(checkbox => ({
-                                                id: checkbox.value,
-                                                name: checkbox.getAttribute('data-name')
-                                            }));
+                                            .map(checkbox => {
+                                                const id = checkbox.value;
+                                                const name = checkbox.getAttribute('data-redistribute');
+                                                return id && name ? { id, name } : null;
+                                            })
+                                            .filter(evacuee => evacuee !== null);
 
                                         if (selectedEvacuees.length === 0) {
                                             Swal.fire({
@@ -675,10 +677,12 @@ $distributedResult = $distributedStmt->get_result();
 
         function confirmDistribute() {
             const selectedEvacuees = Array.from(document.querySelectorAll('input[name="evacuee_ids[]"]:checked'))
-                .map(checkbox => ({
-                    id: checkbox.value,
-                    name: checkbox.getAttribute('data-name')
-                }));
+                .map(checkbox => {
+                    const id = checkbox.value;
+                    const name = checkbox.getAttribute('data-distribute');
+                    return id && name ? { id, name } : null;
+                })
+                .filter(evacuee => evacuee !== null);
 
             if (selectedEvacuees.length === 0) {
                 Swal.fire({
@@ -824,15 +828,11 @@ $distributedResult = $distributedStmt->get_result();
 
         supplyFiler.forEach(item => {
             item.addEventListener('click', function () {
-                //check if the item is clicked
                 if (this.classList.contains('active')) {
-                    //if active, remove active class
                     this.classList.remove('active');
                 } else {
-                    // if not, first remove active
                     supplyFiler.forEach(i => i.classList.remove('active'));
 
-                    // then add actgive if clicked
                     this.classList.add('active');
                 }
             })

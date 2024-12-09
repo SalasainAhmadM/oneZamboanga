@@ -101,7 +101,7 @@ if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $evacueesCount = $row['evacuees_count'];
         $totalEvacueesCount = $row['total_evacuees_count'] + $evacueesCount;
-        $capacityDisplay = "{$totalEvacueesCount}/{$row['capacity']}";
+        $capacityDisplay = "{$evacueesCount}/{$row['capacity']}";
         $status = $evacueesCount > 0 ? "Active" : "Inactive";
 
         // Update Totals
