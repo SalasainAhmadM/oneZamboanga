@@ -18,8 +18,10 @@ $evacuationCenterName = isset($_GET['evacuation_center_name']) ? trim($_GET['eva
 $admin_id = $_SESSION['user_id']; // Assuming admin_id is stored in session
 
 $data = [];
+$startDate = isset($_GET['start_date']) ? $_GET['start_date'] : '';
+$endDate = isset($_GET['end_date']) ? $_GET['end_date'] : '';
+
 if ($filter === 'received') {
-    // Fetch received supplies
     $query = "
         SELECT 
             s.name AS supply_name,
@@ -43,18 +45,35 @@ if ($filter === 'received') {
         ON 
             s.id = st.supply_id
         WHERE 
-            ec.admin_id = ? AND s.approved = 1 
-            " . ($evacuationCenterName ? "AND ec.name = ? " : "") . "
+            ec.admin_id = ? AND s.approved = 1
+            " . ($evacuationCenterName && $evacuationCenterName !== 'all' ? "AND ec.name = ? " : "") . "
+            " . ($startDate ? "AND s.date >= ? " : "") . "
+            " . ($endDate ? "AND s.date <= ? " : "") . "
         GROUP BY 
             s.id
     ";
 
     $stmt = $conn->prepare($query);
-    if ($evacuationCenterName) {
-        $stmt->bind_param("is", $admin_id, $evacuationCenterName);
-    } else {
-        $stmt->bind_param("i", $admin_id);
+
+    $params = [$admin_id];
+    $types = "i";
+
+    if ($evacuationCenterName && $evacuationCenterName !== 'all') {
+        $params[] = $evacuationCenterName;
+        $types .= "s";
     }
+
+    if ($startDate) {
+        $params[] = $startDate;
+        $types .= "s";
+    }
+
+    if ($endDate) {
+        $params[] = $endDate;
+        $types .= "s";
+    }
+
+    $stmt->bind_param($types, ...$params);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -62,7 +81,6 @@ if ($filter === 'received') {
         $data[] = $row;
     }
 } elseif ($filter === 'distributed') {
-    // Fetch distributed supplies
     $query = "
         SELECT 
             d.supply_name,
@@ -82,15 +100,32 @@ if ($filter === 'received') {
             e.evacuation_center_id = ec.id
         WHERE 
             ec.admin_id = ? 
-            " . ($evacuationCenterName ? "AND ec.name = ? " : "") . "
+            " . ($evacuationCenterName && $evacuationCenterName !== 'all' ? "AND ec.name = ? " : "") . "
+            " . ($startDate ? "AND d.date >= ? " : "") . "
+            " . ($endDate ? "AND d.date <= ? " : "") . "
     ";
 
     $stmt = $conn->prepare($query);
-    if ($evacuationCenterName) {
-        $stmt->bind_param("is", $admin_id, $evacuationCenterName);
-    } else {
-        $stmt->bind_param("i", $admin_id);
+
+    $params = [$admin_id];
+    $types = "i";
+
+    if ($evacuationCenterName && $evacuationCenterName !== 'all') {
+        $params[] = $evacuationCenterName;
+        $types .= "s";
     }
+
+    if ($startDate) {
+        $params[] = $startDate;
+        $types .= "s";
+    }
+
+    if ($endDate) {
+        $params[] = $endDate;
+        $types .= "s";
+    }
+
+    $stmt->bind_param($types, ...$params);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -98,6 +133,7 @@ if ($filter === 'received') {
         $data[] = $row;
     }
 }
+
 // Create PhpWord instance
 $phpWord = new PhpWord();
 $section = $phpWord->addSection([
@@ -180,7 +216,8 @@ if ($filter === 'received') {
         $table->addCell(2000)->addText($row['main_quantity'], $textStyle);
 
         // All stock quantities in one cell
-        $table->addCell(1700)->addText(implode("\n", explode("\n", $row['stock_quantities'])), $textStyle);
+        $stockQuantitiesText = empty($row['stock_quantities']) ? 'No Stocks' : implode("\n", explode("\n", $row['stock_quantities']));
+        $table->addCell(1700)->addText($stockQuantitiesText, $textStyle);
 
         // Evacuation Center
         $table->addCell(2000)->addText($row['evacuation_center_name'], $textStyle);

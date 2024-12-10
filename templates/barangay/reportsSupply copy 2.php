@@ -231,7 +231,7 @@ while ($row = $distributed_result->fetch_assoc()) {
                             </div>
 
                             <div class="input_group">
-                                <input type="search" id="searchInput" placeholder="Search...">
+                                <input type="search" placeholder="Search...">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                             </div>
                         </section>
@@ -256,8 +256,7 @@ while ($row = $distributed_result->fetch_assoc()) {
                                     <?php if (!empty($supplies)): ?>
                                         <?php foreach ($supplies as $supply): ?>
                                             <tr>
-                                                <td class="supplyName"><?php echo htmlspecialchars($supply['supply_name']); ?>
-                                                </td>
+                                                <td><?php echo htmlspecialchars($supply['supply_name']); ?></td>
                                                 <td><?php echo htmlspecialchars($supply['quantity']); ?>
                                                     /<?php echo htmlspecialchars($supply['original_quantity']); ?>
                                                     <?php echo htmlspecialchars($supply['unit']); ?>s
@@ -344,9 +343,7 @@ while ($row = $distributed_result->fetch_assoc()) {
                                     <?php if (!empty($distributed)): ?>
                                         <?php foreach ($distributed as $distribution): ?>
                                             <tr>
-                                                <td class="supplyName">
-                                                    <?php echo htmlspecialchars($distribution['supply_name']); ?>
-                                                </td>
+                                                <td><?php echo htmlspecialchars($distribution['supply_name']); ?></td>
                                                 <td><?php echo htmlspecialchars($distribution['evacuee_name']); ?></td>
                                                 <td><?php echo htmlspecialchars($distribution['quantity']); ?></td>
                                                 <td><?php echo htmlspecialchars($distribution['evacuation_center_name']); ?>
@@ -371,38 +368,37 @@ while ($row = $distributed_result->fetch_assoc()) {
                     </div>
 
                     <script>
-                        function filterTableByDate() {
-                            const startDateValue = document.getElementById('startDate').value;
-                            const endDateValue = document.getElementById('endDate').value;
+                        // Function to populate Evacuation Center filter options
+                        function updateEvacuationCenterFilter() {
+                            const filterSelect = document.getElementById('filterBarangay');
+                            filterSelect.innerHTML = '<option value="all">All</option>'; // Reset options
 
-                            const startDate = startDateValue ? new Date(startDateValue) : null;
-                            const endDate = endDateValue ? new Date(endDateValue) : null;
+                            const activeTable =
+                                document.querySelector('#receivedTable').style.display !== 'none'
+                                    ? document.getElementById('receivedTable')
+                                    : document.getElementById('distributedTable');
 
-                            const receivedTable = document.getElementById('receivedTable');
-                            const distributedTable = document.getElementById('distributedTable');
-                            const isReceivedVisible = receivedTable.style.display !== 'none';
-                            const tableToFilter = isReceivedVisible ? receivedTable : distributedTable;
+                            const evacuationCenters = new Set();
 
-                            const rows = tableToFilter.getElementsByTagName('tr');
+                            // Collect unique evacuation centers from the visible table
+                            const rows = activeTable.getElementsByTagName('tr');
                             for (const row of rows) {
-                                const dateCell = row.cells[4];
-                                if (!dateCell) continue;
-
-                                const rowDate = new Date(dateCell.textContent.trim());
-                                let showRow = true;
-
-                                if (startDate && rowDate < startDate) {
-                                    showRow = false;
+                                const centerCell = row.cells[3]; // 4th column is Evacuation Center
+                                if (centerCell) {
+                                    evacuationCenters.add(centerCell.textContent.trim());
                                 }
-
-                                if (endDate && rowDate > endDate) {
-                                    showRow = false;
-                                }
-
-                                row.style.display = showRow ? '' : 'none';
                             }
+
+                            // Populate the filter dropdown
+                            evacuationCenters.forEach(center => {
+                                const option = document.createElement('option');
+                                option.value = center.toLowerCase();
+                                option.textContent = center;
+                                filterSelect.appendChild(option);
+                            });
                         }
 
+                        // Toggle between received and distributed supplies
                         document.getElementById('received').addEventListener('change', function () {
                             if (this.checked) {
                                 document.getElementById('distributed').checked = false;
@@ -410,8 +406,7 @@ while ($row = $distributed_result->fetch_assoc()) {
                                 document.getElementById('receivedHeader').style.display = 'table-header-group';
                                 document.getElementById('distributedTable').style.display = 'none';
                                 document.getElementById('distributedHeader').style.display = 'none';
-                                updateEvacuationCenterFilter();
-                                filterTableByDate();
+                                updateEvacuationCenterFilter(); // Update filter options
                             }
                         });
 
@@ -422,119 +417,55 @@ while ($row = $distributed_result->fetch_assoc()) {
                                 document.getElementById('distributedHeader').style.display = 'table-header-group';
                                 document.getElementById('receivedTable').style.display = 'none';
                                 document.getElementById('receivedHeader').style.display = 'none';
-                                updateEvacuationCenterFilter();
-                                filterTableByDate();
+                                updateEvacuationCenterFilter(); // Update filter options
                             }
                         });
-                        function updateEvacuationCenterFilter() {
-                            const filterSelect = document.getElementById('filterBarangay');
-                            filterSelect.innerHTML = '<option value="all">All</option>';
 
-                            const activeTable =
-                                document.querySelector('#receivedTable').style.display !== 'none'
-                                    ? document.getElementById('receivedTable')
-                                    : document.getElementById('distributedTable');
-
-                            const evacuationCenters = new Set();
-
-                            const rows = activeTable.getElementsByTagName('tr');
-                            for (const row of rows) {
-                                const centerCell = row.cells[3];
-                                if (centerCell) {
-                                    evacuationCenters.add(centerCell.textContent.trim());
-                                }
-                            }
-
-                            evacuationCenters.forEach(center => {
-                                const option = document.createElement('option');
-                                option.value = center;
-                                option.textContent = center;
-                                filterSelect.appendChild(option);
-                            });
-                        }
-
-
-                        function filterTableByDateAndCenter() {
+                        // Function to filter rows based on evacuation center
+                        function filterEvacuationCenter() {
                             const filterValue = document.getElementById('filterBarangay').value.toLowerCase();
-                            const startDateValue = document.getElementById('startDate').value;
-                            const endDateValue = document.getElementById('endDate').value;
 
-                            const startDate = startDateValue ? new Date(startDateValue) : null;
-                            const endDate = endDateValue ? new Date(endDateValue) : null;
-
+                            // Determine the currently visible table
                             const receivedTable = document.getElementById('receivedTable');
                             const distributedTable = document.getElementById('distributedTable');
                             const isReceivedVisible = receivedTable.style.display !== 'none';
                             const tableToFilter = isReceivedVisible ? receivedTable : distributedTable;
 
+                            // Filter rows in the active table
                             const rows = tableToFilter.getElementsByTagName('tr');
                             for (const row of rows) {
-                                const centerCell = row.cells[3];
-                                const dateCell = row.cells[4];
-                                if (!centerCell || !dateCell) continue;
+                                const centerCell = row.cells[3]; // 4th column is Evacuation Center
+                                if (!centerCell) continue; // Skip header or empty rows
 
                                 const centerName = centerCell.textContent.trim().toLowerCase();
-                                const rowDate = new Date(dateCell.textContent.trim());
-                                let showRow = true;
-
-                                if (filterValue !== 'all' && centerName !== filterValue) {
-                                    showRow = false;
+                                if (filterValue === 'all' || centerName === filterValue) {
+                                    row.style.display = ''; // Show row
+                                } else {
+                                    row.style.display = 'none'; // Hide row
                                 }
-
-                                if (startDate && rowDate < startDate) {
-                                    showRow = false;
-                                }
-
-                                if (endDate && rowDate > endDate) {
-                                    showRow = false;
-                                }
-
-                                row.style.display = showRow ? '' : 'none';
                             }
                         }
 
-                        document.getElementById('filterBarangay').addEventListener('change', filterTableByDateAndCenter);
-
-                        document.getElementById('startDate').addEventListener('change', filterTableByDateAndCenter);
-                        document.getElementById('endDate').addEventListener('change', filterTableByDateAndCenter);
-
-
+                        // Initialize filter options on page load
                         document.addEventListener('DOMContentLoaded', function () {
                             updateEvacuationCenterFilter();
 
+                            // Attach the filter function to the select element
                             document.getElementById('filterBarangay').addEventListener('change', filterEvacuationCenter);
-
-                            document.getElementById('startDate').addEventListener('change', filterTableByDate);
-                            document.getElementById('endDate').addEventListener('change', filterTableByDate);
                         });
 
                         function exportReport() {
                             const isReceived = document.getElementById('received').checked;
                             const evacuationCenterFilter = document.getElementById('filterBarangay');
-                            const evacuationCenterName = evacuationCenterFilter ? evacuationCenterFilter.value : 'all';
-
-                            const startDate = document.getElementById('startDate').value;
-                            const endDate = document.getElementById('endDate').value;
+                            const evacuationCenterName = evacuationCenterFilter ? evacuationCenterFilter.value : ''; // Get the selected evacuation center name
 
                             const filter = isReceived ? 'received' : 'distributed';
 
-                            // Redirect to export_supply.php with additional date parameters
-                            window.location.href = `../export/export_supply.php?filter=${filter}&evacuation_center_name=${encodeURIComponent(evacuationCenterName)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`;
+                            // Redirect to export_supply.php with the selected filter and evacuation center name
+                            window.location.href = `../export/export_supply.php?filter=${filter}&evacuation_center_name=${encodeURIComponent(evacuationCenterName)}`;
                         }
 
-                        document.getElementById('searchInput').addEventListener('keyup', function () {
-                            const searchValue = this.value.toLowerCase();
-                            const tableRows = document.querySelectorAll('#receivedTable tr');
 
-                            tableRows.forEach(row => {
-                                const supplyName = row.querySelector('.supplyName')?.textContent.toLowerCase();
-                                if (supplyName && supplyName.includes(searchValue)) {
-                                    row.style.display = '';
-                                } else {
-                                    row.style.display = 'none';
-                                }
-                            });
-                        });
                     </script>
 
 

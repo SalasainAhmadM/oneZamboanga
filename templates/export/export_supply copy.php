@@ -14,42 +14,47 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $filter = isset($_GET['filter']) ? $_GET['filter'] : 'received';
+$evacuationCenterName = isset($_GET['evacuation_center_name']) ? trim($_GET['evacuation_center_name']) : '';
 $admin_id = $_SESSION['user_id']; // Assuming admin_id is stored in session
 
 $data = [];
 if ($filter === 'received') {
     // Fetch received supplies
     $query = "
-    SELECT 
-        s.name AS supply_name,
-        CONCAT(s.quantity, '/', s.original_quantity, ' ', s.unit, 's') AS main_quantity,
-        GROUP_CONCAT(
-            CONCAT(st.quantity, '/', st.original_quantity, ' ', st.unit, 's') SEPARATOR '\n'
-        ) AS stock_quantities,
-        GROUP_CONCAT(st.date SEPARATOR '\n') AS stock_dates,
-        GROUP_CONCAT(st.from SEPARATOR '\n') AS stock_sources,
-        ec.name AS evacuation_center_name,
-        s.date AS supply_date,
-        s.`from` AS supply_from
-    FROM 
-        supply AS s
-    INNER JOIN 
-        evacuation_center AS ec
-    ON 
-        s.evacuation_center_id = ec.id
-    LEFT JOIN 
-        stock AS st
-    ON 
-        s.id = st.supply_id
-    WHERE 
-        ec.admin_id = ? AND s.approved = 1
-    GROUP BY 
-        s.id
-";
-
+        SELECT 
+            s.name AS supply_name,
+            CONCAT(s.quantity, '/', s.original_quantity, ' ', s.unit, 's') AS main_quantity,
+            GROUP_CONCAT(
+                CONCAT(st.quantity, '/', st.original_quantity, ' ', st.unit, 's') SEPARATOR '\n'
+            ) AS stock_quantities,
+            GROUP_CONCAT(st.date SEPARATOR '\n') AS stock_dates,
+            GROUP_CONCAT(st.from SEPARATOR '\n') AS stock_sources,
+            ec.name AS evacuation_center_name,
+            s.date AS supply_date,
+            s.`from` AS supply_from
+        FROM 
+            supply AS s
+        INNER JOIN 
+            evacuation_center AS ec
+        ON 
+            s.evacuation_center_id = ec.id
+        LEFT JOIN 
+            stock AS st
+        ON 
+            s.id = st.supply_id
+        WHERE 
+            ec.admin_id = ? AND s.approved = 1 
+            " . ($evacuationCenterName ? "AND ec.name = ? " : "") . "
+        GROUP BY 
+            s.id
+    ";
 
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $admin_id);
+    if ($evacuationCenterName) {
+        $stmt->bind_param("is", $admin_id, $evacuationCenterName);
+    } else {
+        $stmt->bind_param("i", $admin_id);
+    }
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -76,10 +81,16 @@ if ($filter === 'received') {
         ON 
             e.evacuation_center_id = ec.id
         WHERE 
-            ec.admin_id = ?
+            ec.admin_id = ? 
+            " . ($evacuationCenterName ? "AND ec.name = ? " : "") . "
     ";
+
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $admin_id);
+    if ($evacuationCenterName) {
+        $stmt->bind_param("is", $admin_id, $evacuationCenterName);
+    } else {
+        $stmt->bind_param("i", $admin_id);
+    }
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -87,7 +98,6 @@ if ($filter === 'received') {
         $data[] = $row;
     }
 }
-
 // Create PhpWord instance
 $phpWord = new PhpWord();
 $section = $phpWord->addSection([
@@ -98,7 +108,6 @@ $section = $phpWord->addSection([
     'marginTop' => 1440,
     'marginBottom' => 1440,
 ]);
-
 // Header Section
 $header = $section->addHeader();
 $headerTable = $header->addTable();
@@ -158,7 +167,7 @@ $headerTextStyle = ['name' => 'Arial', 'size' => 11, 'bold' => true];
 
 if ($filter === 'received') {
     $table->addRow();
-    $table->addCell(1000)->addText('Supply Name', $headerTextStyle);
+    $table->addCell(1500)->addText('Supply Name', $headerTextStyle);
     $table->addCell(2000)->addText('Supply', $headerTextStyle);
     $table->addCell(1700)->addText('Stocks', $headerTextStyle);
     $table->addCell(2000)->addText('Evacuation Center', $headerTextStyle);
@@ -167,7 +176,7 @@ if ($filter === 'received') {
 
     foreach ($data as $row) {
         $table->addRow();
-        $table->addCell(1000)->addText($row['supply_name'], $textStyle);
+        $table->addCell(1500)->addText($row['supply_name'], $textStyle);
         $table->addCell(2000)->addText($row['main_quantity'], $textStyle);
 
         // All stock quantities in one cell

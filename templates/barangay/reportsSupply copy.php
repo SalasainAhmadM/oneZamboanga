@@ -231,7 +231,7 @@ while ($row = $distributed_result->fetch_assoc()) {
                             </div>
 
                             <div class="input_group">
-                                <input type="search" id="searchInput" placeholder="Search...">
+                                <input type="search" placeholder="Search...">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                             </div>
                         </section>
@@ -256,8 +256,7 @@ while ($row = $distributed_result->fetch_assoc()) {
                                     <?php if (!empty($supplies)): ?>
                                         <?php foreach ($supplies as $supply): ?>
                                             <tr>
-                                                <td class="supplyName"><?php echo htmlspecialchars($supply['supply_name']); ?>
-                                                </td>
+                                                <td><?php echo htmlspecialchars($supply['supply_name']); ?></td>
                                                 <td><?php echo htmlspecialchars($supply['quantity']); ?>
                                                     /<?php echo htmlspecialchars($supply['original_quantity']); ?>
                                                     <?php echo htmlspecialchars($supply['unit']); ?>s
@@ -344,9 +343,7 @@ while ($row = $distributed_result->fetch_assoc()) {
                                     <?php if (!empty($distributed)): ?>
                                         <?php foreach ($distributed as $distribution): ?>
                                             <tr>
-                                                <td class="supplyName">
-                                                    <?php echo htmlspecialchars($distribution['supply_name']); ?>
-                                                </td>
+                                                <td><?php echo htmlspecialchars($distribution['supply_name']); ?></td>
                                                 <td><?php echo htmlspecialchars($distribution['evacuee_name']); ?></td>
                                                 <td><?php echo htmlspecialchars($distribution['quantity']); ?></td>
                                                 <td><?php echo htmlspecialchars($distribution['evacuation_center_name']); ?>
@@ -447,12 +444,11 @@ while ($row = $distributed_result->fetch_assoc()) {
 
                             evacuationCenters.forEach(center => {
                                 const option = document.createElement('option');
-                                option.value = center;
+                                option.value = center.toLowerCase();
                                 option.textContent = center;
                                 filterSelect.appendChild(option);
                             });
                         }
-
 
                         function filterTableByDateAndCenter() {
                             const filterValue = document.getElementById('filterBarangay').value.toLowerCase();
@@ -511,30 +507,15 @@ while ($row = $distributed_result->fetch_assoc()) {
                         function exportReport() {
                             const isReceived = document.getElementById('received').checked;
                             const evacuationCenterFilter = document.getElementById('filterBarangay');
-                            const evacuationCenterName = evacuationCenterFilter ? evacuationCenterFilter.value : 'all';
-
-                            const startDate = document.getElementById('startDate').value;
-                            const endDate = document.getElementById('endDate').value;
+                            const evacuationCenterName = evacuationCenterFilter ? evacuationCenterFilter.value : ''; // Get the selected evacuation center name
 
                             const filter = isReceived ? 'received' : 'distributed';
 
-                            // Redirect to export_supply.php with additional date parameters
-                            window.location.href = `../export/export_supply.php?filter=${filter}&evacuation_center_name=${encodeURIComponent(evacuationCenterName)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`;
+                            // Redirect to export_supply.php with the selected filter and evacuation center name
+                            window.location.href = `../export/export_supply.php?filter=${filter}&evacuation_center_name=${encodeURIComponent(evacuationCenterName)}`;
                         }
 
-                        document.getElementById('searchInput').addEventListener('keyup', function () {
-                            const searchValue = this.value.toLowerCase();
-                            const tableRows = document.querySelectorAll('#receivedTable tr');
 
-                            tableRows.forEach(row => {
-                                const supplyName = row.querySelector('.supplyName')?.textContent.toLowerCase();
-                                if (supplyName && supplyName.includes(searchValue)) {
-                                    row.style.display = '';
-                                } else {
-                                    row.style.display = 'none';
-                                }
-                            });
-                        });
                     </script>
 
 
