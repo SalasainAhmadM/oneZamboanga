@@ -65,7 +65,10 @@ $ec_stmt->execute();
 $ec_result = $ec_stmt->get_result();
 
 // Fetch activity logs for this admin
-$notification_query = "SELECT notification_msg, created_at FROM notifications WHERE logged_in_id = ?";
+$notification_query = "SELECT notification_msg, created_at 
+FROM notifications 
+WHERE logged_in_id = ? 
+ORDER BY created_at DESC";
 $notification_stmt = $conn->prepare($notification_query);
 $notification_stmt->bind_param("i", $admin_id);
 $notification_stmt->execute();

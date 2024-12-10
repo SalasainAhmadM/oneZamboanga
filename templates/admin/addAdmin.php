@@ -495,6 +495,8 @@ validateSession('superadmin');
                                         text: `${barangayName} has been added!`,
                                         timer: 2000,
                                         showConfirmButton: false
+                                    }).then(() => {
+                                        location.reload();
                                     });
                                 } else if (data.error === 'Barangay already exists') {
                                     Swal.fire({
@@ -632,6 +634,39 @@ validateSession('superadmin');
                     }
                 });
             });
+        });
+
+        // Save form data in localStorage
+        document.querySelectorAll("#adminForm input, #adminForm select").forEach((input) => {
+            input.addEventListener("input", function () {
+                localStorage.setItem(this.id, this.value);
+            });
+        });
+
+        // Restore form data from localStorage
+        window.addEventListener("load", function () {
+            document.querySelectorAll("#adminForm input, #adminForm select").forEach((input) => {
+                if (localStorage.getItem(input.id)) {
+                    input.value = localStorage.getItem(input.id);
+                }
+            });
+        });
+
+        // Clear localStorage and reload on successful submission
+        document.getElementById("adminForm").addEventListener("submit", function (e) {
+            e.preventDefault(); // Prevent default submission
+            const formData = new FormData(this);
+            fetch(this.action, { method: "POST", body: formData })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.success) {
+                        localStorage.clear(); // Clear saved data
+                        location.reload(); // Reload page
+                    } else {
+                        alert("Failed to submit the form: " + data.message);
+                    }
+                })
+                .catch((err) => console.error("Error:", err));
         });
     </script>
     <!-- import sidebar -->

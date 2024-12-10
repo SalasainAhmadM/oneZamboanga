@@ -52,17 +52,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
-    // Check if an admin is already assigned to the same barangay
-    $checkBarangayQuery = "SELECT * FROM admin WHERE barangay = '$barangay' AND role = 'admin'";
-    $barangayResult = mysqli_query($conn, $checkBarangayQuery);
-
-    if (mysqli_num_rows($barangayResult) > 0) {
-        $_SESSION['message'] = "An admin is already assigned to Barangay $barangay.";
-        $_SESSION['message_type'] = "error";
-        header("Location: ../admin/addAdmin.php");
-        exit();
-    }
-
     // Generate username and password
     $username = $lastName . ucfirst($role);
     $password = bin2hex(random_bytes(4)); // Random 8-character password

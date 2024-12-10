@@ -166,15 +166,13 @@ $result_centers = $stmt_centers->get_result();
                                     </label> -->
                                     <div class="filter-option">
                                         <div class="option-content">
-                                            <input type="checkbox" name="barangay" id="active">
+                                            <input type="checkbox" name="status" id="active" value="Active">
                                             <label for="active">Active</label>
                                         </div>
                                         <div class="option-content">
-                                            <input type="checkbox" name="barangay" id="inactive">
+                                            <input type="checkbox" name="status" id="inactive" value="Inactive">
                                             <label for="inactive">Inactive</label>
                                         </div>
-
-
                                     </div>
 
                                 </div>
