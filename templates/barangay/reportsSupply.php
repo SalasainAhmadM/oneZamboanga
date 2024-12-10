@@ -194,8 +194,7 @@ while ($row = $distributed_result->fetch_assoc()) {
                         </select>
 
 
-                        <button class="addBg-admin" onclick="exportReport()">Export</button>
-
+                        <button class="addBg-admin" id="exportButton">Export</button>
                     </div>
                 </div>
             </header>
@@ -316,8 +315,9 @@ while ($row = $distributed_result->fetch_assoc()) {
                                                 <td><?php echo htmlspecialchars($supply['supply_from']); ?></td>
                                                 <td style="text-align: center;">
                                                     <a class="view-action" href="javascript:void(0);"
-                                                        onclick="printSupply()">Print</a>
+                                                        onclick="printSupply(<?php echo htmlspecialchars($supply['supply_id']); ?>)">Print</a>
                                                 </td>
+
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php else: ?>
@@ -354,7 +354,7 @@ while ($row = $distributed_result->fetch_assoc()) {
                                                 <td><?php echo htmlspecialchars($distribution['date']); ?></td>
                                                 <td style="text-align: center;">
                                                     <a class="view-action" href="javascript:void(0);"
-                                                        onclick="printDistributed()">Print</a>
+                                                        onclick="printDistributed(<?php echo htmlspecialchars($distribution['distribute_id']); ?>)">Print</a>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -562,6 +562,56 @@ while ($row = $distributed_result->fetch_assoc()) {
         });
 
 
+        document.getElementById('exportButton').addEventListener('click', function () {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Do you want to export the report?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, export it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    exportReport();
+                    // Swal.fire('Exported!', 'The report has been exported successfully.', 'success');
+                }
+            });
+        });
+        function printSupply(supplyId) {
+            Swal.fire({
+                title: 'Print Report?',
+                text: `Confirm to print the report for this received supply?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Print',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Trigger the export PHP script
+                    window.location.href = `../export/export_received_supply.php?supply_id=${supplyId}`;
+                }
+            });
+        }
+
+        function printDistributed(distributeId) {
+            Swal.fire({
+                title: 'Print Report?',
+                text: `Confirm to print the report for this distributed supply?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Print',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Trigger the export PHP script
+                    window.location.href = `../export/export_distributed.php?distribute_id=${distributeId}`;
+                }
+            });
+        }
 
     </script>
     <!-- sidebar import js -->
