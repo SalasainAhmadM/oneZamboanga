@@ -318,11 +318,11 @@ echo "<script>
                                                     class="filter-checkbox" data-filter="Admitted" checked>
                                                 <label for="admit">Admitted</label>
                                             </div>
-                                            <!-- <div class="option-content">
+                                            <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="transfer"
                                                     class="filter-checkbox" data-filter="Transfer">
                                                 <label for="transfer">Transfer</label>
-                                            </div> -->
+                                            </div>
                                             <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="transferred"
                                                     class="filter-checkbox" data-filter="Transferred">
@@ -377,8 +377,10 @@ echo "<script>
                                                         <?php endforeach; ?>
                                                     </ul>
                                                 </td>
-                                                <td style="text-align: center;"><?php echo htmlspecialchars($row['status']); ?>
+                                                <td style="text-align: center;">
+                                                    <?php echo ($row['status'] === 'Transfer') ? 'Pending Transfer' : htmlspecialchars($row['status']); ?>
                                                 </td>
+
                                                 <td style="text-align: center;"><?php echo htmlspecialchars($row['date']); ?>
                                                 </td>
                                                 <td><?php echo htmlspecialchars($row['disaster_type']); ?></td>

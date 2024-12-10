@@ -305,7 +305,7 @@ echo "<script>
                                             <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="transfer"
                                                     class="filter-checkbox" data-filter="Transfer">
-                                                <label for="transfer">Transfer</label>
+                                                <label for="transfer">Pending Transfer</label>
                                             </div>
                                             <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="transferred"
@@ -364,7 +364,10 @@ echo "<script>
                                                         <?php endforeach; ?>
                                                     </ul>
                                                 </td>
-                                                <td style="text-align: center;"><?php echo htmlspecialchars($row['status']); ?>
+                                                <td style="text-align: center;">
+                                                    <?php echo ($row['status'] === 'Transfer') ? 'Pending Transfer' : htmlspecialchars($row['status']); ?>
+                                                </td>
+
                                                 </td>
                                                 <td style="text-align: center;"><?php echo htmlspecialchars($row['date']); ?>
                                                 </td>
