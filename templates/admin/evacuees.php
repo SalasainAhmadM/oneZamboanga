@@ -254,8 +254,13 @@ $result = $conn->query($query);
                                         </div>
                                         <div class="option-content">
                                             <input type="checkbox" name="evacuees" id="transfer" class="filter-checkbox"
-                                                data-filter="Transferred">
-                                            <label for="transfer">Transferred</label>
+                                                data-filter="Transfer">
+                                            <label for="transfer">Transfer</label>
+                                        </div>
+                                        <div class="option-content">
+                                            <input type="checkbox" name="evacuees" id="transferred"
+                                                class="filter-checkbox" data-filter="Transferred">
+                                            <label for="transferred">Transferred</label>
                                         </div>
                                     </div>
                                 </div>

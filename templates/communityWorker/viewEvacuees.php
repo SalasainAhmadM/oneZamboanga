@@ -344,7 +344,7 @@ while ($center = $otherCentersResult->fetch_assoc()) {
                                 </h3>
 
                                 <div class="profile-details">
-                                    <p class="details-profile">Address: <?php echo $evacuee['barangay']; ?></p>
+                                    <p class="details-profile">Barangay: <?php echo $evacuee['barangay']; ?></p>
                                     <p class="details-profile">Sex: <?php echo $evacuee['gender']; ?></p>
                                     <p class="details-profile">Birth date:
                                         <?php echo date("F j, Y", strtotime($evacuee['birthday'])); ?>
@@ -521,9 +521,9 @@ while ($center = $otherCentersResult->fetch_assoc()) {
         <label for="centerSelect">Select a new evacuation center:</label>
         <select id="centerSelect" class="swal2-select" style="width: 400px; font-size: 14px;">
             <?php foreach ($otherCenters as $center): ?>
-                                                                                                                                                    <option value="<?= $center['id']; ?>" <?= $center['capacity'] <= $center['evacuees_count'] ? 'disabled' : ''; ?>>
-                                                                                                                                                        <?= htmlspecialchars($center['name'] . ' (Evacuees: ' . $center['evacuees_count'] . '/' . $center['capacity'] . ')'); ?>
-                                                                                                                                                    </option>
+                                                                                                                                                            <option value="<?= $center['id']; ?>" <?= $center['capacity'] <= $center['evacuees_count'] ? 'disabled' : ''; ?>>
+                                                                                                                                                                <?= htmlspecialchars($center['name'] . ' (Evacuees: ' . $center['evacuees_count'] . '/' . $center['capacity'] . ')'); ?>
+                                                                                                                                                            </option>
             <?php endforeach; ?>
         </select>
     `,

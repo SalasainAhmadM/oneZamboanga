@@ -166,14 +166,15 @@ $result_centers = $stmt_centers->get_result();
                                     </label> -->
                                     <div class="filter-option">
                                         <div class="option-content">
-                                            <input type="checkbox" name="status" id="active" value="Active">
-                                            <label for="active">Active</label>
+                                            <input type="checkbox" id="filterActive" onchange="filterByStatus()">
+                                            <label for="filterActive">Active</label>
                                         </div>
                                         <div class="option-content">
-                                            <input type="checkbox" name="status" id="inactive" value="Inactive">
-                                            <label for="inactive">Inactive</label>
+                                            <input type="checkbox" id="filterInactive" onchange="filterByStatus()">
+                                            <label for="filterInactive">Inactive</label>
                                         </div>
                                     </div>
+
 
                                 </div>
                             </div>
@@ -244,32 +245,34 @@ GROUP BY
                                     $status = $row['status']; // 'Active' or 'Inactive'
                                     $barangay = $row['barangay']; // Fetch barangay from admin table
                                     ?>
-                                    <tr onclick="confirmAction(<?= $id; ?>)">
-                                        <td>
-                                            <div class="relative">
-                                                <img src="<?= $image; ?>" alt="Evacuation Center">
-                                                <?= htmlspecialchars($name); ?>
-                                            </div>
-                                        </td>
-                                        <td><?= htmlspecialchars($location); ?> , <?= htmlspecialchars($barangay); ?></td>
+                                    <tbody id="evacuationTable">
+                                        <tr data-status="<?= htmlspecialchars($status); ?>">
+                                            <td>
+                                                <div class="relative">
+                                                    <img src="<?= $image; ?>" alt="Evacuation Center">
+                                                    <?= htmlspecialchars($name); ?>
+                                                </div>
+                                            </td>
+                                            <td><?= htmlspecialchars($location); ?> , <?= htmlspecialchars($barangay); ?></td>
 
-                                        <td>
-                                            <p class="status role <?= strtolower($status); ?>">
-                                                <?= htmlspecialchars($status); ?>
-                                            </p>
-                                        </td>
-                                        <td><?= htmlspecialchars($capacity); ?></td>
-                                        <td><?= $evacuee_count; ?></td>
-                                        <td><?= $total_count; ?></td>
-                                        <td><a class="view-action">Print</a></td>
-                                    </tr>
-                                    <?php
+                                            <td>
+                                                <p class="status role <?= strtolower($status); ?>">
+                                                    <?= htmlspecialchars($status); ?>
+                                                </p>
+                                            </td>
+                                            <td><?= htmlspecialchars($capacity); ?></td>
+                                            <td><?= $evacuee_count; ?></td>
+                                            <td><?= $total_count; ?></td>
+                                            <td><a class="view-action" onclick="confirmAction(<?= $id; ?>)">Print</a></td>
+                                        </tr>
+                                        <?php
                                 }
                             } else {
                                 echo "<tr><td colspan='8'>No evacuation centers found.</td></tr>";
                             }
                             ?>
-
+                            </tbody>
+                        </table>
 
                     </section>
 
@@ -286,6 +289,31 @@ GROUP BY
     </div>
 
     <script>
+        function filterByStatus() {
+            // Get the checkbox states
+            const activeCheckbox = document.getElementById('filterActive');
+            const inactiveCheckbox = document.getElementById('filterInactive');
+
+            // Get all rows in the table body
+            const rows = document.querySelectorAll('#evacuationTable tr');
+
+            rows.forEach(row => {
+                const status = row.getAttribute('data-status'); // Get the status of the row
+
+                // Logic for showing or hiding rows based on the checkbox states
+                if (
+                    (activeCheckbox.checked && status === 'Active') ||
+                    (inactiveCheckbox.checked && status === 'Inactive') ||
+                    (!activeCheckbox.checked && !inactiveCheckbox.checked) // Show all rows if no filters are selected
+                ) {
+                    row.style.display = ''; // Show the row
+                } else {
+                    row.style.display = 'none'; // Hide the row
+                }
+            });
+        }
+
+
         function confirmAction(evacuationCenterId) {
             Swal.fire({
                 title: 'Print Report?',

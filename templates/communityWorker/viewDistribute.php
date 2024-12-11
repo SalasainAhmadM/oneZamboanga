@@ -256,7 +256,7 @@ $distributedResult = $distributedStmt->get_result();
                             <!-- next page -->
                             <i class="fa-solid fa-chevron-right"></i>
                             <a
-                                href="resources.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>">Resource
+                                href="resourceSupply.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>">Resource
                                 Management</a>
 
                             <i class="fa-solid fa-chevron-right"></i>
@@ -322,6 +322,23 @@ $distributedResult = $distributedStmt->get_result();
                                 <form action="javascript:void(0);">
                                     <table class="distributedTable donate">
                                         <thead>
+                                            <div class="filterStatus">
+                                                <!-- <div class="statusFilter">
+                                                    <label for="statusEC"><i class="fa-solid fa-filter"></i></label>
+                                                    <input type="checkbox" id="statusEC" class="statusEC">
+
+                                                    <div class="showStatus">
+                                                        <p>Admitted</p>
+                                                        <p>Transferred</p>
+                                                    </div>
+                                                </div> -->
+
+                                                <div class="searchFilter">
+                                                    <input type="text" id="familyHeadSearch" placeholder="Search..."
+                                                        onkeyup="filterFamilyHead()">
+                                                    <label for=""><i class="fa-solid fa-magnifying-glass"></i></label>
+                                                </div>
+                                            </div>
                                             <tr>
                                                 <th>Family Head</th>
                                                 <th style="text-align: center;">Number of Members</th>
@@ -462,7 +479,27 @@ $distributedResult = $distributedStmt->get_result();
 
                                 <script>
 
+                                    function filterFamilyHead() {
+                                        const searchValue = document.getElementById('familyHeadSearch').value.toLowerCase();
 
+                                        // Get rows from both tables
+                                        const evacueesRows = document.querySelectorAll('.distributedTable tbody tr');
+                                        const receivedRows = document.querySelectorAll('.receivedTable tbody tr');
+
+                                        const filterRows = (rows) => {
+                                            rows.forEach(row => {
+                                                const familyHead = row.querySelector('.selectName').textContent.toLowerCase();
+                                                if (familyHead.includes(searchValue)) {
+                                                    row.style.display = ''; // Show row
+                                                } else {
+                                                    row.style.display = 'none'; // Hide row
+                                                }
+                                            });
+                                        };
+
+                                        filterRows(evacueesRows);
+                                        filterRows(receivedRows);
+                                    }
                                     // const supplyId = <?php echo json_encode($supplyId); ?>;
 
                                     function toggleCheckboxRe(row) {

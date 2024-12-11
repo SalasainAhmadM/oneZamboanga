@@ -338,7 +338,7 @@ $proof_image = !empty($worker['proof_image']) ? $worker['proof_image'] : "../../
                                 <div class="inputProfile">
                                     <label for="email">Email</label>
                                     <input type="email" id="email" class="email" name="email"
-                                        value="<?php echo htmlspecialchars($email); ?>" readonly>
+                                        value="<?php echo htmlspecialchars($email); ?>">
                                 </div>
 
                                 <div class="inputProfile">

@@ -99,6 +99,55 @@ $distributed = [];
 while ($row = $distributed_result->fetch_assoc()) {
     $distributed[] = $row;
 }
+
+$stock_movement_query = "
+    SELECT 
+        sm.date,
+        sm.time,
+        s.name AS supply_name,
+        sm.quantity AS quantity,
+        sm.original_quantity,
+        sm.unit,
+        sm.from AS source,
+        'IN' AS movement_type
+    FROM 
+        stock sm
+    INNER JOIN 
+        supply s ON sm.supply_id = s.id
+    WHERE 
+        s.evacuation_center_id = ?
+    UNION ALL
+    SELECT 
+        d.date AS date,
+        NULL AS time,
+        d.supply_name AS supply_name,
+        d.quantity AS quantity,
+        NULL AS original_quantity,
+        NULL AS unit,
+        CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name) AS source,
+        'OUT' AS movement_type
+    FROM 
+        distribute d
+    INNER JOIN 
+        evacuees e ON d.evacuees_id = e.id
+    INNER JOIN 
+        evacuation_center ec ON e.evacuation_center_id = ec.id
+    WHERE 
+        ec.admin_id = ?
+    ORDER BY 
+        date ASC, time ASC;
+";
+
+// Prepare and execute the query
+$stock_movement_stmt = $conn->prepare($stock_movement_query);
+$stock_movement_stmt->bind_param("ii", $admin_id, $admin_id);
+$stock_movement_stmt->execute();
+$stock_movement_result = $stock_movement_stmt->get_result();
+
+$stock_movements = [];
+while ($row = $stock_movement_result->fetch_assoc()) {
+    $stock_movements[] = $row;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -194,8 +243,7 @@ while ($row = $distributed_result->fetch_assoc()) {
                         </select>
 
 
-                        <button class="addBg-admin" onclick="exportReport()">Export</button>
-
+                        <button class="addBg-admin" id="exportButton">Export</button>
                     </div>
                 </div>
             </header>
@@ -225,13 +273,18 @@ while ($row = $distributed_result->fetch_assoc()) {
                                                 <input type="checkbox" name="filter" id="distributed">
                                                 <label for="distributed">Distributed</label>
                                             </div>
+
+                                            <div class="option-content">
+                                                <input type="checkbox" name="filter" id="stockmovement">
+                                                <label for="stockmovement">Stock Movement</label>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="input_group">
-                                <input type="search" placeholder="Search...">
+                                <input type="search" id="searchInput" placeholder="Search...">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                             </div>
                         </section>
@@ -256,7 +309,8 @@ while ($row = $distributed_result->fetch_assoc()) {
                                     <?php if (!empty($supplies)): ?>
                                         <?php foreach ($supplies as $supply): ?>
                                             <tr>
-                                                <td><?php echo htmlspecialchars($supply['supply_name']); ?></td>
+                                                <td class="supplyName"><?php echo htmlspecialchars($supply['supply_name']); ?>
+                                                </td>
                                                 <td><?php echo htmlspecialchars($supply['quantity']); ?>
                                                     /<?php echo htmlspecialchars($supply['original_quantity']); ?>
                                                     <?php echo htmlspecialchars($supply['unit']); ?>s
@@ -315,8 +369,9 @@ while ($row = $distributed_result->fetch_assoc()) {
                                                 <td><?php echo htmlspecialchars($supply['supply_from']); ?></td>
                                                 <td style="text-align: center;">
                                                     <a class="view-action" href="javascript:void(0);"
-                                                        onclick="printSupply()">Print</a>
+                                                        onclick="printSupply(<?php echo htmlspecialchars($supply['supply_id']); ?>)">Print</a>
                                                 </td>
+
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php else: ?>
@@ -343,7 +398,9 @@ while ($row = $distributed_result->fetch_assoc()) {
                                     <?php if (!empty($distributed)): ?>
                                         <?php foreach ($distributed as $distribution): ?>
                                             <tr>
-                                                <td><?php echo htmlspecialchars($distribution['supply_name']); ?></td>
+                                                <td class="supplyName">
+                                                    <?php echo htmlspecialchars($distribution['supply_name']); ?>
+                                                </td>
                                                 <td><?php echo htmlspecialchars($distribution['evacuee_name']); ?></td>
                                                 <td><?php echo htmlspecialchars($distribution['quantity']); ?></td>
                                                 <td><?php echo htmlspecialchars($distribution['evacuation_center_name']); ?>
@@ -351,7 +408,7 @@ while ($row = $distributed_result->fetch_assoc()) {
                                                 <td><?php echo htmlspecialchars($distribution['date']); ?></td>
                                                 <td style="text-align: center;">
                                                     <a class="view-action" href="javascript:void(0);"
-                                                        onclick="printDistributed()">Print</a>
+                                                        onclick="printDistributed(<?php echo htmlspecialchars($distribution['distribute_id']); ?>)">Print</a>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -361,6 +418,44 @@ while ($row = $distributed_result->fetch_assoc()) {
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
+
+                                <!-- stockmovement Table Header -->
+                                <thead id="stockmovementHeader" style="display:none;">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>In/Out</th>
+                                        <th>Supply Name</th>
+                                        <th>Quantity</th>
+                                        <th>Source/Distributed to</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+
+                                <!-- Stock Movement Supplies -->
+                                <tbody id="stockmovementTable">
+                                    <?php if (!empty($stock_movements)): ?>
+                                        <?php foreach ($stock_movements as $movement): ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($movement['date']); ?></td>
+                                                <td><?php echo htmlspecialchars($movement['time']); ?></td>
+                                                <td><?php echo htmlspecialchars($movement['movement_type']); ?></td>
+                                                <td><?php echo htmlspecialchars($movement['supply_name']); ?></td>
+                                                <td>
+                                                    <?php echo htmlspecialchars($movement['quantity']); ?>
+                                                    <?php if (!empty($movement['unit'])): ?>
+                                                        <?php echo htmlspecialchars($movement['unit']); ?>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td><?php echo htmlspecialchars($movement['source']); ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="6" style="text-align: center;">No stock movements found.</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+
                             </table>
                         </section>
 
@@ -368,10 +463,104 @@ while ($row = $distributed_result->fetch_assoc()) {
                     </div>
 
                     <script>
-                        // Function to populate Evacuation Center filter options
+                        function filterTableByDate() {
+                            const startDateValue = document.getElementById('startDate').value;
+                            const endDateValue = document.getElementById('endDate').value;
+
+                            const startDate = startDateValue ? new Date(startDateValue) : null;
+                            const endDate = endDateValue ? new Date(endDateValue) : null;
+
+                            const receivedTable = document.getElementById('receivedTable');
+                            const distributedTable = document.getElementById('distributedTable');
+                            const isReceivedVisible = receivedTable.style.display !== 'none';
+                            const tableToFilter = isReceivedVisible ? receivedTable : distributedTable;
+
+                            const rows = tableToFilter.getElementsByTagName('tr');
+                            for (const row of rows) {
+                                const dateCell = row.cells[4];
+                                if (!dateCell) continue;
+
+                                const rowDate = new Date(dateCell.textContent.trim());
+                                let showRow = true;
+
+                                if (startDate && rowDate < startDate) {
+                                    showRow = false;
+                                }
+
+                                if (endDate && rowDate > endDate) {
+                                    showRow = false;
+                                }
+
+                                row.style.display = showRow ? '' : 'none';
+                            }
+                        }
+
+                        // Event listener for the "Received" checkbox
+                        document.getElementById('received').addEventListener('change', function () {
+                            if (this.checked) {
+                                document.getElementById('distributed').checked = false;
+                                document.getElementById('stockmovement').checked = false;
+
+                                // Show Received Table
+                                document.getElementById('receivedTable').style.display = 'table-row-group';
+                                document.getElementById('receivedHeader').style.display = 'table-header-group';
+
+                                // Hide other tables
+                                document.getElementById('distributedTable').style.display = 'none';
+                                document.getElementById('distributedHeader').style.display = 'none';
+                                document.getElementById('stockmovementTable').style.display = 'none';
+                                document.getElementById('stockmovementHeader').style.display = 'none';
+
+                                updateEvacuationCenterFilter();
+                                filterTableByDate();
+                            }
+                        });
+
+                        // Event listener for the "Distributed" checkbox
+                        document.getElementById('distributed').addEventListener('change', function () {
+                            if (this.checked) {
+                                document.getElementById('received').checked = false;
+                                document.getElementById('stockmovement').checked = false;
+
+                                // Show Distributed Table
+                                document.getElementById('distributedTable').style.display = 'table-row-group';
+                                document.getElementById('distributedHeader').style.display = 'table-header-group';
+
+                                // Hide other tables
+                                document.getElementById('receivedTable').style.display = 'none';
+                                document.getElementById('receivedHeader').style.display = 'none';
+                                document.getElementById('stockmovementTable').style.display = 'none';
+                                document.getElementById('stockmovementHeader').style.display = 'none';
+
+                                updateEvacuationCenterFilter();
+                                filterTableByDate();
+                            }
+                        });
+
+                        // Event listener for the "Stock Movement" checkbox
+                        document.getElementById('stockmovement').addEventListener('change', function () {
+                            if (this.checked) {
+                                document.getElementById('received').checked = false;
+                                document.getElementById('distributed').checked = false;
+
+                                // Show Stock Movement Table
+                                document.getElementById('stockmovementTable').style.display = 'table-row-group';
+                                document.getElementById('stockmovementHeader').style.display = 'table-header-group';
+
+                                // Hide other tables
+                                document.getElementById('receivedTable').style.display = 'none';
+                                document.getElementById('receivedHeader').style.display = 'none';
+                                document.getElementById('distributedTable').style.display = 'none';
+                                document.getElementById('distributedHeader').style.display = 'none';
+
+                                updateEvacuationCenterFilter();
+                                filterTableByDate();
+                            }
+                        });
+
                         function updateEvacuationCenterFilter() {
                             const filterSelect = document.getElementById('filterBarangay');
-                            filterSelect.innerHTML = '<option value="all">All</option>'; // Reset options
+                            filterSelect.innerHTML = '<option value="all">All</option>';
 
                             const activeTable =
                                 document.querySelector('#receivedTable').style.display !== 'none'
@@ -380,92 +569,104 @@ while ($row = $distributed_result->fetch_assoc()) {
 
                             const evacuationCenters = new Set();
 
-                            // Collect unique evacuation centers from the visible table
                             const rows = activeTable.getElementsByTagName('tr');
                             for (const row of rows) {
-                                const centerCell = row.cells[3]; // 4th column is Evacuation Center
+                                const centerCell = row.cells[3];
                                 if (centerCell) {
                                     evacuationCenters.add(centerCell.textContent.trim());
                                 }
                             }
 
-                            // Populate the filter dropdown
                             evacuationCenters.forEach(center => {
                                 const option = document.createElement('option');
-                                option.value = center.toLowerCase();
+                                option.value = center;
                                 option.textContent = center;
                                 filterSelect.appendChild(option);
                             });
                         }
 
-                        // Toggle between received and distributed supplies
-                        document.getElementById('received').addEventListener('change', function () {
-                            if (this.checked) {
-                                document.getElementById('distributed').checked = false;
-                                document.getElementById('receivedTable').style.display = 'table-row-group';
-                                document.getElementById('receivedHeader').style.display = 'table-header-group';
-                                document.getElementById('distributedTable').style.display = 'none';
-                                document.getElementById('distributedHeader').style.display = 'none';
-                                updateEvacuationCenterFilter(); // Update filter options
-                            }
-                        });
 
-                        document.getElementById('distributed').addEventListener('change', function () {
-                            if (this.checked) {
-                                document.getElementById('received').checked = false;
-                                document.getElementById('distributedTable').style.display = 'table-row-group';
-                                document.getElementById('distributedHeader').style.display = 'table-header-group';
-                                document.getElementById('receivedTable').style.display = 'none';
-                                document.getElementById('receivedHeader').style.display = 'none';
-                                updateEvacuationCenterFilter(); // Update filter options
-                            }
-                        });
-
-                        // Function to filter rows based on evacuation center
-                        function filterEvacuationCenter() {
+                        function filterTableByDateAndCenter() {
                             const filterValue = document.getElementById('filterBarangay').value.toLowerCase();
+                            const startDateValue = document.getElementById('startDate').value;
+                            const endDateValue = document.getElementById('endDate').value;
 
-                            // Determine the currently visible table
+                            const startDate = startDateValue ? new Date(startDateValue) : null;
+                            const endDate = endDateValue ? new Date(endDateValue) : null;
+
                             const receivedTable = document.getElementById('receivedTable');
                             const distributedTable = document.getElementById('distributedTable');
                             const isReceivedVisible = receivedTable.style.display !== 'none';
                             const tableToFilter = isReceivedVisible ? receivedTable : distributedTable;
 
-                            // Filter rows in the active table
                             const rows = tableToFilter.getElementsByTagName('tr');
                             for (const row of rows) {
-                                const centerCell = row.cells[3]; // 4th column is Evacuation Center
-                                if (!centerCell) continue; // Skip header or empty rows
+                                const centerCell = row.cells[3];
+                                const dateCell = row.cells[4];
+                                if (!centerCell || !dateCell) continue;
 
                                 const centerName = centerCell.textContent.trim().toLowerCase();
-                                if (filterValue === 'all' || centerName === filterValue) {
-                                    row.style.display = ''; // Show row
-                                } else {
-                                    row.style.display = 'none'; // Hide row
+                                const rowDate = new Date(dateCell.textContent.trim());
+                                let showRow = true;
+
+                                if (filterValue !== 'all' && centerName !== filterValue) {
+                                    showRow = false;
                                 }
+
+                                if (startDate && rowDate < startDate) {
+                                    showRow = false;
+                                }
+
+                                if (endDate && rowDate > endDate) {
+                                    showRow = false;
+                                }
+
+                                row.style.display = showRow ? '' : 'none';
                             }
                         }
 
-                        // Initialize filter options on page load
+                        document.getElementById('filterBarangay').addEventListener('change', filterTableByDateAndCenter);
+
+                        document.getElementById('startDate').addEventListener('change', filterTableByDateAndCenter);
+                        document.getElementById('endDate').addEventListener('change', filterTableByDateAndCenter);
+
+
                         document.addEventListener('DOMContentLoaded', function () {
                             updateEvacuationCenterFilter();
 
-                            // Attach the filter function to the select element
                             document.getElementById('filterBarangay').addEventListener('change', filterEvacuationCenter);
+
+                            document.getElementById('startDate').addEventListener('change', filterTableByDate);
+                            document.getElementById('endDate').addEventListener('change', filterTableByDate);
                         });
 
                         function exportReport() {
                             const isReceived = document.getElementById('received').checked;
                             const evacuationCenterFilter = document.getElementById('filterBarangay');
-                            const evacuationCenterName = evacuationCenterFilter ? evacuationCenterFilter.value : ''; // Get the selected evacuation center name
+                            const evacuationCenterName = evacuationCenterFilter ? evacuationCenterFilter.value : 'all';
+
+                            const startDate = document.getElementById('startDate').value;
+                            const endDate = document.getElementById('endDate').value;
 
                             const filter = isReceived ? 'received' : 'distributed';
 
-                            // Redirect to export_supply.php with the selected filter and evacuation center name
-                            window.location.href = `../export/export_supply.php?filter=${filter}&evacuation_center_name=${encodeURIComponent(evacuationCenterName)}`;
+                            // Redirect to export_supply.php with additional date parameters
+                            window.location.href = `../export/export_supply.php?filter=${filter}&evacuation_center_name=${encodeURIComponent(evacuationCenterName)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`;
                         }
 
+                        document.getElementById('searchInput').addEventListener('keyup', function () {
+                            const searchValue = this.value.toLowerCase();
+                            const tableRows = document.querySelectorAll('#receivedTable tr');
 
+                            tableRows.forEach(row => {
+                                const supplyName = row.querySelector('.supplyName')?.textContent.toLowerCase();
+                                if (supplyName && supplyName.includes(searchValue)) {
+                                    row.style.display = '';
+                                } else {
+                                    row.style.display = 'none';
+                                }
+                            });
+                        });
                     </script>
 
 
@@ -493,6 +694,56 @@ while ($row = $distributed_result->fetch_assoc()) {
         });
 
 
+        document.getElementById('exportButton').addEventListener('click', function () {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Do you want to export the report?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, export it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    exportReport();
+                    // Swal.fire('Exported!', 'The report has been exported successfully.', 'success');
+                }
+            });
+        });
+        function printSupply(supplyId) {
+            Swal.fire({
+                title: 'Print Report?',
+                text: `Confirm to print the report for this received supply?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Print',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Trigger the export PHP script
+                    window.location.href = `../export/export_received_supply.php?supply_id=${supplyId}`;
+                }
+            });
+        }
+
+        function printDistributed(distributeId) {
+            Swal.fire({
+                title: 'Print Report?',
+                text: `Confirm to print the report for this distributed supply?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Print',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Trigger the export PHP script
+                    window.location.href = `../export/export_distributed.php?distribute_id=${distributeId}`;
+                }
+            });
+        }
 
     </script>
     <!-- sidebar import js -->

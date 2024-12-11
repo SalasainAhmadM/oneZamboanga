@@ -154,6 +154,32 @@ echo "<script>
     const evacuationCenterCapacity = $capacity;
     const currentEvacueesCount = $evacueesCount;
 </script>";
+
+// Additional query to count evacuees with specific conditions
+if ($evacuationCenterId !== 'All') {
+    $additionalCountQuery = "
+        SELECT COUNT(*) AS evacuee_count
+        FROM evacuees
+        WHERE 
+            evacuation_center_id = ? 
+            AND (
+                status = 'Admitted' OR 
+                (status = 'Transfer' AND origin_evacuation_center_id = ?)
+            )
+    ";
+    $additionalCountStmt = $conn->prepare($additionalCountQuery);
+    $additionalCountStmt->bind_param("ii", $evacuationCenterId, $evacuationCenterId); // Bind parameters
+    $additionalCountStmt->execute();
+    $additionalCountResult = $additionalCountStmt->get_result();
+    $additionalCountData = $additionalCountResult->fetch_assoc();
+    $filteredEvacueesCount = $additionalCountData['evacuee_count'];
+} else {
+    $filteredEvacueesCount = 0; // Default to 0 if "All" is selected
+}
+
+echo "<script>
+    const filteredEvacueesCount = $filteredEvacueesCount;
+</script>";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -258,11 +284,9 @@ echo "<script>
                                 window.location.href = currentUrl.href;
                             });
                         </script>
-
                         <button class="addBg-admin"
                             data-ec-id="<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>">
                             Admit
-                            <!-- <i class="fa-solid fa-plus"></i> -->
                         </button>
                     </div>
                 </div>
@@ -478,6 +502,8 @@ echo "<script>
             document.querySelectorAll('.addBg-admin').forEach(button => {
                 button.addEventListener('click', (event) => {
                     event.preventDefault(); // Prevent the default action
+                    const evacuationCenterId = button.getAttribute('data-ec-id');
+
                     if (isAll) {
                         Swal.fire({
                             icon: 'info',
@@ -485,8 +511,8 @@ echo "<script>
                             confirmButtonText: 'OK'
                         });
                     } else {
-                        // Check if the center is full
-                        if (currentEvacueesCount >= evacuationCenterCapacity) {
+                        // Check if the filtered evacuee count exceeds the center capacity
+                        if (filteredEvacueesCount >= evacuationCenterCapacity) {
                             Swal.fire({
                                 icon: 'error',
                                 text: 'You cannot admit more evacuees because the evacuation center has reached its full capacity.',
@@ -494,7 +520,6 @@ echo "<script>
                             });
                         } else {
                             // Proceed to redirect if not full
-                            const evacuationCenterId = button.getAttribute('data-ec-id');
                             window.location.href = `evacueesForm.php?id=${evacuationCenterId}`;
                         }
                     }

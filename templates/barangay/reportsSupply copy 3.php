@@ -99,6 +99,54 @@ $distributed = [];
 while ($row = $distributed_result->fetch_assoc()) {
     $distributed[] = $row;
 }
+
+// Query for Stock Movements
+$stock_movement_query = "
+    SELECT 
+        s.date,
+        s.time,
+        s.name AS supply_name,
+        sm.quantity,
+        sm.unit,
+        sm.from AS source,
+        'IN' AS movement_type
+    FROM 
+        stock sm
+    INNER JOIN 
+        supply s ON sm.supply_id = s.id
+    WHERE 
+        s.evacuation_center_id = ?
+    UNION ALL
+    SELECT 
+        d.date,
+        NULL AS time,
+        d.supply_name,
+        d.quantity,
+        NULL AS unit,
+        CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name) AS evacuee_name,
+        'OUT' AS movement_type
+    FROM 
+        distribute d
+    INNER JOIN 
+        evacuees e ON d.evacuees_id = e.id
+    INNER JOIN 
+        evacuation_center ec ON e.evacuation_center_id = ec.id
+    WHERE 
+        ec.admin_id = ?
+    ORDER BY 
+        date ASC, time ASC
+";
+
+$stock_movement_stmt = $conn->prepare($stock_movement_query);
+$stock_movement_stmt->bind_param("ii", $admin_id, $admin_id);
+$stock_movement_stmt->execute();
+$stock_movement_result = $stock_movement_stmt->get_result();
+
+$stock_movements = [];
+while ($row = $stock_movement_result->fetch_assoc()) {
+    $stock_movements[] = $row;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -225,6 +273,10 @@ while ($row = $distributed_result->fetch_assoc()) {
                                                 <label for="distributed">Distributed</label>
                                             </div>
 
+                                            <div class="option-content">
+                                                <input type="checkbox" name="filter" id="stockmovement">
+                                                <label for="stockmovement">Stock Movement</label>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -365,6 +417,42 @@ while ($row = $distributed_result->fetch_assoc()) {
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
+
+                                <!-- stockmovement Table Header -->
+                                <thead id="stockmovementHeader" style="display:none;">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>In/Out</th>
+                                        <th>Supply Name</th>
+                                        <th>Quantity</th>
+                                        <th>Source/Distributed to</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+
+                                <!-- Stock Movement Supplies -->
+                                <tbody id="stockmovementTable" style="display:none;">
+                                    <?php if (!empty($stock_movements)): ?>
+                                        <?php foreach ($stock_movements as $movement): ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($movement['date']); ?></td>
+                                                <td><?php echo htmlspecialchars($movement['movement_type']); ?></td>
+                                                <td><?php echo htmlspecialchars($movement['supply_name']); ?></td>
+                                                <td><?php echo htmlspecialchars($movement['quantity'] . ' ' . $movement['unit']); ?>
+                                                </td>
+                                                <td><?php echo htmlspecialchars($movement['source']); ?></td>
+                                                <td style="text-align: center;">
+                                                    <a class="view-action" href="javascript:void(0);">View</a>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="6" style="text-align: center;">No stock movements found.</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+
                             </table>
                         </section>
 

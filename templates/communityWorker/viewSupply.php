@@ -252,7 +252,7 @@ $distributeResult = $distributeStmt->get_result();
                             <!-- next page -->
                             <i class="fa-solid fa-chevron-right"></i>
                             <a
-                                href="resources.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>">Resource
+                                href="resourceSupply.php?id=<?php echo $evacuationCenterId; ?>&worker_id=<?php echo $workerId; ?>">Resource
                                 Management</a>
 
                             <i class="fa-solid fa-chevron-right"></i>

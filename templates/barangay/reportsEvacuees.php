@@ -390,10 +390,11 @@ $stmt->close();
 
             rows.forEach(row => {
                 const familyHead = row.querySelector('td:first-child').textContent.toLowerCase();
-                row.style.display = familyHead.includes(filter) ? '' : 'none';
+                const calamity = row.querySelector('td:nth-child(8)').textContent.toLowerCase();
+                // Check if either Family Head or Calamity contains the filter text
+                row.style.display = familyHead.includes(filter) || calamity.includes(filter) ? '' : 'none';
             });
         });
-
 
 
 

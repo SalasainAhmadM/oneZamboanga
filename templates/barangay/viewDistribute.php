@@ -251,7 +251,7 @@ $distributedResult = $distributedStmt->get_result();
 
                             <!-- next page -->
                             <i class="fa-solid fa-chevron-right"></i>
-                            <a href="resources.php?id=<?php echo htmlspecialchars($evacuationCenterId); ?>">Resource
+                            <a href="resourceSupply.php?id=<?php echo htmlspecialchars($evacuationCenterId); ?>">Resource
                                 Management</a>
 
                             <i class="fa-solid fa-chevron-right"></i>
@@ -336,7 +336,8 @@ $distributedResult = $distributedStmt->get_result();
                                                 </div> -->
 
                                                 <div class="searchFilter">
-                                                    <input type="text" placeholder="Search...">
+                                                    <input type="text" id="familyHeadSearch" placeholder="Search..."
+                                                        onkeyup="filterFamilyHead()">
                                                     <label for=""><i class="fa-solid fa-magnifying-glass"></i></label>
                                                 </div>
                                             </div>
@@ -370,7 +371,7 @@ $distributedResult = $distributedStmt->get_result();
                                                                 value="<?php echo $evacuee['evacuee_id']; ?>"
                                                                 data-distribute="<?php echo htmlspecialchars($evacuee['family_head']); ?>">
                                                             <?php echo htmlspecialchars($evacuee['family_head']); ?>
-                                                        </td>
+                                                            </t>
                                                         <td class="ecMembers" style="text-align: center;">
                                                             <?php echo $memberCount; ?>
                                                             <ul class="viewMembers" style="text-align: left;">
@@ -481,7 +482,27 @@ $distributedResult = $distributedStmt->get_result();
                                 </form>
 
                                 <script>
+                                    function filterFamilyHead() {
+                                        const searchValue = document.getElementById('familyHeadSearch').value.toLowerCase();
 
+                                        // Get rows from both tables
+                                        const evacueesRows = document.querySelectorAll('.distributedTable tbody tr');
+                                        const receivedRows = document.querySelectorAll('.receivedTable tbody tr');
+
+                                        const filterRows = (rows) => {
+                                            rows.forEach(row => {
+                                                const familyHead = row.querySelector('.selectName').textContent.toLowerCase();
+                                                if (familyHead.includes(searchValue)) {
+                                                    row.style.display = ''; // Show row
+                                                } else {
+                                                    row.style.display = 'none'; // Hide row
+                                                }
+                                            });
+                                        };
+
+                                        filterRows(evacueesRows);
+                                        filterRows(receivedRows);
+                                    }
 
                                     // const supplyId = <?php echo json_encode($supplyId); ?>;
 

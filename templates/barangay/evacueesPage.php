@@ -56,6 +56,61 @@ $centersStmt->execute();
 $centersResult = $centersStmt->get_result();
 
 // Prepare evacuees query based on the selected evacuation center
+// if ($evacuationCenterId === 'All') {
+//     $evacuationCenterName = 'All Evacuees';
+//     $sql = "
+//     SELECT 
+//         e.id AS evacuee_id,
+//         CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
+//         e.contact,
+//         e.status,
+//         e.date,
+//         e.disaster_type,
+//         COUNT(m.id) AS member_count,
+//         GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) ORDER BY m.first_name ASC SEPARATOR ', ') AS member_names
+//     FROM evacuees e
+//     LEFT JOIN members m ON e.id = m.evacuees_id
+//     LEFT JOIN evacuation_center ec ON e.evacuation_center_id = ec.id
+//     WHERE ec.admin_id = ? AND e.status != 'Transferred'
+//     GROUP BY e.id
+//     ORDER BY e.date DESC;";
+//     $stmt = $conn->prepare($sql);
+//     $stmt->bind_param("i", $adminId);
+
+// } else {
+//     // Fetch evacuees for a specific evacuation center
+//     $evacuationCenterSql = "SELECT name FROM evacuation_center WHERE id = ?";
+//     $evacuationCenterStmt = $conn->prepare($evacuationCenterSql);
+//     $evacuationCenterStmt->bind_param("i", $evacuationCenterId);
+//     $evacuationCenterStmt->execute();
+//     $evacuationCenterResult = $evacuationCenterStmt->get_result();
+//     $evacuationCenter = $evacuationCenterResult->fetch_assoc();
+//     $evacuationCenterName = $evacuationCenter['name'];
+
+//     $sql = "
+//     SELECT 
+//         e.id AS evacuee_id,
+//         CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
+//         e.contact,
+//         e.status,
+//         e.date,
+//         e.disaster_type,
+//         COUNT(m.id) AS member_count,
+//         GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) ORDER BY m.first_name ASC SEPARATOR ', ') AS member_names
+//     FROM evacuees e
+//     LEFT JOIN members m ON e.id = m.evacuees_id
+//     WHERE e.evacuation_center_id = ?
+//     GROUP BY e.id
+//     ORDER BY e.date DESC;";
+//     $stmt = $conn->prepare($sql);
+//     $stmt->bind_param("i", $evacuationCenterId);
+
+// }
+
+// // Execute the query
+// $stmt->execute();
+// $result = $stmt->get_result();
+// Prepare evacuees query based on the selected evacuation center
 if ($evacuationCenterId === 'All') {
     $evacuationCenterName = 'All Evacuees';
     $sql = "
@@ -71,7 +126,10 @@ if ($evacuationCenterId === 'All') {
     FROM evacuees e
     LEFT JOIN members m ON e.id = m.evacuees_id
     LEFT JOIN evacuation_center ec ON e.evacuation_center_id = ec.id
-    WHERE ec.admin_id = ? AND e.status != 'Transferred'
+    WHERE 
+        ec.admin_id = ? 
+        AND e.status != 'Transferred'
+        AND NOT (e.status = 'Transfer' AND e.origin_evacuation_center_id = e.evacuation_center_id)
     GROUP BY e.id
     ORDER BY e.date DESC;";
     $stmt = $conn->prepare($sql);
@@ -99,12 +157,13 @@ if ($evacuationCenterId === 'All') {
         GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) ORDER BY m.first_name ASC SEPARATOR ', ') AS member_names
     FROM evacuees e
     LEFT JOIN members m ON e.id = m.evacuees_id
-    WHERE e.evacuation_center_id = ?
+    WHERE 
+        e.evacuation_center_id = ?
+        AND NOT (e.status = 'Transfer' AND e.origin_evacuation_center_id = e.evacuation_center_id)
     GROUP BY e.id
     ORDER BY e.date DESC;";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $evacuationCenterId);
-
 }
 
 // Execute the query
@@ -143,6 +202,33 @@ echo "<script>
     const evacuationCenterCapacity = $capacity;
     const currentEvacueesCount = $evacueesCount;
 </script>";
+
+// Additional query to count evacuees with specific conditions
+if ($evacuationCenterId !== 'All') {
+    $additionalCountQuery = "
+        SELECT COUNT(*) AS evacuee_count
+        FROM evacuees
+        WHERE 
+            evacuation_center_id = ? 
+            AND (
+                status = 'Admitted' OR 
+                (status = 'Transfer' AND origin_evacuation_center_id = ?)
+            )
+    ";
+    $additionalCountStmt = $conn->prepare($additionalCountQuery);
+    $additionalCountStmt->bind_param("ii", $evacuationCenterId, $evacuationCenterId); // Bind parameters
+    $additionalCountStmt->execute();
+    $additionalCountResult = $additionalCountStmt->get_result();
+    $additionalCountData = $additionalCountResult->fetch_assoc();
+    $filteredEvacueesCount = $additionalCountData['evacuee_count'];
+} else {
+    $filteredEvacueesCount = 0; // Default to 0 if "All" is selected
+}
+
+echo "<script>
+    const filteredEvacueesCount = $filteredEvacueesCount;
+</script>";
+
 ?>
 
 
@@ -264,8 +350,8 @@ echo "<script>
 
                         <button class="addBg-admin" data-ec-id="<?php echo $evacuationCenterId; ?>">
                             Admit
-                            <!-- <i class="fa-solid fa-plus"></i> -->
                         </button>
+
 
 
 
@@ -481,6 +567,8 @@ echo "<script>
             document.querySelectorAll('.addBg-admin').forEach(button => {
                 button.addEventListener('click', (event) => {
                     event.preventDefault(); // Prevent the default action
+                    const evacuationCenterId = button.getAttribute('data-ec-id');
+
                     if (isAll) {
                         Swal.fire({
                             icon: 'info',
@@ -488,8 +576,8 @@ echo "<script>
                             confirmButtonText: 'OK'
                         });
                     } else {
-                        // Check if the center is full
-                        if (currentEvacueesCount >= evacuationCenterCapacity) {
+                        // Check if the filtered evacuee count exceeds the center capacity
+                        if (filteredEvacueesCount >= evacuationCenterCapacity) {
                             Swal.fire({
                                 icon: 'error',
                                 text: 'You cannot admit more evacuees because the evacuation center has reached its full capacity.',
@@ -497,12 +585,12 @@ echo "<script>
                             });
                         } else {
                             // Proceed to redirect if not full
-                            const evacuationCenterId = button.getAttribute('data-ec-id');
                             window.location.href = `evacueesForm.php?id=${evacuationCenterId}`;
                         }
                     }
                 });
             });
+
         });
 
     </script>

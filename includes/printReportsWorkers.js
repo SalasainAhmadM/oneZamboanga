@@ -11,7 +11,10 @@ class SpecialNavbar extends HTMLElement {
                          <li><a href="reportsEvacuees.php">Evacuees</a></li>
                         <div class="indicator manage"></div>
                     </div>
-                    
+                    <div class="navList">
+                         <li><a href="reportsSupply.php">Supplies</a></li>
+                        <div class="indicator manage"></div>
+                    </div>
                 </ul>
             </div>
         `;

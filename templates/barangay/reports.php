@@ -5,19 +5,19 @@ require_once '../../connection/auth.php';
 date_default_timezone_set('Asia/Manila');
 
 // Set the timeout duration (in seconds)
-// define('INACTIVITY_LIMIT', 300); // 5 minutes
+define('INACTIVITY_LIMIT', 300); // 5 minutes
 
-// // Check if the user has been inactive for the defined limit
-// if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > INACTIVITY_LIMIT)) {
-//     // Destroy the session and redirect to the login page
-//     session_unset();
-//     session_destroy();
-//     header("Location: ../../login.php?message=Session expired due to inactivity.");
-//     exit();
-// }
+// Check if the user has been inactive for the defined limit
+if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > INACTIVITY_LIMIT)) {
+    // Destroy the session and redirect to the login page
+    session_unset();
+    session_destroy();
+    header("Location: ../../login.php?message=Session expired due to inactivity.");
+    exit();
+}
 
-// // Update the last activity time
-// $_SESSION['LAST_ACTIVITY'] = time();
+// Update the last activity time
+$_SESSION['LAST_ACTIVITY'] = time();
 
 // Validate session role
 validateSession('admin');
@@ -34,11 +34,35 @@ if (isset($_SESSION['user_id'])) {
 $sql = "SELECT ec.id, ec.name, ec.location, ec.capacity, 
         COUNT(DISTINCT ev.id) AS total_families,
         (
-            COUNT(ev.id) + 
-            (SELECT COUNT(*) FROM members m WHERE m.evacuees_id = ev.id)
-        ) AS total_evacuees 
+            (
+                SELECT COUNT(*) 
+                FROM evacuees ev_inner 
+                WHERE ev_inner.evacuation_center_id = ec.id 
+                AND (
+                    ev_inner.status = 'Admitted' OR 
+                    (ev_inner.status = 'Transfer' AND ev_inner.evacuation_center_id = ev_inner.origin_evacuation_center_id)
+                )
+            ) + 
+            (
+                SELECT COUNT(*) 
+                FROM members m 
+                WHERE m.evacuees_id IN (
+                    SELECT ev_inner.id 
+                    FROM evacuees ev_inner 
+                    WHERE ev_inner.evacuation_center_id = ec.id 
+                    AND (
+                        ev_inner.status = 'Admitted' OR 
+                        (ev_inner.status = 'Transfer' AND ev_inner.evacuation_center_id = ev_inner.origin_evacuation_center_id)
+                    )
+                )
+            )
+        ) AS total_evacuees
         FROM evacuation_center ec
-        LEFT JOIN evacuees ev ON ec.id = ev.evacuation_center_id
+        LEFT JOIN evacuees ev ON ec.id = ev.evacuation_center_id 
+        AND (
+            ev.status = 'Admitted' OR 
+            (ev.status = 'Transfer' AND ev.evacuation_center_id = ev.origin_evacuation_center_id)
+        )
         WHERE ec.admin_id = ?
         GROUP BY ec.id";
 
@@ -55,6 +79,7 @@ while ($row = $result->fetch_assoc()) {
 
 $stmt->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
