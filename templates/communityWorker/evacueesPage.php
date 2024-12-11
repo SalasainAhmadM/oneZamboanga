@@ -398,7 +398,7 @@ echo "<script>
                                             <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="transfer"
                                                     class="filter-checkbox" data-filter="Transfer">
-                                                <label for="transfer">Transfer</label>
+                                                <label for="transfer">Pending Transfer</label>
                                             </div>
                                             <div class="option-content">
                                                 <input type="checkbox" name="evacuees" id="transferred"
