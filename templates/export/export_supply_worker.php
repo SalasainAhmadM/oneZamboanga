@@ -7,15 +7,31 @@ use PhpOffice\PhpWord\IOFactory;
 
 session_start();
 
-// Check if admin is logged in
-if (!isset($_SESSION['user_id'])) {
+if (isset($_SESSION['user_id'])) {
+    $worker_id = $_SESSION['user_id'];
+
+    // Fetch the admin_id of the current worker
+    $query = "SELECT admin_id FROM worker WHERE id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $worker_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $admin_id = $row['admin_id'];
+    } else {
+        echo "No admin assigned to this worker.";
+        exit;
+    }
+} else {
     header("Location: ../../login.php");
     exit;
 }
 
 $filter = isset($_GET['filter']) ? $_GET['filter'] : 'received';
 $evacuationCenterName = isset($_GET['evacuation_center_name']) ? trim($_GET['evacuation_center_name']) : '';
-$admin_id = $_SESSION['user_id'];
+
 $data = [];
 $startDate = isset($_GET['start_date']) ? $_GET['start_date'] : '';
 $endDate = isset($_GET['end_date']) ? $_GET['end_date'] : '';
@@ -43,8 +59,14 @@ if ($filter === 'received') {
             stock AS st
         ON 
             s.id = st.supply_id
+        INNER JOIN 
+            assigned_worker AS aw
+        ON 
+            ec.id = aw.evacuation_center_id
         WHERE 
-            ec.admin_id = ? AND s.approved = 1
+            ec.admin_id = ? 
+            AND aw.worker_id = ? 
+            AND s.approved = 1
             " . ($evacuationCenterName && $evacuationCenterName !== 'all' ? "AND ec.name = ? " : "") . "
             " . ($startDate ? "AND s.date >= ? " : "") . "
             " . ($endDate ? "AND s.date <= ? " : "") . "
@@ -54,60 +76,8 @@ if ($filter === 'received') {
 
     $stmt = $conn->prepare($query);
 
-    $params = [$admin_id];
-    $types = "i";
-
-    if ($evacuationCenterName && $evacuationCenterName !== 'all') {
-        $params[] = $evacuationCenterName;
-        $types .= "s";
-    }
-
-    if ($startDate) {
-        $params[] = $startDate;
-        $types .= "s";
-    }
-
-    if ($endDate) {
-        $params[] = $endDate;
-        $types .= "s";
-    }
-
-    $stmt->bind_param($types, ...$params);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    while ($row = $result->fetch_assoc()) {
-        $data[] = $row;
-    }
-} elseif ($filter === 'distributed') {
-    $query = "
-        SELECT 
-            d.supply_name,
-            d.quantity,
-            ec.name AS evacuation_center_name,
-            d.date,
-            CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name) AS evacuee_name
-        FROM 
-            distribute AS d
-        INNER JOIN 
-            evacuees AS e
-        ON 
-            d.evacuees_id = e.id
-        INNER JOIN 
-            evacuation_center AS ec
-        ON 
-            e.evacuation_center_id = ec.id
-        WHERE 
-            ec.admin_id = ? 
-            " . ($evacuationCenterName && $evacuationCenterName !== 'all' ? "AND ec.name = ? " : "") . "
-            " . ($startDate ? "AND d.date >= ? " : "") . "
-            " . ($endDate ? "AND d.date <= ? " : "") . "
-    ";
-
-    $stmt = $conn->prepare($query);
-
-    $params = [$admin_id];
-    $types = "i";
+    $params = [$admin_id, $worker_id];
+    $types = "ii";
 
     if ($evacuationCenterName && $evacuationCenterName !== 'all') {
         $params[] = $evacuationCenterName;
@@ -132,6 +102,65 @@ if ($filter === 'received') {
         $data[] = $row;
     }
 }
+if ($filter === 'distributed') {
+    $query = "
+        SELECT 
+            d.supply_name,
+            d.quantity,
+            ec.name AS evacuation_center_name,
+            d.date,
+            CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name) AS evacuee_name
+        FROM 
+            distribute AS d
+        INNER JOIN 
+            evacuees AS e
+        ON 
+            d.evacuees_id = e.id
+        INNER JOIN 
+            evacuation_center AS ec
+        ON 
+            e.evacuation_center_id = ec.id
+        INNER JOIN 
+            assigned_worker AS aw
+        ON 
+            ec.id = aw.evacuation_center_id
+        WHERE 
+            ec.admin_id = ? 
+            AND aw.worker_id = ? 
+            " . ($evacuationCenterName && $evacuationCenterName !== 'all' ? "AND ec.name = ? " : "") . "
+            " . ($startDate ? "AND d.date >= ? " : "") . "
+            " . ($endDate ? "AND d.date <= ? " : "") . "
+    ";
+
+    $stmt = $conn->prepare($query);
+
+    $params = [$admin_id, $worker_id];
+    $types = "ii";
+
+    if ($evacuationCenterName && $evacuationCenterName !== 'all') {
+        $params[] = $evacuationCenterName;
+        $types .= "s";
+    }
+
+    if ($startDate) {
+        $params[] = $startDate;
+        $types .= "s";
+    }
+
+    if ($endDate) {
+        $params[] = $endDate;
+        $types .= "s";
+    }
+
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    while ($row = $result->fetch_assoc()) {
+        $data[] = $row;
+    }
+}
+
 
 // Create PhpWord instance
 $phpWord = new PhpWord();

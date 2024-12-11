@@ -210,7 +210,7 @@ if (isset($_SESSION['user_id'])) {
                                         <th>Family Head</th>
                                         <th>Contact #</th>
                                         <th style="text-align: center;">Number of members</th>
-                                        <th style="text-align: center;">Barangay</th>
+                                        <th style="text-align: center;">Address</th>
                                         <th style="text-align: center;">Date</th>
                                         <th style="text-align: center;">Calamity</th>
                                         <th style="text-align: center;">Status</th>

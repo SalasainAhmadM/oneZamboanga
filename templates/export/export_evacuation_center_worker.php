@@ -157,6 +157,14 @@ GROUP BY
     }
 }
 
+$footer = $section->addFooter();
+$dateTime = new DateTime("now", new DateTimeZone("Asia/Manila"));
+$currentDateTime = $dateTime->format("M d, Y h:i A");
+$footer->addText(
+    $currentDateTime,
+    ['name' => 'Arial', 'size' => 10],
+    ['alignment' => 'right']
+);
 // Save the document
 if (isset($name)) {
     $fileName = str_replace(' ', '_', strtolower($name)) . ".docx";

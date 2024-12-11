@@ -193,7 +193,7 @@ if (isset($_GET['id'])) {
 
                             <ul class="profileDetails">
                                 <li>
-                                    <p>Address: <span><?php echo $address; ?></span></p>
+                                    <p>City/Province: <span><?php echo $address; ?></span></p>
                                 </li>
                                 <li>
                                     <p>Gender: <span><?php echo $gender; ?></span></p>
@@ -262,7 +262,7 @@ if (isset($_GET['id'])) {
                                 </div>
 
                                 <div class="inputProfile">
-                                    <label for="city">Full Address</label>
+                                    <label for="city">City/Province</label>
                                     <input type="text" name="city"
                                         value="<?php echo htmlspecialchars($worker['city']); ?>" required>
                                 </div>

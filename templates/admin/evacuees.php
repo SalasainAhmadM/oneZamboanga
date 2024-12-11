@@ -52,7 +52,6 @@ if (isset($_SESSION['user_id'])) {
 
 // Fetch evacuees from the database (latest to oldest)
 $barangayFilter = isset($_GET['barangay']) ? $_GET['barangay'] : 'all';
-
 $query = "
     SELECT 
         evacuees.id AS evacuee_id,
@@ -70,12 +69,37 @@ $query = "
         members ON evacuees.id = members.evacuees_id
     WHERE 
         ('$barangayFilter' = 'all' OR evacuees.barangay = '$barangayFilter')
+        AND NOT (evacuees.status = 'Transfer' AND evacuees.evacuation_center_id = evacuees.origin_evacuation_center_id)
     GROUP BY 
         evacuees.id
     ORDER BY 
         evacuees.date DESC";
 
 $result = $conn->query($query);
+
+// $query = "
+//     SELECT 
+//         evacuees.id AS evacuee_id,
+//         CONCAT(evacuees.first_name, ' ', evacuees.middle_name, ' ', evacuees.last_name, ' ', evacuees.extension_name) AS family_head,
+//         evacuees.contact,
+//         evacuees.status,
+//         evacuees.date,
+//         evacuees.disaster_type,
+//         evacuees.barangay,
+//         COUNT(members.id) AS member_count,
+//         GROUP_CONCAT(CONCAT(members.first_name, ' ', members.last_name) SEPARATOR ', ') AS member_names
+//     FROM 
+//         evacuees
+//     LEFT JOIN 
+//         members ON evacuees.id = members.evacuees_id
+//     WHERE 
+//         ('$barangayFilter' = 'all' OR evacuees.barangay = '$barangayFilter')
+//     GROUP BY 
+//         evacuees.id
+//     ORDER BY 
+//         evacuees.date DESC";
+
+// $result = $conn->query($query);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -255,7 +279,7 @@ $result = $conn->query($query);
                                         <div class="option-content">
                                             <input type="checkbox" name="evacuees" id="transfer" class="filter-checkbox"
                                                 data-filter="Transfer">
-                                            <label for="transfer">Transfer</label>
+                                            <label for="transfer">Pending Transfer</label>
                                         </div>
                                         <div class="option-content">
                                             <input type="checkbox" name="evacuees" id="transferred"
@@ -305,8 +329,12 @@ $result = $conn->query($query);
                                                         <?php endforeach; ?>
                                                     </ul>
                                                 </td>
-                                                <td style="text-align: center;"><?php echo htmlspecialchars($row['status']); ?>
+                                                <td style="text-align: center;">
+                                                    <?php
+                                                    echo htmlspecialchars($row['status'] === 'Transfer' ? 'Pending Transfer' : $row['status']);
+                                                    ?>
                                                 </td>
+
                                                 <td style="text-align: center;"><?php echo htmlspecialchars($row['date']); ?>
                                                 </td>
                                                 <td><?php echo htmlspecialchars($row['disaster_type']); ?></td>

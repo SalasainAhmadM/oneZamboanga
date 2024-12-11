@@ -13,7 +13,27 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-$admin_id = $_SESSION['user_id'];
+if (isset($_SESSION['user_id'])) {
+    $worker_id = $_SESSION['user_id'];
+
+    // Fetch the admin_id of the current worker
+    $query = "SELECT admin_id FROM worker WHERE id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $worker_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $admin_id = $row['admin_id'];
+    } else {
+        echo "No admin assigned to this worker.";
+        exit;
+    }
+} else {
+    header("Location: ../../login.php");
+    exit;
+}
 $centerId = $_GET['center_id'] ?? 'All';
 $statuses = isset($_GET['statuses']) ? explode(',', $_GET['statuses']) : [];
 $startDate = $_GET['start_date'] ?? '';
@@ -116,7 +136,7 @@ if ($centerId !== 'All') {
             e.disaster_type AS calamity
         FROM evacuees e
         WHERE e.admin_id = ? AND e.evacuation_center_id = ? $statusCondition $dateCondition";
-    array_splice($params, 1, 0, $centerId); // Insert centerId into params
+    array_splice($params, 1, 0, $centerId);
 } else {
     $evacueesQuery = "
         SELECT 
@@ -130,7 +150,11 @@ if ($centerId !== 'All') {
             e.status,
             e.disaster_type AS calamity
         FROM evacuees e
-        WHERE e.admin_id = ? $statusCondition $dateCondition";
+        INNER JOIN assigned_worker aw ON e.evacuation_center_id = aw.evacuation_center_id
+        WHERE e.admin_id = ? 
+        AND aw.worker_id = ? 
+        AND aw.status = 'assigned' $statusCondition $dateCondition";
+    array_splice($params, 1, 0, $worker_id);
 }
 
 // Prepare and execute query

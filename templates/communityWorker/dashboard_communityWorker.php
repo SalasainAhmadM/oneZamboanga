@@ -482,7 +482,7 @@ $feeds_result = $feeds_stmt->get_result();
                 <div class="profileHeader">
 
 
-                    <h2>Demographics</h2>
+                    <h2>Evacuation Centers</h2>
                     <div class="sideProfile">
                         <i class="fa-solid fa-bars feedShow"></i>
                         <!-- <img src="../../assets/img/hero.jpg" alt="">  -->

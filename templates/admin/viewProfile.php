@@ -204,7 +204,7 @@ $admin_status = $row['status'];
                                     <p class="details-profile">Barangay:
                                         <?php echo htmlspecialchars($admin['barangay']); ?>
                                     </p>
-                                    <p class="details-profile">Address:
+                                    <p class="details-profile">City/Province:
                                         <?php echo htmlspecialchars($admin['city']); ?>
                                     </p>
                                     <p class="details-profile">Sex: <?php echo htmlspecialchars($admin['gender']); ?>

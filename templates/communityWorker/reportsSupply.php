@@ -19,30 +19,76 @@ if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 
 // Update the last activity time
 $_SESSION['LAST_ACTIVITY'] = time();
 
+// if (isset($_SESSION['user_id'])) {
+//     $worker_id = $_SESSION['user_id'];
+
+//     // Fetch the admin_id of the current worker
+//     $query = "SELECT admin_id FROM worker WHERE id = ?";
+//     $stmt = $conn->prepare($query);
+//     $stmt->bind_param("i", $worker_id);
+//     $stmt->execute();
+//     $result = $stmt->get_result();
+
+//     if ($result->num_rows > 0) {
+//         $row = $result->fetch_assoc();
+//         $admin_id = $row['admin_id'];
+//     } else {
+//         echo "No admin assigned to this worker.";
+//         exit;
+//     }
+// } else {
+//     header("Location: ../../login.php");
+//     exit;
+// }
+
+// // Validate session role
+// validateSession('worker');
+
 if (isset($_SESSION['user_id'])) {
     $worker_id = $_SESSION['user_id'];
 
-    // Fetch the admin_id of the current worker
-    $query = "SELECT admin_id FROM worker WHERE id = ?";
+    // Fetch the evacuation center(s) assigned to the worker
+    $query = "
+        SELECT 
+            aw.evacuation_center_id, 
+            ec.name AS evacuation_center_name, 
+            ec.location AS evacuation_center_location
+        FROM 
+            assigned_worker AS aw
+        INNER JOIN 
+            evacuation_center AS ec
+        ON 
+            aw.evacuation_center_id = ec.id
+        WHERE 
+            aw.worker_id = ? 
+            AND aw.status = 'assigned'
+    ";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $worker_id);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        $admin_id = $row['admin_id'];
-    } else {
-        echo "No admin assigned to this worker.";
+    $assigned_centers = [];
+    while ($row = $result->fetch_assoc()) {
+        $assigned_centers[$row['evacuation_center_id']] = [
+            'name' => $row['evacuation_center_name'],
+            'location' => $row['evacuation_center_location']
+        ];
+    }
+
+    if (empty($assigned_centers)) {
+        echo "No evacuation center assigned to this worker.";
         exit;
     }
 } else {
     header("Location: ../../login.php");
     exit;
 }
+
 // Validate session role
 validateSession('worker');
-// Fetch approved supplies (Received) for the admin's evacuation centers
+
+// Fetch approved supplies (Received) only for assigned evacuation center(s)
 $query = "
     SELECT 
         s.id AS supply_id,
@@ -65,11 +111,10 @@ $query = "
     ON 
         s.evacuation_center_id = ec.id
     WHERE 
-        ec.admin_id = ? 
-        AND s.approved = 1  
+        ec.id IN (" . implode(',', array_keys($assigned_centers)) . ")
+        AND s.approved = 1
 ";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("i", $admin_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -78,8 +123,7 @@ while ($row = $result->fetch_assoc()) {
     $supplies[] = $row;
 }
 
-
-// Fetch distributed supplies (if any) for the admin's evacuation centers
+// Fetch distributed supplies only for assigned evacuation center(s)
 $distributed_query = "
     SELECT 
         d.id AS distribute_id,
@@ -100,10 +144,9 @@ $distributed_query = "
     ON 
         e.evacuation_center_id = ec.id
     WHERE 
-        ec.admin_id = ?
+        ec.id IN (" . implode(',', array_keys($assigned_centers)) . ")
 ";
 $distributed_stmt = $conn->prepare($distributed_query);
-$distributed_stmt->bind_param("i", $admin_id);
 $distributed_stmt->execute();
 $distributed_result = $distributed_stmt->get_result();
 
@@ -136,6 +179,23 @@ while ($row = $distributed_result->fetch_assoc()) {
 
     <title>One Zamboanga: Evacuation Center Management System</title>
 </head>
+<style>
+    .viewSupply {
+        display: none;
+        position: absolute;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        padding: 10px;
+        list-style: none;
+        z-index: 10000;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .ecSupply {
+        position: relative;
+        cursor: pointer;
+    }
+</style>
 
 <body>
 
@@ -170,7 +230,7 @@ while ($row = $distributed_result->fetch_assoc()) {
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="#">Prints Reports</a>
+                            <a href="#">Supply Reports</a>
 
                             <!-- next page -->
                             <!-- <i class="fa-solid fa-chevron-right"></i>
@@ -178,15 +238,18 @@ while ($row = $distributed_result->fetch_assoc()) {
                         </div>
 
 
+                        <label for="startDate">Start:</label>
+                        <input type="date" id="startDate" class="filter-admin" onchange="filterTableByDate()">
+
+                        <label for="endDate">End:</label>
+                        <input type="date" id="endDate" class="filter-admin" onchange="filterTableByDate()">
+
+                        <select id="filterBarangay" class="filter-admin" onchange="filterEvacuationCenter()">
+                            <option value="All">All</option>
+                        </select>
 
 
-                        <!-- <a class="addBg-admin" href="addEvacuees.php">
-                            <i class="fa-solid fa-plus"></i>
-                        </a> -->
-
-                        <!-- <button class="addBg-admin" onclick="window.location.href='evacueesForm.php'">
-                            Admit
-                        </button> -->
+                        <button class="addBg-admin" id="exportButton">Export</button>
                     </div>
                 </div>
             </header>
@@ -199,69 +262,163 @@ while ($row = $distributed_result->fetch_assoc()) {
 
                     <div class="table-container">
                         <section class="tblheader">
-
-
-
-
-                            <!-- <div class="filter-popup">
-                                <i class="fa-solid fa-filter"></i>
-                            </div> -->
-
                             <div class="filter-popup">
                                 <label for="modal-toggle" class="modal-button">
                                     <i class="fa-solid fa-filter"></i>
                                 </label>
                                 <input type="checkbox" name="" id="modal-toggle" class="modal-toggle">
 
-                                <!-- the modal or filter popup-->
                                 <div class="modal">
                                     <div class="modal-content">
-                                        <!-- <label for="modal-toggle" class="close">
-                                            <i class="fa-solid fa-xmark"></i>
-                                        </label> -->
                                         <div class="filter-option">
                                             <div class="option-content">
-                                                <input type="checkbox" name="evacuees" id="tetuan">
-                                                <label for="tetuan">Tetuan</label>
+                                                <input type="checkbox" name="filter" id="received" checked>
+                                                <label for="received">Received</label>
                                             </div>
                                             <div class="option-content">
-                                                <input type="checkbox" name="evacuees" id="tugbungan">
-                                                <label for="tugbungan">Tugbungan</label>
+                                                <input type="checkbox" name="filter" id="distributed">
+                                                <label for="distributed">Distributed</label>
                                             </div>
 
-
-
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
 
-
                             <div class="input_group">
-                                <input type="search" placeholder="Search...">
+                                <input type="search" id="searchInput" placeholder="Search...">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                             </div>
-
                         </section>
 
                         <section class="tblbody">
-                            <table id="mainTable">
-                                <thead>
-
+                            <table id="mainTable" style="margin-bottom: 10px">
+                                <!-- Received Table Header -->
+                                <thead id="receivedHeader">
                                     <tr>
-                                        <th>Family Head</th>
-                                        <th>Contact #</th>
-                                        <th style="text-align: center;">Number of members</th>
-                                        <th style="text-align: center;">Barangay</th>
-                                        <th style="text-align: center;">Date</th>
-                                        <th>Calamity</th>
-                                        <th style="text-align: center;">Action</th>
+                                        <th>Supply Name</th>
+                                        <th>Quantity</th>
+                                        <th style="text-align: center;">Stocks</th>
+                                        <th>Evacuation Center</th>
+                                        <th>Date</th>
+                                        <th>Source</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
 
-                                <tbody>
+                                <!-- Received Supplies -->
+                                <tbody id="receivedTable">
+                                    <?php if (!empty($supplies)): ?>
+                                        <?php foreach ($supplies as $supply): ?>
+                                            <tr>
+                                                <td class="supplyName"><?php echo htmlspecialchars($supply['supply_name']); ?>
+                                                </td>
+                                                <td><?php echo htmlspecialchars($supply['quantity']); ?>
+                                                    /<?php echo htmlspecialchars($supply['original_quantity']); ?>
+                                                    <?php echo htmlspecialchars($supply['unit']); ?>s
+                                                </td>
+                                                <td class="ecSupply" style="text-align: center;">
+                                                    <?php
+                                                    // Sum stock quantities and original quantities for the current supply
+                                                    $stock_sum_query = "
+        SELECT 
+            SUM(quantity) AS total_quantity, 
+            SUM(original_quantity) AS total_original_quantity 
+        FROM stock 
+        WHERE supply_id = ?
+    ";
+                                                    $stock_sum_stmt = $conn->prepare($stock_sum_query);
+                                                    $stock_sum_stmt->bind_param("i", $supply['supply_id']);
+                                                    $stock_sum_stmt->execute();
+                                                    $stock_sum_result = $stock_sum_stmt->get_result();
+                                                    $stock_sums = $stock_sum_result->fetch_assoc();
 
+                                                    $total_quantity = $stock_sums['total_quantity'] ?? 0;
+                                                    $total_original_quantity = $stock_sums['total_original_quantity'] ?? 0;
+
+                                                    // Display total quantity / total original quantity
+                                                    echo htmlspecialchars($total_quantity) . " / " . htmlspecialchars($total_original_quantity);
+                                                    ?>
+                                                    <ul class="viewSupply" style="text-align: left; z-index: 10000;">
+                                                        <?php
+                                                        // Fetch stock details for the current supply (hover stays the same)
+                                                        $stock_query = "
+            SELECT `from`, quantity, original_quantity, unit 
+            FROM stock 
+            WHERE supply_id = ?
+        ";
+                                                        $stock_stmt = $conn->prepare($stock_query);
+                                                        $stock_stmt->bind_param("i", $supply['supply_id']);
+                                                        $stock_stmt->execute();
+                                                        $stock_result = $stock_stmt->get_result();
+
+                                                        while ($stock = $stock_result->fetch_assoc()): ?>
+                                                            <li>
+                                                                <strong>From:</strong>
+                                                                <?php echo htmlspecialchars($stock['from']); ?>
+                                                                <strong>Quantity:</strong>
+                                                                <?php echo htmlspecialchars($stock['quantity']); ?> /
+                                                                <?php echo htmlspecialchars($stock['original_quantity']); ?>
+                                                                <?php echo htmlspecialchars($stock['unit']); ?>s
+                                                            </li>
+                                                        <?php endwhile; ?>
+                                                    </ul>
+                                                    <?php echo htmlspecialchars($supply['unit']); ?>s
+                                                </td>
+
+                                                <td><?php echo htmlspecialchars($supply['evacuation_center_name']); ?></td>
+                                                <td><?php echo htmlspecialchars($supply['date']); ?></td>
+                                                <td><?php echo htmlspecialchars($supply['supply_from']); ?></td>
+                                                <td style="text-align: center;">
+                                                    <a class="view-action" href="javascript:void(0);"
+                                                        onclick="printSupply(<?php echo htmlspecialchars($supply['supply_id']); ?>)">Print</a>
+                                                </td>
+
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="7" style="text-align: center;">No supplies found.</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+
+                                <!-- Distributed Table Header -->
+                                <thead id="distributedHeader" style="display:none;">
+                                    <tr>
+                                        <th>Supply Name</th>
+                                        <th>Distributed to</th>
+                                        <th>Quantity</th>
+                                        <th>Evacuation Center</th>
+                                        <th>Date Distributed</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+
+                                <!-- Distributed Supplies -->
+                                <tbody id="distributedTable" style="display:none;">
+                                    <?php if (!empty($distributed)): ?>
+                                        <?php foreach ($distributed as $distribution): ?>
+                                            <tr>
+                                                <td class="supplyName">
+                                                    <?php echo htmlspecialchars($distribution['supply_name']); ?>
+                                                </td>
+                                                <td><?php echo htmlspecialchars($distribution['evacuee_name']); ?></td>
+                                                <td><?php echo htmlspecialchars($distribution['quantity']); ?></td>
+                                                <td><?php echo htmlspecialchars($distribution['evacuation_center_name']); ?>
+                                                </td>
+                                                <td><?php echo htmlspecialchars($distribution['date']); ?></td>
+                                                <td style="text-align: center;">
+                                                    <a class="view-action" href="javascript:void(0);"
+                                                        onclick="printDistributed(<?php echo htmlspecialchars($distribution['distribute_id']); ?>)">Print</a>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="7" style="text-align: center;">No distributed supplies found.</td>
+                                        </tr>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </section>
@@ -269,12 +426,249 @@ while ($row = $distributed_result->fetch_assoc()) {
                         <div class="no-match-message">No matching data found</div>
                     </div>
 
+                    <script>
+                        function filterTableByDate() {
+                            const startDateValue = document.getElementById('startDate').value;
+                            const endDateValue = document.getElementById('endDate').value;
+
+                            const startDate = startDateValue ? new Date(startDateValue) : null;
+                            const endDate = endDateValue ? new Date(endDateValue) : null;
+
+                            const receivedTable = document.getElementById('receivedTable');
+                            const distributedTable = document.getElementById('distributedTable');
+                            const isReceivedVisible = receivedTable.style.display !== 'none';
+                            const tableToFilter = isReceivedVisible ? receivedTable : distributedTable;
+
+                            const rows = tableToFilter.getElementsByTagName('tr');
+                            for (const row of rows) {
+                                const dateCell = row.cells[4];
+                                if (!dateCell) continue;
+
+                                const rowDate = new Date(dateCell.textContent.trim());
+                                let showRow = true;
+
+                                if (startDate && rowDate < startDate) {
+                                    showRow = false;
+                                }
+
+                                if (endDate && rowDate > endDate) {
+                                    showRow = false;
+                                }
+
+                                row.style.display = showRow ? '' : 'none';
+                            }
+                        }
+
+                        document.getElementById('received').addEventListener('change', function () {
+                            if (this.checked) {
+                                document.getElementById('distributed').checked = false;
+                                document.getElementById('receivedTable').style.display = 'table-row-group';
+                                document.getElementById('receivedHeader').style.display = 'table-header-group';
+                                document.getElementById('distributedTable').style.display = 'none';
+                                document.getElementById('distributedHeader').style.display = 'none';
+                                updateEvacuationCenterFilter();
+                                filterTableByDate();
+                            }
+                        });
+
+                        document.getElementById('distributed').addEventListener('change', function () {
+                            if (this.checked) {
+                                document.getElementById('received').checked = false;
+                                document.getElementById('distributedTable').style.display = 'table-row-group';
+                                document.getElementById('distributedHeader').style.display = 'table-header-group';
+                                document.getElementById('receivedTable').style.display = 'none';
+                                document.getElementById('receivedHeader').style.display = 'none';
+                                updateEvacuationCenterFilter();
+                                filterTableByDate();
+                            }
+                        });
+                        function updateEvacuationCenterFilter() {
+                            const filterSelect = document.getElementById('filterBarangay');
+                            filterSelect.innerHTML = '<option value="all">All</option>';
+
+                            const activeTable =
+                                document.querySelector('#receivedTable').style.display !== 'none'
+                                    ? document.getElementById('receivedTable')
+                                    : document.getElementById('distributedTable');
+
+                            const evacuationCenters = new Set();
+
+                            const rows = activeTable.getElementsByTagName('tr');
+                            for (const row of rows) {
+                                const centerCell = row.cells[3];
+                                if (centerCell) {
+                                    evacuationCenters.add(centerCell.textContent.trim());
+                                }
+                            }
+
+                            evacuationCenters.forEach(center => {
+                                const option = document.createElement('option');
+                                option.value = center;
+                                option.textContent = center;
+                                filterSelect.appendChild(option);
+                            });
+                        }
+
+
+                        function filterTableByDateAndCenter() {
+                            const filterValue = document.getElementById('filterBarangay').value.toLowerCase();
+                            const startDateValue = document.getElementById('startDate').value;
+                            const endDateValue = document.getElementById('endDate').value;
+
+                            const startDate = startDateValue ? new Date(startDateValue) : null;
+                            const endDate = endDateValue ? new Date(endDateValue) : null;
+
+                            const receivedTable = document.getElementById('receivedTable');
+                            const distributedTable = document.getElementById('distributedTable');
+                            const isReceivedVisible = receivedTable.style.display !== 'none';
+                            const tableToFilter = isReceivedVisible ? receivedTable : distributedTable;
+
+                            const rows = tableToFilter.getElementsByTagName('tr');
+                            for (const row of rows) {
+                                const centerCell = row.cells[3];
+                                const dateCell = row.cells[4];
+                                if (!centerCell || !dateCell) continue;
+
+                                const centerName = centerCell.textContent.trim().toLowerCase();
+                                const rowDate = new Date(dateCell.textContent.trim());
+                                let showRow = true;
+
+                                if (filterValue !== 'all' && centerName !== filterValue) {
+                                    showRow = false;
+                                }
+
+                                if (startDate && rowDate < startDate) {
+                                    showRow = false;
+                                }
+
+                                if (endDate && rowDate > endDate) {
+                                    showRow = false;
+                                }
+
+                                row.style.display = showRow ? '' : 'none';
+                            }
+                        }
+
+                        document.getElementById('filterBarangay').addEventListener('change', filterTableByDateAndCenter);
+
+                        document.getElementById('startDate').addEventListener('change', filterTableByDateAndCenter);
+                        document.getElementById('endDate').addEventListener('change', filterTableByDateAndCenter);
+
+
+                        document.addEventListener('DOMContentLoaded', function () {
+                            updateEvacuationCenterFilter();
+
+                            document.getElementById('filterBarangay').addEventListener('change', filterEvacuationCenter);
+
+                            document.getElementById('startDate').addEventListener('change', filterTableByDate);
+                            document.getElementById('endDate').addEventListener('change', filterTableByDate);
+                        });
+
+                        function exportReport() {
+                            const isReceived = document.getElementById('received').checked;
+                            const evacuationCenterFilter = document.getElementById('filterBarangay');
+                            const evacuationCenterName = evacuationCenterFilter ? evacuationCenterFilter.value : 'all';
+
+                            const startDate = document.getElementById('startDate').value;
+                            const endDate = document.getElementById('endDate').value;
+
+                            const filter = isReceived ? 'received' : 'distributed';
+
+                            // Redirect to export_supply.php with additional date parameters
+                            window.location.href = `../export/export_supply_worker.php?filter=${filter}&evacuation_center_name=${encodeURIComponent(evacuationCenterName)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`;
+                        }
+
+                        document.getElementById('searchInput').addEventListener('keyup', function () {
+                            const searchValue = this.value.toLowerCase();
+                            const tableRows = document.querySelectorAll('#receivedTable tr');
+
+                            tableRows.forEach(row => {
+                                const supplyName = row.querySelector('.supplyName')?.textContent.toLowerCase();
+                                if (supplyName && supplyName.includes(searchValue)) {
+                                    row.style.display = '';
+                                } else {
+                                    row.style.display = 'none';
+                                }
+                            });
+                        });
+                    </script>
+
+
                 </div>
             </div>
         </main>
 
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const supplyRows = document.querySelectorAll('.ecSupply');
 
+            supplyRows.forEach(row => {
+                row.addEventListener('mouseenter', function () {
+                    const details = this.querySelector('.viewSupply');
+                    if (details) details.style.display = 'block';
+                });
+
+                row.addEventListener('mouseleave', function () {
+                    const details = this.querySelector('.viewSupply');
+                    if (details) details.style.display = 'none';
+                });
+            });
+        });
+
+
+        document.getElementById('exportButton').addEventListener('click', function () {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Do you want to export the report?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, export it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    exportReport();
+                    // Swal.fire('Exported!', 'The report has been exported successfully.', 'success');
+                }
+            });
+        });
+        function printSupply(supplyId) {
+            Swal.fire({
+                title: 'Print Report?',
+                text: `Confirm to print the report for this received supply?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Print',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Trigger the export PHP script
+                    window.location.href = `../export/export_received_supply.php?supply_id=${supplyId}`;
+                }
+            });
+        }
+
+        function printDistributed(distributeId) {
+            Swal.fire({
+                title: 'Print Report?',
+                text: `Confirm to print the report for this distributed supply?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Print',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Trigger the export PHP script
+                    window.location.href = `../export/export_distributed.php?distribute_id=${distributeId}`;
+                }
+            });
+        }
+
+    </script>
 
     <!-- sidebar import js -->
     <script src="../../includes/sidebarWokers.js"></script>

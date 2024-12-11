@@ -209,7 +209,7 @@ if (isset($_GET['id'])) {
                                 </div>
 
                                 <div class="inputProfile">
-                                    <label for="city">Full Address</label>
+                                    <label for="city">City/Province</label>
                                     <input type="text" name="city"
                                         value="<?php echo htmlspecialchars($admin['city']); ?>" required>
                                 </div>

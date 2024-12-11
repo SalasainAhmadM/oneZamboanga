@@ -55,62 +55,6 @@ $centersStmt->bind_param("i", $adminId);
 $centersStmt->execute();
 $centersResult = $centersStmt->get_result();
 
-// Prepare evacuees query based on the selected evacuation center
-// if ($evacuationCenterId === 'All') {
-//     $evacuationCenterName = 'All Evacuees';
-//     $sql = "
-//     SELECT 
-//         e.id AS evacuee_id,
-//         CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
-//         e.contact,
-//         e.status,
-//         e.date,
-//         e.disaster_type,
-//         COUNT(m.id) AS member_count,
-//         GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) ORDER BY m.first_name ASC SEPARATOR ', ') AS member_names
-//     FROM evacuees e
-//     LEFT JOIN members m ON e.id = m.evacuees_id
-//     LEFT JOIN evacuation_center ec ON e.evacuation_center_id = ec.id
-//     WHERE ec.admin_id = ? AND e.status != 'Transferred'
-//     GROUP BY e.id
-//     ORDER BY e.date DESC;";
-//     $stmt = $conn->prepare($sql);
-//     $stmt->bind_param("i", $adminId);
-
-// } else {
-//     // Fetch evacuees for a specific evacuation center
-//     $evacuationCenterSql = "SELECT name FROM evacuation_center WHERE id = ?";
-//     $evacuationCenterStmt = $conn->prepare($evacuationCenterSql);
-//     $evacuationCenterStmt->bind_param("i", $evacuationCenterId);
-//     $evacuationCenterStmt->execute();
-//     $evacuationCenterResult = $evacuationCenterStmt->get_result();
-//     $evacuationCenter = $evacuationCenterResult->fetch_assoc();
-//     $evacuationCenterName = $evacuationCenter['name'];
-
-//     $sql = "
-//     SELECT 
-//         e.id AS evacuee_id,
-//         CONCAT(e.first_name, ' ', e.middle_name, ' ', e.last_name, ' ', e.extension_name) AS family_head,
-//         e.contact,
-//         e.status,
-//         e.date,
-//         e.disaster_type,
-//         COUNT(m.id) AS member_count,
-//         GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) ORDER BY m.first_name ASC SEPARATOR ', ') AS member_names
-//     FROM evacuees e
-//     LEFT JOIN members m ON e.id = m.evacuees_id
-//     WHERE e.evacuation_center_id = ?
-//     GROUP BY e.id
-//     ORDER BY e.date DESC;";
-//     $stmt = $conn->prepare($sql);
-//     $stmt->bind_param("i", $evacuationCenterId);
-
-// }
-
-// // Execute the query
-// $stmt->execute();
-// $result = $stmt->get_result();
-// Prepare evacuees query based on the selected evacuation center
 if ($evacuationCenterId === 'All') {
     $evacuationCenterName = 'All Evacuees';
     $sql = "
@@ -126,10 +70,8 @@ if ($evacuationCenterId === 'All') {
     FROM evacuees e
     LEFT JOIN members m ON e.id = m.evacuees_id
     LEFT JOIN evacuation_center ec ON e.evacuation_center_id = ec.id
-    WHERE 
-        ec.admin_id = ? 
-        AND e.status != 'Transferred'
-        AND NOT (e.status = 'Transfer' AND e.origin_evacuation_center_id = e.evacuation_center_id)
+    WHERE ec.admin_id = ?
+      AND (e.status != 'Transfer' OR e.evacuation_center_id = e.origin_evacuation_center_id)
     GROUP BY e.id
     ORDER BY e.date DESC;";
     $stmt = $conn->prepare($sql);
@@ -157,14 +99,14 @@ if ($evacuationCenterId === 'All') {
         GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) ORDER BY m.first_name ASC SEPARATOR ', ') AS member_names
     FROM evacuees e
     LEFT JOIN members m ON e.id = m.evacuees_id
-    WHERE 
-        e.evacuation_center_id = ?
-        AND NOT (e.status = 'Transfer' AND e.origin_evacuation_center_id = e.evacuation_center_id)
+    WHERE e.evacuation_center_id = ?
+      AND (e.status != 'Transfer' OR e.evacuation_center_id = e.origin_evacuation_center_id)
     GROUP BY e.id
     ORDER BY e.date DESC;";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $evacuationCenterId);
 }
+
 
 // Execute the query
 $stmt->execute();

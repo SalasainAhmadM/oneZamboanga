@@ -124,7 +124,7 @@
 
                             <ul class="profileDetails">
                                 <li>
-                                    <p>Address: <span>Tetuan chuchu chu</span></p>
+                                    <p>City/Province: <span>Tetuan chuchu chu</span></p>
                                 </li>
                                 <li>
                                     <p>Gender: <span>Male</span></p>

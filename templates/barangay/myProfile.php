@@ -188,7 +188,7 @@ $proof_image = !empty($admin['proof_image']) ? $admin['proof_image'] : "../../as
 
                             <ul class="profileDetails">
                                 <li>
-                                    <p>Address: <span><?php echo htmlspecialchars($city); ?></span></p>
+                                    <p>City/Province: <span><?php echo htmlspecialchars($city); ?></span></p>
                                 </li>
                                 <li>
                                     <p>Gender: <span><?php echo htmlspecialchars($gender); ?></span></p>

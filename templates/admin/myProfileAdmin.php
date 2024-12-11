@@ -167,7 +167,7 @@ $admin_image = !empty($admin_image) ? $admin_image : "../../assets/img/admin.png
 
                             <ul class="profileDetails">
                                 <!-- <li>
-                                    <p>Address: <span>Tetuan chuchu chu</span></p>
+                                    <p>City/Province: <span>Tetuan chuchu chu</span></p>
                                 </li>
                                 <li>
                                     <p>Gender: <span>Male</span></p>

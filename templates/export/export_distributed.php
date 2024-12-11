@@ -181,7 +181,14 @@ if (count($members) > 0) {
 } else {
     $section->addText("No Members Available", ['name' => 'Arial', 'size' => 11, 'italic' => true]);
 }
-
+$footer = $section->addFooter();
+$dateTime = new DateTime("now", new DateTimeZone("Asia/Manila"));
+$currentDateTime = $dateTime->format("M d, Y h:i A");
+$footer->addText(
+    $currentDateTime,
+    ['name' => 'Arial', 'size' => 10],
+    ['alignment' => 'right']
+);
 // Save Word Document
 header("Content-Description: File Transfer");
 header('Content-Disposition: attachment; filename="Distributed_Supply_Report.docx"');

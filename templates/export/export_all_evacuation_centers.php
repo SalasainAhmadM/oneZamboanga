@@ -129,7 +129,14 @@ if ($result->num_rows > 0) {
 } else {
     $section->addText("No data found.", ['size' => 14, 'color' => 'FF0000']);
 }
-
+$footer = $section->addFooter();
+$dateTime = new DateTime("now", new DateTimeZone("Asia/Manila"));
+$currentDateTime = $dateTime->format("M d, Y h:i A");
+$footer->addText(
+    $currentDateTime,
+    ['name' => 'Arial', 'size' => 10],
+    ['alignment' => 'right']
+);
 // Save File
 $filename = "Evacuation_Centers_Report_" . date("Ymd_His") . ".docx";
 header('Content-Type: application/msword');

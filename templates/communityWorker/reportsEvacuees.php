@@ -43,19 +43,22 @@ if (isset($_SESSION['user_id'])) {
 // Validate session role
 validateSession('worker');
 
-// Fetch evacuation centers for the current admin
-$query = "SELECT id, name FROM evacuation_center WHERE admin_id = ?";
+// Fetch evacuation centers assigned to the current worker
+$query = "
+    SELECT ec.id, ec.name 
+    FROM evacuation_center ec
+    INNER JOIN assigned_worker aw ON ec.id = aw.evacuation_center_id
+    WHERE aw.worker_id = ? AND aw.status = 'assigned'";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("i", $admin_id);
+$stmt->bind_param("i", $worker_id);
 $stmt->execute();
 $centersResult = $stmt->get_result();
 $stmt->close();
 
-
 // Determine selected evacuation center if any
 $evacuationCenterId = $_GET['center_id'] ?? 'All';
 
-// Fetch evacuees based on the selected evacuation center
+// Fetch evacuees based on the selected evacuation center and assigned worker
 if ($evacuationCenterId === 'All') {
     $evacueesQuery = "
         SELECT 
@@ -72,9 +75,10 @@ if ($evacuationCenterId === 'All') {
             (SELECT COUNT(*) FROM members m WHERE m.evacuees_id = e.id) AS member_count,
             (SELECT GROUP_CONCAT(CONCAT(m.first_name, ' ', m.middle_name, ' ', m.last_name, ' ', m.extension_name) SEPARATOR ', ') FROM members m WHERE m.evacuees_id = e.id) AS member_names
         FROM evacuees e
-        WHERE e.admin_id = ?";
+        INNER JOIN assigned_worker aw ON e.evacuation_center_id = aw.evacuation_center_id
+        WHERE aw.worker_id = ? AND aw.status = 'assigned' AND e.admin_id = ?";
     $stmt = $conn->prepare($evacueesQuery);
-    $stmt->bind_param("i", $admin_id);
+    $stmt->bind_param("ii", $worker_id, $admin_id);
 } else {
     $evacueesQuery = "
         SELECT 
@@ -91,9 +95,10 @@ if ($evacuationCenterId === 'All') {
             (SELECT COUNT(*) FROM members m WHERE m.evacuees_id = e.id) AS member_count,
             (SELECT GROUP_CONCAT(CONCAT(m.first_name, ' ', m.middle_name, ' ', m.last_name, ' ', m.extension_name) SEPARATOR ', ') FROM members m WHERE m.evacuees_id = e.id) AS member_names
         FROM evacuees e
-        WHERE e.admin_id = ? AND e.evacuation_center_id = ?";
+        INNER JOIN assigned_worker aw ON e.evacuation_center_id = aw.evacuation_center_id
+        WHERE aw.worker_id = ? AND aw.status = 'assigned' AND e.admin_id = ? AND e.evacuation_center_id = ?";
     $stmt = $conn->prepare($evacueesQuery);
-    $stmt->bind_param("ii", $admin_id, $evacuationCenterId);
+    $stmt->bind_param("iii", $worker_id, $admin_id, $evacuationCenterId);
 }
 
 $stmt->execute();
@@ -343,7 +348,7 @@ $stmt->close();
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Build the export URL with query parameters
-                    const url = `../export/export_evacuees.php?center_id=${encodeURIComponent(centerId)}&statuses=${encodeURIComponent(selectedStatuses.join(','))}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`;
+                    const url = `../export/export_evacuees_worker.php?center_id=${encodeURIComponent(centerId)}&statuses=${encodeURIComponent(selectedStatuses.join(','))}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`;
                     window.location.href = url; // Navigate to export endpoint
                 }
             });

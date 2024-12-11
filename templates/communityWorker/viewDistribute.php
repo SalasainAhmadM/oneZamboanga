@@ -737,7 +737,7 @@ $distributedResult = $distributedStmt->get_result();
                         supply_id: supplyId
                     };
 
-                    fetch('../endpoints/distribute_supply.php', {
+                    fetch('../endpoints/distribute_supply_worker.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(distributionData)
