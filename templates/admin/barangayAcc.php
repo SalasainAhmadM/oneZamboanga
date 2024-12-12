@@ -51,9 +51,36 @@ if (isset($_SESSION['user_id'])) {
 }
 
 // Fetch all admins with role 'admin'
-$admin_query = "SELECT id, first_name, middle_name, last_name, extension_name, email, image, barangay, contact, role, status 
-                FROM admin 
-                WHERE role = 'admin' AND (verification_code IS NULL OR verification_code = '')";
+// $admin_query = "SELECT 
+//                 a.id, 
+//                 a.first_name, 
+//                 a.middle_name, 
+//                 a.last_name, 
+//                 a.extension_name, 
+//                 a.email, 
+//                 a.image, 
+//                 a.barangay, 
+//                 a.contact, 
+//                 a.role,
+//                 IFNULL((SELECT COUNT(ec.id) FROM evacuation_center ec WHERE ec.admin_id = a.id), 0) AS evacuation_count,
+//                 IF((SELECT COUNT(ec.id) FROM evacuation_center ec WHERE ec.admin_id = a.id) > 0, 'active', 'inactive') AS status
+//                 FROM admin a
+//                 WHERE a.role = 'admin' AND (a.verification_code IS NULL OR a.verification_code = '')";
+$admin_query = "SELECT 
+                a.id, 
+                a.first_name, 
+                a.middle_name, 
+                a.last_name, 
+                a.extension_name, 
+                a.email, 
+                a.image, 
+                a.barangay, 
+                a.contact, 
+                a.role,
+                IFNULL((SELECT COUNT(ec.id) FROM evacuation_center ec WHERE ec.admin_id = a.id), 0) AS evacuation_count,
+                IF((SELECT COUNT(e.id) FROM evacuees e INNER JOIN evacuation_center ec ON e.evacuation_center_id = ec.id WHERE ec.admin_id = a.id) > 0, 'active', 'inactive') AS status
+                FROM admin a
+                WHERE a.role = 'admin' AND (a.verification_code IS NULL OR a.verification_code = '')";
 $admin_stmt = $conn->prepare($admin_query);
 $admin_stmt->execute();
 $admin_result = $admin_stmt->get_result();

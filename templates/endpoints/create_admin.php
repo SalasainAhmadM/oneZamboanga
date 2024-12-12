@@ -65,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Generate username and password
     $username = $lastName . ucfirst($role);
-    $password = bin2hex(random_bytes(4)); // Random 8-character password
+    $password = bin2hex(random_bytes(4));
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT); // Securely hash password
 
     // Define upload directories
