@@ -10,18 +10,18 @@ use PHPMailer\PHPMailer\Exception;
 // Database connection
 include("../../connection/conn.php");
 
-// Check if the admin is logged in and get the admin_id from the session
-if (isset($_SESSION['user_id'])) {
-    $admin_id = $_SESSION['user_id'];
-} else {
-    // Redirect to login if not logged in
-    header("Location: ../../login.php");
-    exit();
-}
+// if (isset($_GET['id'])) {
+//     $admin_id = $_GET['id'];
+// } else {
+//     // Redirect to login if not logged in
+//     header("Location: ../../login.php");
+//     exit();
+// }
 
 // Check if form data has been submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get form data and sanitize
+    $admin_id = mysqli_real_escape_string($conn, $_POST['admin_id']);
     $firstName = mysqli_real_escape_string($conn, $_POST['firstName']);
     $middleName = mysqli_real_escape_string($conn, $_POST['middleName']);
     $lastName = mysqli_real_escape_string($conn, $_POST['lastName']);
@@ -35,12 +35,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $barangay = mysqli_real_escape_string($conn, $_POST['barangay']);
     $contact = mysqli_real_escape_string($conn, $_POST['contactInfo']);
 
-    // Determine the role (default to 'admin')
-    $role = 'admin';
-    if (isset($_POST['role']) && $_POST['role'] == 'superadmin') {
-        $role = 'superadmin';
-    }
-
     // Check if email already exists in `admin` or `worker` table
     $checkEmailQuery = "SELECT email FROM admin WHERE email = '$email' UNION SELECT email FROM worker WHERE email = '$email'";
     $emailResult = mysqli_query($conn, $checkEmailQuery);
@@ -48,43 +42,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (mysqli_num_rows($emailResult) > 0) {
         $_SESSION['message'] = "Email Already Registered";
         $_SESSION['message_type'] = "error";
-        header("Location: ../admin/addAdmin.php");
-        exit();
-    }
-
-    // Check if an admin is already assigned to the same barangay
-    $checkBarangayQuery = "SELECT * FROM admin WHERE barangay = '$barangay' AND role = 'admin'";
-    $barangayResult = mysqli_query($conn, $checkBarangayQuery);
-
-    if (mysqli_num_rows($barangayResult) > 0) {
-        $_SESSION['message'] = "An admin is already assigned to Barangay $barangay.";
-        $_SESSION['message_type'] = "error";
-        header("Location: ../admin/addAdmin.php");
+        header("Location: ../admin/addAccount.php?id=$admin_id");
         exit();
     }
 
     // Generate username and password
-    $username = $lastName . ucfirst($role);
-    $password = bin2hex(random_bytes(4));
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT); // Securely hash password
+    $positionFormatted = str_replace(' ', '', $position); // Remove all spaces from position
+    $username = $lastName . ucfirst($positionFormatted);
+    $password = bin2hex(random_bytes(4)); // Generate a random 8-character password
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);// Securely hash password
 
-    // Define upload directories 
+    // Define upload directories
     $profileDir = "../../assets/uploads/profiles/";
     $appointmentDir = "../../assets/uploads/appointments/";
-    $barangayLogoDir = "../../assets/uploads/barangay/";
 
     // Ensure directories exist or create them
     if (!is_dir($profileDir))
         mkdir($profileDir, 0777, true);
     if (!is_dir($appointmentDir))
         mkdir($appointmentDir, 0777, true);
-    if (!is_dir($barangayLogoDir))
-        mkdir($barangayLogoDir, 0777, true);
 
     // Process uploaded files
     $proofImage = '';
     $profileImage = '';
-    $barangayLogo = '';
 
     if ($_FILES['proofOfAppointment']['name']) {
         $proofImage = $appointmentDir . basename($_FILES['proofOfAppointment']['name']);
@@ -94,21 +74,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $profileImage = $profileDir . basename($_FILES['photo']['name']);
         move_uploaded_file($_FILES['photo']['tmp_name'], $profileImage);
     }
-    if ($_FILES['barangay_logo']['name']) {
-        $barangayLogo = $barangayLogoDir . basename($_FILES['barangay_logo']['name']);
-        move_uploaded_file($_FILES['barangay_logo']['tmp_name'], $barangayLogo);
-    }
 
     // Generate a verification code
     $verificationCode = bin2hex(random_bytes(5));
 
-    // Insert into the database
-    $sql = "INSERT INTO admin (
+    // Insert into the database, including the admin_id
+    $sql = "INSERT INTO worker (
         first_name, middle_name, last_name, extension_name, email, username, password, image, gender, age, birthday,
-        position, city, barangay, barangay_logo, contact, role, proof_image, verification_code, status
+        position, city, barangay, contact, proof_image, verification_code, admin_id
     ) VALUES (
         '$firstName', '$middleName', '$lastName', '$extensionName', '$email', '$username', '$hashedPassword',
-        '$profileImage', '$gender', '$age', '$birthday', '$position', '$city', '$barangay', '$barangayLogo', '$contact', '$role', '$proofImage', '$verificationCode' , 'inactive'
+        '$profileImage', '$gender', '$age', '$birthday', '$position', '$city', '$barangay', '$contact', 
+        '$proofImage', '$verificationCode', '$admin_id'
     )";
 
     if (mysqli_query($conn, $sql)) {
@@ -135,14 +112,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mail->addAddress($email);
 
             // Create confirmation URL
-            $confirmUrl = "http://localhost/onezamboanga/templates/endpoints/verify_account.php?email=$email&code=$verificationCode";
+            $confirmUrl = "http://localhost/onezamboanga/templates/endpoints/verify_account_worker.php?email=$email&code=$verificationCode";
 
             // Email content
             $mail->isHTML(true);
-            $mail->Subject = 'One Zamboanga Admin Account Registration';
+            $mail->Subject = 'One Zamboanga Community Account Registration';
             $mail->Body = "
                 <h1>Welcome, $firstName $middleName $lastName!</h1>
-                <p>Your admin account has been successfully created.</p>
+                <p>Your community account has been successfully created.</p>
                 <p><strong>Username:</strong> $username</p>
                 <p><strong>Password:</strong> $password</p>
                 <p>Please use the above credentials to log in. We recommend changing your password upon first login.</p>
@@ -150,16 +127,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ";
 
             $mail->send();
-            $_SESSION['message'] = "Admin registered successfully. Credentials have been emailed.";
+            $_SESSION['message'] = "Community account registered successfully. Credentials have been emailed.";
             $_SESSION['message_type'] = "success";
 
             // Insert notification
-            $notification_msg = "New Admin Account Added: $firstName $middleName $lastName";
+            $notification_msg = "New Worker Account Added: $firstName $middleName $lastName";
             $notificationQuery = "INSERT INTO notifications (logged_in_id, user_type, notification_msg, status) 
                                   VALUES ('$admin_id', 'admin', '$notification_msg', 'notify')";
 
             if (!mysqli_query($conn, $notificationQuery)) {
-                $_SESSION['message'] = "Admin account created, but notification failed.";
+                $_SESSION['message'] = "Worker account created, but notification failed.";
                 $_SESSION['message_type'] = "warning";
             }
         } catch (Exception $e) {
@@ -171,8 +148,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['message_type'] = "error";
     }
 
-    // Redirect back to the admin page
-    header("Location: ../admin/addAdmin.php");
+    // Redirect back to the worker page
+    header("Location: ../admin/addAccount.php?id=$admin_id");
     exit();
 }
 

@@ -488,10 +488,14 @@ while ($row = $membersDataResult->fetch_assoc()) {
                 <label>Relation to Family Head:</label>
                 <input type="text" name="relation[]" value="${member?.relation || ''}">
             </div>
-            <div class="member-input">
-                <label>Age:</label>
-                <input type="number" name="age[]" value="${member?.age || ''}">
-            </div>
+             <div class="member-input">
+            <label>Birthdate:</label>
+            <input type="date" name="birthdate[]" value="${member?.birthdate || ''}" onchange="updateAge(this)">
+        </div>
+        <div class="member-input">
+            <label>Age:</label>
+            <input type="number" name="age[]" value="${member?.age || ''}" readonly>
+        </div>
             <div class="member-input">
                 <label>Gender:</label>
                 <select name="gender[]">
@@ -536,6 +540,21 @@ while ($row = $membersDataResult->fetch_assoc()) {
             membersData.forEach(member => createMemberForm(member));
         } else {
             createMemberForm(); // Add a blank form if no members exist
+        }
+
+        // Function to calculate and update age based on birthdate
+        function updateAge(birthdateInput) {
+            const ageInput = birthdateInput.parentElement.nextElementSibling.querySelector('input[name="age[]"]');
+            const birthdate = new Date(birthdateInput.value);
+            const today = new Date();
+            let age = today.getFullYear() - birthdate.getFullYear();
+            const monthDiff = today.getMonth() - birthdate.getMonth();
+
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthdate.getDate())) {
+                age--;
+            }
+
+            ageInput.value = age >= 0 ? age : '';
         }
     </script>
 

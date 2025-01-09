@@ -399,7 +399,8 @@ $monthlyEvacueesJson = json_encode(array_values($monthlyEvacuees));
         });
     </script>
 
-
+    <!-- import navbar -->
+    <script src="../../includes/ecNavbar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </body>

@@ -45,7 +45,7 @@ if (isset($_GET['id'])) {
     exit();
 }
 // Fetch all workers under this admin
-$worker_query = "SELECT first_name, middle_name, last_name, position FROM worker WHERE admin_id = ? AND status = 'active'";
+$worker_query = "SELECT first_name, middle_name, last_name, position FROM worker WHERE admin_id = ?";
 $worker_stmt = $conn->prepare($worker_query);
 $worker_stmt->bind_param("i", $admin_id);
 $worker_stmt->execute();
@@ -148,7 +148,7 @@ $admin_status = $row['status'];
 
 
 
-                        <a class="addBg-admin" href="../admin/addAdmin.php">
+                        <a class="addBg-admin" href="../admin/addAccount.php?id=<?php echo $admin_id; ?>">
                             <i class="fa-solid fa-user-plus"></i>
                         </a>
                     </div>
@@ -167,13 +167,19 @@ $admin_status = $row['status'];
 
                         <div class="cta-modal">
                             <div class="cta-options">
-                                <?php if ($admin_status === 'inactive') { ?>
+                                <?php if ($admin_status === 'done') { ?>
                                     <a href="javascript:void(0);"
                                         onclick="confirmDelete(<?php echo $admin_id; ?>)">Delete</a>
                                 <?php } else { ?>
-                                    <a href="javascript:void(0);" onclick="showActiveAdminWarning()">Delete</a>
+                                    <?php if ($admin_status === 'inactive') { ?>
+                                        <a href="javascript:void(0);"
+                                            onclick="confirmDelete(<?php echo $admin_id; ?>)">Delete</a>
+                                    <?php } else { ?>
+                                        <a href="javascript:void(0);" onclick="showActiveAdminWarning()">Delete</a>
+                                    <?php } ?>
+                                    <a href="adminUpdate.php?id=<?php echo $admin_id; ?>">Edit</a>
+                                    <a href="adminChange.php?id=<?php echo $admin_id; ?>">Change Admin</a>
                                 <?php } ?>
-                                <a href="adminUpdate.php?id=<?php echo $admin_id; ?>">Edit</a>
                             </div>
 
 

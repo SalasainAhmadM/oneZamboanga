@@ -42,10 +42,11 @@ $query = "
         GROUP_CONCAT(e.image) AS evacuation_center_images
     FROM admin a
     LEFT JOIN evacuation_center e ON a.id = e.admin_id
-    WHERE a.role = 'admin'
+    WHERE a.role = 'admin' AND a.status != 'done'
     GROUP BY a.id
 ";
 $result = $conn->query($query);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

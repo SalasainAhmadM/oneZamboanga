@@ -226,7 +226,7 @@ if (isset($_GET['admin_id']) && $_GET['admin_id'] !== "all") {
                                 ?>
                                 <div class="bgEc-cards"
                                     data-status="<?php echo $status_color === 'grey' ? 'inactive' : 'active'; ?>"
-                                    onclick="window.location.href='viewEvacuation.php?id=<?php echo $row['id']; ?>'">
+                                    onclick="window.location.href='viewEC.php?id=<?php echo $row['id']; ?>'">
                                     <div class="bgEc-status <?php echo $status_color; ?>"></div>
                                     <img src="<?php echo !empty($row['image']) ? '../../assets/img/' . $row['image'] : '../../assets/img/ecDefault.svg'; ?>"
                                         alt="" class="bgEc-img">

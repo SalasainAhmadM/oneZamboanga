@@ -360,8 +360,12 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
                                         <input type="text" name="relation[]">
                                     </div>
                                     <div class="member-input">
+                                        <label>Birthdate:</label>
+                                        <input type="date" name="birthdate[]" onchange="calculateAge(this)">
+                                    </div>
+                                    <div class="member-input">
                                         <label>Age:</label>
-                                        <input type="number" name="age[]">
+                                        <input type="number" name="age[]" readonly>
                                     </div>
                                     <div class="member-input">
                                         <label>Gender:</label>
@@ -398,6 +402,26 @@ $evacuationCenter = $evacuationCenterResult->fetch_assoc();
     </div>
 
     <script>
+        function calculateAge(birthdateInput) {
+            const birthdate = new Date(birthdateInput.value);
+            const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+
+            if (!isNaN(birthdate)) {
+                let age = now.getFullYear() - birthdate.getFullYear();
+                const monthDiff = now.getMonth() - birthdate.getMonth();
+                const dayDiff = now.getDate() - birthdate.getDate();
+
+                if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+                    age--;
+                }
+
+                const ageInput = birthdateInput.closest(".member-input").parentElement.querySelector('input[name="age[]"]');
+                if (ageInput) {
+                    ageInput.value = age;
+                }
+            }
+        }
+
         function validateForm(event) {
             event.preventDefault(); // Prevent form submission until validated
 

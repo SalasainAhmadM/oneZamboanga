@@ -22,7 +22,12 @@ class SpecialSidebar extends HTMLElement {
                     </a>
                     <a href="barangayStatus.php" class="dot">Barangay</a>
                 </div>
-                
+                 <div class="item">
+                    <a href="requestTransfer.php">
+                        <i class="fa-regular fa-paper-plane"></i>
+                    </a>
+                    <a href="requestTransfer.php" class="dot">Request</a>
+                </div>
                 
                 <div class="item">
                     <a href="reports.php">

@@ -4,19 +4,22 @@ include("../../connection/conn.php");
 require_once '../../connection/auth.php';
 date_default_timezone_set('Asia/Manila');
 
-define('INACTIVITY_LIMIT', 300);
+define('INACTIVITY_LIMIT', 300); // 5 minutes
 
+// Check if the user has been inactive for the defined limit
 if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > INACTIVITY_LIMIT)) {
-
+    // Destroy the session and redirect to the login page
     session_unset();
     session_destroy();
     header("Location: ../../login.php?message=Session expired due to inactivity.");
     exit();
 }
 
+// Update the last activity time
 $_SESSION['LAST_ACTIVITY'] = time();
 
-validateSession('admin');
+// Validate session role
+validateSession('superadmin');
 
 if (isset($_SESSION['user_id'])) {
     $admin_id = $_SESSION['user_id'];
@@ -172,7 +175,7 @@ $barangay = $data['barangay'] ?? '';
                         </div>
 
 
-                        <form action="../endpoints/admit_evacuees.php" method="POST" enctype="multipart/form-data">
+                        <form action="../endpoints/admit_evacuees_sa.php" method="POST" enctype="multipart/form-data">
                             <div class="ec-info">
                                 <div class="ecInfo">
                                     <label for="evacuation_center">Evacuation Center</label>
@@ -472,7 +475,7 @@ $barangay = $data['barangay'] ?? '';
 
 
     <!-- sidebar import js -->
-    <script src="../../includes/bgSidebar.js"></script>
+    <script src="../../includes/sidebar.js"></script>C
 
     <!-- import logo -->
     <script src="../../includes/logo.js"></script>

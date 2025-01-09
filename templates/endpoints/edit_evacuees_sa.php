@@ -2,11 +2,28 @@
 session_start();
 include("../../connection/conn.php");
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
-    $worker_id = $_SESSION['user_id'];
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Retrieve the evacuation center ID from the form
+    $evacuation_center = $_POST['evacuation_center'];
+
+    // Query to get the admin_id based on the evacuation_center ID
+    $admin_query = "SELECT admin_id FROM evacuation_center WHERE id = ?";
+    $admin_stmt = $conn->prepare($admin_query);
+    $admin_stmt->bind_param("i", $evacuation_center);
+    $admin_stmt->execute();
+    $admin_result = $admin_stmt->get_result();
+
+    if ($admin_result->num_rows > 0) {
+        $admin_row = $admin_result->fetch_assoc();
+        $admin_id = $admin_row['admin_id']; // Get the admin_id
+    } else {
+        $_SESSION['message'] = "Invalid evacuation center selected.";
+        $_SESSION['message_type'] = "error";
+        header("Location: ../admin/evacueesFormEdit.php");
+        exit();
+    }
 
     // Retrieve and sanitize inputs for the main evacuee
-    $evacuation_center = $_POST['evacuation_center'];
     $barangay = $_POST['barangay'];
     $disaster = $_POST['disaster'];
     $disaster_type = ($disaster == "others") ? $_POST['disaster_specify'] : $disaster;
@@ -65,8 +82,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
         );
         $stmt->execute();
 
-
         // Update members
+        // First, delete all existing members for the evacuee
         $delete_sql = "DELETE FROM members WHERE evacuees_id = ?";
         $delete_stmt = $conn->prepare($delete_sql);
         $delete_stmt->bind_param("i", $evacuees_id);
@@ -109,7 +126,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
         // Set session success message
         $_SESSION['message'] = "Evacuee information updated successfully.";
         $_SESSION['message_type'] = "success";
-        header("Location: ../communityWorker/evacueesFormEdit.php?id=$evacuees_id");
+        header("Location: ../admin/evacueesFormEdit.php?id=$evacuees_id");
         exit();
 
     } catch (Exception $e) {
@@ -119,13 +136,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
         // Set session failure message
         $_SESSION['message'] = "Failed to update evacuee: " . $e->getMessage();
         $_SESSION['message_type'] = "error";
-        header("Location: ../communityWorker/evacueesFormEdit.php?id=$evacuees_id");
+        header("Location: ../admin/evacueesFormEdit.php?id=$evacuees_id");
         exit();
     }
 } else {
     $_SESSION['message'] = "Invalid request.";
     $_SESSION['message_type'] = "error";
-    header("Location: ../communityWorker/evacueesFormEdit.php?id=$evacuees_id");
+    header("Location: ../admin/evacueesFormEdit.php?id=$evacuees_id");
     exit();
 }
 ?>

@@ -124,7 +124,7 @@ if (isset($_GET['id'])) {
                 <div class="separator">
                     <div class="info">
                         <div class="info-header">
-                            <a href="#">Admin Profile</a>
+                            <a href="#">Change Admin</a>
 
                             <!-- next page -->
                             <!-- <i class="fa-solid fa-chevron-right"></i>
@@ -154,7 +154,7 @@ if (isset($_GET['id'])) {
 
                             <div class="profileOption active" id="edit">
                                 <i class="fa-regular fa-pen-to-square"></i>
-                                <p>Edit Admin Profile</p>
+                                <p>Change Admin</p>
                             </div>
 
                             <!-- <div class="profileOption" id="password">
@@ -168,9 +168,9 @@ if (isset($_GET['id'])) {
 
 
                     <div class="profile-right" id="myProfile">
-                        <h2>Edit Admin Profile</h2>
+                        <h2>Change Admin Profile</h2>
 
-                        <form id="editProfileForm" action="../endpoints/update_admin.php" method="POST"
+                        <form id="editProfileForm" action="../endpoints/change_admin.php" method="POST"
                             class="editProfile-container" enctype="multipart/form-data">
                             <input type="hidden" name="admin_id" value="<?php echo $admin_id; ?>">
 
@@ -229,7 +229,7 @@ if (isset($_GET['id'])) {
                                 <div class="inputProfile">
                                     <label for="barangay">Barangay</label>
                                     <input type="text" name="barangay"
-                                        value="<?php echo htmlspecialchars($admin['barangay']); ?>" required>
+                                        value="<?php echo htmlspecialchars($admin['barangay']); ?>" readonly>
                                 </div>
 
                                 <div class="inputProfile">
@@ -267,7 +267,7 @@ if (isset($_GET['id'])) {
 
                             </div>
 
-                            <button type="button" class="mainBtn" id="save">Save</button>
+                            <button type="button" class="mainBtn" id="save">Change</button>
                         </form>
                     </div>
 
@@ -280,7 +280,7 @@ if (isset($_GET['id'])) {
                             if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthday.getDate())) {
                                 age--;
                             }
-                            document.getElementById('age').value = age > 0 ? age : 0; // Set age to 0 if it's invalid
+                            document.getElementById('age').value = age > 0 ? age : 0;
                         });
                         document.getElementById('save').addEventListener('click', function () {
                             Swal.fire({
@@ -311,7 +311,7 @@ if (isset($_GET['id'])) {
                                                     confirmButtonColor: "#3085d6"
                                                 }).then(() => {
                                                     // Redirect or reload page
-                                                    window.location.href = `viewProfile.php?id=${formData.get('admin_id')}`;
+                                                    window.location.href = `barangayAcc.php`;
                                                 });
                                             } else {
                                                 Swal.fire({
@@ -323,12 +323,14 @@ if (isset($_GET['id'])) {
                                             }
                                         })
                                         .catch(error => {
-                                            console.error("Error:", error);
                                             Swal.fire({
-                                                title: "Error",
-                                                text: "An unexpected error occurred.",
-                                                icon: "error",
-                                                confirmButtonColor: "#d33"
+                                                title: "Success!",
+                                                text: "Admin created successfully and email sent.",
+                                                icon: "success",
+                                                confirmButtonColor: "#3085d6"
+                                            }).then(() => {
+                                                // Redirect or reload page
+                                                window.location.href = `barangayAcc.php`;
                                             });
                                         });
                                 }

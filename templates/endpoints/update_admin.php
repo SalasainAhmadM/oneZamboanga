@@ -14,6 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $last_name = trim($_POST['last_name']);
         $extension_name = trim($_POST['extension_name']);
         $gender = trim($_POST['gender']);
+        $birthday = trim($_POST['birthday']);
+        $age = trim($_POST['age']);
         $city = trim($_POST['city']);
         $barangay = trim($_POST['barangay']);
         $contact = trim($_POST['contact']);
@@ -70,6 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 last_name = ?, 
                 extension_name = ?, 
                 gender = ?, 
+                birthday = ?, 
+                age = ?, 
                 city = ?, 
                 barangay = ?, 
                 contact = ?, 
@@ -97,6 +101,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $last_name,
             $extension_name,
             $gender,
+            $birthday,
+            $age,
             $city,
             $barangay,
             $contact,

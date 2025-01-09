@@ -20,7 +20,7 @@ if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 
 $_SESSION['LAST_ACTIVITY'] = time();
 
 // Validate session role
-validateSession('admin');
+validateSession('superadmin');
 
 $evacuationCenterId = $_GET['id'];  // Get the evacuation center ID from the URL parameter
 
@@ -518,7 +518,7 @@ $supplyResult = $supplyStmt->get_result();
 
 
     <!-- sidebar import js -->
-    <script src="../../includes/bgSidebar.js"></script>
+    <script src="../../includes/sidebar.js"></script>C
 
     <!-- import logo -->
     <script src="../../includes/logo.js"></script>

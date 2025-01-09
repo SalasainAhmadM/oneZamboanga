@@ -441,7 +441,8 @@ $supplyResult = $supplyStmt->get_result();
                                         </li>
                                     </ul>
                                     <a href="viewDistribute.php?id=<?php echo htmlspecialchars($supply['id']); ?>&center_id=<?php echo htmlspecialchars($evacuationCenterId); ?>&worker_id=<?php echo htmlspecialchars($workerId); ?>"
-                                        class="supply-btn">Distribute</a>
+                                        class="supply-btn distribute-btn"
+                                        data-quantity="<?php echo htmlspecialchars($supply['total_quantity']); ?>">Distribute</a>
                                 </div>
                             <?php endwhile; ?>
                         <?php else: ?>
@@ -457,6 +458,26 @@ $supplyResult = $supplyStmt->get_result();
 
     <!-- filter active -->
     <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const distributeButtons = document.querySelectorAll(".distribute-btn");
+
+            distributeButtons.forEach(button => {
+                button.addEventListener("click", (e) => {
+                    const quantity = parseInt(button.getAttribute("data-quantity"), 10);
+
+                    if (quantity === 0) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'No Stocks Available',
+                            text: 'You cannot distribute supplies with zero quantity.',
+                            confirmButtonText: 'Okay'
+                        });
+                    }
+                });
+            });
+        });
+
         function filterSupplies() {
             const searchInput = document.getElementById('supply-search').value.toLowerCase();
             const supplyCards = document.querySelectorAll('.supply-card');

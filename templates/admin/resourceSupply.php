@@ -20,7 +20,7 @@ if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 
 $_SESSION['LAST_ACTIVITY'] = time();
 
 // Validate session role
-validateSession('admin');
+validateSession('superadmin');
 
 $evacuationCenterId = $_GET['id'];  // Get the evacuation center ID from the URL parameter
 
@@ -65,6 +65,8 @@ $supplySql = "
     WHERE s.evacuation_center_id = ?
     GROUP BY s.id
     ORDER BY s.approved ASC, s.name ASC";
+
+
 
 $supplyStmt = $conn->prepare($supplySql);
 $supplyStmt->bind_param("i", $evacuationCenterId);
@@ -228,7 +230,20 @@ $supplyResult = $supplyStmt->get_result();
 </style>
 
 <body>
-
+    <?php
+    if (isset($_SESSION['message'])) {
+        echo "<script>
+    Swal.fire({
+        icon: '{$_SESSION['message_type']}',
+        title: '{$_SESSION['message']}'
+    }).then(() => {
+        location.reload();
+    });
+    </script>";
+        unset($_SESSION['message']);
+        unset($_SESSION['message_type']);
+    }
+    ?>
     <div class="container">
 
         <aside class="left-section">
@@ -268,7 +283,7 @@ $supplyResult = $supplyStmt->get_result();
                             <a href="resourceSupply.php?id=<?php echo $evacuationCenterId; ?>">Resource Management</a>
 
                             <i class="fa-solid fa-chevron-right"></i>
-                            <a href="resourceDistribution.php?id=<?php echo $evacuationCenterId; ?>">Distribution</a>
+                            <a href="resourceSupply.php?id=<?php echo $evacuationCenterId; ?>">Supplies</a>
                         </div>
 
 
@@ -312,16 +327,20 @@ $supplyResult = $supplyStmt->get_result();
                     </div>
 
                     <ul class="supply-filter">
+
                         <div class="filter-list">
                             <li class="active" data-category-id="all">All</li>
                             <?php
-                            foreach ($categories as $key => $category) {
-                                if ($category['name'] === 'Starting Kit') {
-                                    echo '<li data-category-id="' . htmlspecialchars($category['id']) . '">' . htmlspecialchars($category['name']) . '</li>';
-                                    unset($categories[$key]);
+                            foreach ($categories as $index => $category):
+                                if ($category['name'] === 'Starting Kit'): ?>
+                                    <li data-category-id="<?php echo htmlspecialchars($category['id']); ?>">
+                                        <?php echo htmlspecialchars($category['name']); ?>
+                                    </li>
+                                    <?php
+                                    unset($categories[$index]);
                                     break;
-                                }
-                            }
+                                endif;
+                            endforeach;
                             ?>
                             <?php foreach ($categories as $category): ?>
                                 <li data-category-id="<?php echo htmlspecialchars($category['id']); ?>">
@@ -330,77 +349,151 @@ $supplyResult = $supplyStmt->get_result();
                             <?php endforeach; ?>
                         </div>
 
+                        <li class="addCategory" data-category-id="all" style="background-color: transparent;">
+                            <label for="category-modal">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </label>
+                            <input type="checkbox" id="category-modal" class="category-modal">
+                            <div class="modalCategory">
+                                <div class="categoryOption">
+                                    <button class="supplyAdd">Add Supply</button>
+                                </div>
+                                <div class="categoryOption">
+                                    <button class="categoryAdd">Add Category</button>
+                                </div>
+                                <div class="categoryOption">
+                                    <button class="categoryManage">Manage Category</button>
+                                </div>
+                            </div>
+                        </li>
                     </ul>
+
+
 
                     <!-- popup supply add -->
                     <div class="addForm-supply">
                         <button class="closeForm"><i class="fa-solid fa-xmark"></i></button>
-                        <form action="" class="supplyForm">
+                        <form action="../endpoints/add_supply.php" method="post" enctype="multipart/form-data"
+                            class="supplyForm">
+
                             <h3>Add Supply</h3>
+                            <input type="hidden" name="admin_id" value="<?php echo htmlspecialchars($adminId); ?>">
+                            <input type="hidden" name="evacuation_center_id"
+                                value="<?php echo htmlspecialchars($evacuationCenterId); ?>">
+                            <input type="hidden" name="evacuation_center_name" id="evacuationCenterName"
+                                value="<?php echo htmlspecialchars($evacuationCenter['name']); ?>" readonly>
                             <div class="addInput-wrapper">
                                 <div class="add-input">
-                                    <label for="">Supply Name: </label>
-                                    <input type="text" required>
+                                    <label for="supplyName">Supply Name:</label>
+                                    <input type="text" name="name" id="supplyName" required>
                                 </div>
 
                                 <div class="add-input">
-                                    <label for="">Category: </label>
-                                    <select name="" id="" required>
+                                    <label for="category">Category:</label>
+                                    <select name="category_id" id="category" required>
                                         <option value="">Select</option>
-                                        <option value="">Ayuda Pack</option>
-                                        <option value="">Food</option>
+                                        <?php foreach ($categories as $category): ?>
+                                            <option value="<?php echo htmlspecialchars($category['id']); ?>">
+                                                <?php echo htmlspecialchars($category['name']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
                                     </select>
                                 </div>
 
                                 <div class="add-input">
-                                    <label for="">Date: </label>
-                                    <input type="date" required>
+                                    <label for="date">Date:</label>
+                                    <input type="date" name="date" id="date" required>
                                 </div>
 
                                 <div class="add-input">
-                                    <label for="">Time: </label>
-                                    <input type="time" required>
+                                    <label for="time">Time:</label>
+                                    <input type="time" name="time" id="time" required>
                                 </div>
 
                                 <div class="add-input">
-                                    <label for="">From: </label>
-                                    <input type="text" required>
+                                    <label for="from">From:</label>
+                                    <input type="text" name="from" id="from" required>
                                 </div>
 
                                 <div class="add-input">
-                                    <label for="">Quantity: </label>
-                                    <input type="number" required>
+                                    <label for="quantity">Quantity:</label>
+                                    <input type="number" name="quantity" id="quantity" placeholder="Enter quantity"
+                                        required>
+                                </div>
+                                <div class="add-input">
+                                    <label for="unit">Unit:</label>
+                                    <select name="unit" id="unit" id="unit" required>
+                                        <option value="">Select</option>
+                                        <option value="piece">Piece</option>
+                                        <option value="pack">Pack</option>
+                                    </select>
                                 </div>
 
                                 <div class="add-input">
-                                    <label for="">Description: </label>
-                                    <input type="text" required>
+                                    <label for="image">Add Photo:</label>
+                                    <input type="file" name="image" id="image" required>
+                                </div>
+
+                                <div class="add-input">
+                                    <label for="description">Description:</label>
+                                    <input type="text" name="description" id="description" required>
                                 </div>
                             </div>
 
-                            <button class="mainBtn">Add Supply</button>
+                            <button type="button" class="mainBtn">Add Supply</button>
                         </form>
+
                     </div>
 
                     <!-- popup category add -->
                     <div class="addForm-category">
-                        <button class="closeCategory"><i class="fa-solid fa-xmark"></i></button>
-                        <form action="" class="categoryForm">
+                        <form action="../endpoints/add_category.php" method="POST" class="categoryForm">
+                            <button class="closeCategory"><i class="fa-solid fa-xmark"></i></button>
                             <h3>Add Category</h3>
                             <div class="addInput-wrapper">
                                 <div class="add-input category">
-                                    <label for="">Category: </label>
-                                    <input type="text" required>
+                                    <label for="category">Category: </label>
+                                    <input type="text" name="category" required>
                                 </div>
-
-
                             </div>
-
-                            <button class="mainBtn category">Add Category</button>
+                            <input type="hidden" name="admin_id" value="<?php echo htmlspecialchars($adminId); ?>">
+                            <input type="hidden" name="evacuation_center_id"
+                                value="<?php echo htmlspecialchars($evacuationCenterId); ?>">
+                            <button type="button" class="mainBtn category" style="width: 100%;">Add Category</button>
                         </form>
+
+
+                        <table class="listCategory">
+                            <thead>
+                                <button class="closeManage"><i class="fa-solid fa-xmark"></i></button>
+                                <tr>
+                                    <th>Category</th>
+                                    <th colspan="2" style="text-align: center;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($categories as $category): ?>
+                                    <?php if ($category['name'] === 'Starting Kit')
+                                        continue; ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($category['name']); ?></td>
+                                        <td>
+                                            <button class="categoryCTA"
+                                                onclick="editCategory(<?php echo $category['id']; ?>, '<?php echo htmlspecialchars($category['name'], ENT_QUOTES); ?>')">Edit</button>
+                                        </td>
+                                        <td>
+                                            <button class="categoryCTA"
+                                                onclick="deleteCategory(<?php echo $category['id']; ?>)">Delete</button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+
+                        </table>
+
+
+
                     </div>
-
-
                     <div class="supply-wrapper">
                         <?php if ($supplyResult->num_rows > 0): ?>
                             <?php while ($supply = $supplyResult->fetch_assoc()): ?>
@@ -425,8 +518,7 @@ $supplyResult = $supplyStmt->get_result();
                                     data-name="<?php echo strtolower(htmlspecialchars($supply['name'])); ?>">
 
                                     <!-- Status Indicator -->
-                                    <div class="status-indicator" style="background-color: <?php echo $statusColor; ?>;">
-                                    </div>
+                                    <div class="status-indicator" style="background-color: <?php echo $statusColor; ?>;"></div>
 
                                     <img class="supply-img" src="<?php echo $imagePath; ?>" alt="">
                                     <ul class="supply-info">
@@ -436,9 +528,13 @@ $supplyResult = $supplyStmt->get_result();
                                             <?php echo htmlspecialchars($supply['total_quantity']) . ' ' . htmlspecialchars($supply['unit']); ?>s
                                         </li>
                                     </ul>
-                                    <a href="viewDistribute.php?id=<?php echo htmlspecialchars($supply['id']); ?>"
-                                        class="supply-btn distribute-btn"
-                                        data-quantity="<?php echo htmlspecialchars($supply['total_quantity']); ?>">Distribute</a>
+                                    <?php if ($supply['approved'] == 1): ?>
+                                        <a href="viewSupply.php?id=<?php echo htmlspecialchars($supply['id']); ?>"
+                                            class="supply-btn">View Details</a>
+                                    <?php else: ?>
+                                        <a href="#" class="supply-btn approve-btn"
+                                            data-id="<?php echo htmlspecialchars($supply['id']); ?>">Approve?</a>
+                                    <?php endif; ?>
                                 </div>
                             <?php endwhile; ?>
                         <?php else: ?>
@@ -446,34 +542,16 @@ $supplyResult = $supplyStmt->get_result();
                         <?php endif; ?>
                     </div>
 
+
                 </div>
             </div>
         </main>
 
     </div>
 
+
     <!-- filter active -->
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const distributeButtons = document.querySelectorAll(".distribute-btn");
-
-            distributeButtons.forEach(button => {
-                button.addEventListener("click", (e) => {
-                    const quantity = parseInt(button.getAttribute("data-quantity"), 10);
-
-                    if (quantity === 0) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'No Stocks Available',
-                            text: 'You cannot distribute supplies with zero quantity.',
-                            confirmButtonText: 'Okay'
-                        });
-                    }
-                });
-            });
-        });
-
         function filterSupplies() {
             const searchInput = document.getElementById('supply-search').value.toLowerCase();
             const supplyCards = document.querySelectorAll('.supply-card');
@@ -514,16 +592,91 @@ $supplyResult = $supplyStmt->get_result();
                 });
             });
         });
+
     </script>
 
 
+    <!-- select type of quantity -->
+    <script>
+        document.querySelector('.mainBtn').addEventListener('click', () => {
+            Swal.fire({
+                title: "Add Supply?",
+                icon: "info",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData(document.querySelector('.supplyForm'));
+
+                    $.ajax({
+                        url: '../endpoints/add_supply.php',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+                            Swal.fire("Success!", "Supply successfully added.", "success");
+                        },
+                        error: function () {
+                            Swal.fire("Error", "There was a problem adding the supply.", "error");
+                        }
+                    });
+                }
+            });
+        });
+
+        document.querySelectorAll('.approve-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const supplyId = this.dataset.id;
+
+                Swal.fire({
+                    title: "Approve Supply?",
+                    text: "This action will make the supply available.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Yes",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '../endpoints/supply_approve.php',
+                            type: 'POST',
+                            data: { supply_id: supplyId },
+                            success: function (response) {
+                                const res = JSON.parse(response);
+                                if (res.success) {
+                                    Swal.fire("Approved!", "Supply has been approved.", "success").then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire("Error", res.error, "error");
+                                }
+                            },
+                            error: function () {
+                                Swal.fire("Error", "There was a problem approving the supply.", "error");
+                            }
+                        });
+                    }
+                });
+            });
+        });
+
+
+    </script>
+
+    <!-- sweetalerts import js -->
+    <script src="../../includes/modals.js"></script>
+
     <!-- sidebar import js -->
-    <script src="../../includes/bgSidebar.js"></script>
+    <script src="../../includes/sidebar.js"></script>C
 
     <!-- import logo -->
     <script src="../../includes/logo.js"></script>
 
-    <!-- import logot -->
+    <!-- import logout -->
     <script src="../../includes/logout.js"></script>
 
     <!-- import navbar -->
@@ -533,9 +686,112 @@ $supplyResult = $supplyStmt->get_result();
     <script src="../../assets/src/utils/menu-btn.js"></script>
 
 
+    <script>
+
+        const supplyBtn = document.querySelector('.supplyAdd');
+        const categoryBtn = document.querySelector('.categoryAdd');
+        const supplyForm = document.querySelector('.addForm-supply');
+        const categoryForm = document.querySelector('.addForm-category');
+        const closeForm = document.querySelector('.closeForm');
+        const closeCategoryForm = document.querySelector('.closeCategory');
+        const modalOption = document.querySelector('.category-modal');
+        const body = document.querySelector('body'); // to get the body element
+
+
+        const categoryManageBtn = document.querySelector('.categoryManage');
+        const categoryHide = document.querySelector('.categoryForm');
+        const viewManageCategory = document.querySelector('.listCategory');
+        const closeManage = document.querySelector('.closeManage');
+
+
+        // add supply
+        supplyBtn.addEventListener('click', function () {
+            supplyForm.style.display = 'block';
+
+            // If modalOption is an input (checkbox or radio button), uncheck it
+            if (modalOption.type === 'checkbox' || modalOption.type === 'radio') {
+                modalOption.checked = false; // Uncheck the input
+            }
+
+            body.classList.add('body-overlay'); // add the overlay class to the body
+        });
+
+        closeForm.addEventListener('click', function () {
+            supplyForm.style.display = 'none';
+            body.classList.remove('body-overlay'); // remove the overlay class to the body
+        });
 
 
 
+        // add category
+        categoryBtn.addEventListener('click', function () {
+            categoryForm.style.display = 'block';
+            categoryHide.style.display = 'block';
+            viewManageCategory.style.display = 'none';
+            closeManage.style.display = 'none';
+
+            // If modalOption is an input (checkbox or radio button), uncheck it
+            if (modalOption.type === 'checkbox' || modalOption.type === 'radio') {
+                modalOption.checked = false; // Uncheck the input
+            }
+
+            body.classList.add('body-overlay'); // add the overlay class to the body
+        });
+
+        closeCategoryForm.addEventListener('click', function () {
+            categoryForm.style.display = 'none';
+            body.classList.remove('body-overlay'); // remove the overlay class to the body
+        });
+
+
+
+        // view category
+        categoryManageBtn.addEventListener('click', function () {
+            categoryForm.style.display = 'block';
+            categoryHide.style.display = 'none';
+            viewManageCategory.style.display = 'block';
+            closeManage.style.display = 'block';
+
+
+            // If modalOption is an input (checkbox or radio button), uncheck it
+            if (modalOption.type === 'checkbox' || modalOption.type === 'radio') {
+                modalOption.checked = false; // Uncheck the input
+            }
+
+            body.classList.add('body-overlay'); // add the overlay class to the body
+        });
+
+        closeManage.addEventListener('click', function () {
+            categoryForm.style.display = 'none';
+            body.classList.remove('body-overlay'); // remove the overlay class to the body
+        });
+    </script>
+
+    <!-- sweetalert popup messagebox -->
+    <script>
+
+
+        $('.mainBtn.category').on('click', function () {
+            Swal.fire({
+                title: "Add Category?",
+                text: "",
+                icon: "info",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes",
+                customClass: {
+                    popup: 'custom-swal-popup'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Submit the form
+                    $('.categoryForm').submit();
+                }
+            });
+        });
+
+    </script>
 
 
 

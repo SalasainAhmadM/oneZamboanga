@@ -6,8 +6,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'];
     $categoryId = $_POST['category_id'];
     $description = $_POST['description'];
-    $quantity = $_POST['quantity']; // Matches JavaScript field name
-    $unit = $_POST['unit']; // Matches JavaScript field name
+    $quantity = $_POST['quantity'];
+    $unit = $_POST['unit'];
 
     $uploadDir = "../../assets/uploads/supplies/";
 

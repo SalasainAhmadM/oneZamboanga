@@ -75,8 +75,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
 
         // Insert updated members data
         if (!empty($_POST['firstName'])) {
-            $member_sql = "INSERT INTO members (first_name, middle_name, last_name, extension_name, relation, education, gender, age, occupation, evacuees_id) 
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $member_sql = "INSERT INTO members (first_name, middle_name, last_name, extension_name, relation, education, gender, birthdate, age, occupation, evacuees_id) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $member_stmt = $conn->prepare($member_sql);
 
             foreach ($_POST['firstName'] as $index => $member_first_name) {
@@ -86,11 +86,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
                 $member_relation = $_POST['relation'][$index];
                 $member_education = $_POST['education'][$index];
                 $member_gender = $_POST['gender'][$index];
+                $member_birthdate = $_POST['birthdate'][$index];
                 $member_age = $_POST['age'][$index];
                 $member_occupation = $_POST['occupation'][$index];
 
                 if (!empty($member_first_name) && !empty($member_last_name) && !empty($member_relation) && !empty($member_gender) && !empty($member_age)) {
-                    $member_stmt->bind_param("sssssssisi", $member_first_name, $member_middle_name, $member_last_name, $member_extension, $member_relation, $member_education, $member_gender, $member_age, $member_occupation, $evacuees_id);
+                    $member_stmt->bind_param("ssssssssisi", $member_first_name, $member_middle_name, $member_last_name, $member_extension, $member_relation, $member_education, $member_gender, $member_birthdate, $member_age, $member_occupation, $evacuees_id);
                     $member_stmt->execute();
                 }
             }
