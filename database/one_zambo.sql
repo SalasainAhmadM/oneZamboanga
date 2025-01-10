@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 09, 2025 at 08:00 PM
+-- Generation Time: Jan 10, 2025 at 03:42 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -710,6 +710,8 @@ CREATE TABLE `members` (
   `education` varchar(255) NOT NULL,
   `gender` varchar(255) NOT NULL,
   `age` int(11) NOT NULL,
+  `birthdate` date DEFAULT NULL,
+  `occupation` varchar(255) NOT NULL,
   `evacuees_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
