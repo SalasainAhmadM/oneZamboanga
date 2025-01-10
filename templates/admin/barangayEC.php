@@ -67,13 +67,14 @@ if (isset($_GET['admin_id']) && $_GET['admin_id'] !== "all") {
     <link rel="stylesheet" href="../../assets/fontawesome/all.css">
     <link rel="stylesheet" href="../../assets/fontawesome/fontawesome.min.css">
     <!--styles-->
-
+    <link rel="stylesheet" href="../../assets/styles/utils/addEC.css">
     <link rel="stylesheet" href="../../assets/styles/style.css">
     <link rel="stylesheet" href="../../assets/styles/utils/dashboard.css">
     <link rel="stylesheet" href="../../assets/styles/utils/ecenter.css">
     <link rel="stylesheet" href="../../assets/styles/utils/container.css">
     <link rel="stylesheet" href="../../assets/styles/utils/barangayStatus.css">
-
+    <!-- sweetalert cdn -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
     <title>One Zamboanga: Evacuation Center Management System</title>
@@ -87,6 +88,27 @@ if (isset($_GET['admin_id']) && $_GET['admin_id'] !== "all") {
 </style>
 
 <body>
+    <?php
+    if (isset($_SESSION['message'])) {
+        $message = $_SESSION['message'];
+        $messageType = $_SESSION['message_type'];
+
+        // Clear the message after displaying
+        unset($_SESSION['message']);
+        unset($_SESSION['message_type']);
+
+        echo "<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: '" . ($messageType === 'success' ? 'Success!' : 'Notice') . "',
+                text: '$message',
+                icon: '$messageType',
+                confirmButtonText: 'OK'
+            });
+        });
+    </script>";
+    }
+    ?>
 
     <div class="container">
 
@@ -153,6 +175,10 @@ if (isset($_GET['admin_id']) && $_GET['admin_id'] !== "all") {
                             <option value="active" selected>Active</option>
                             <option value="inactive">Inactive</option>
                         </select>
+
+                        <button class="addBg-admin">
+                            Create
+                        </button>
                     </div>
                 </div>
             </header>
@@ -248,12 +274,96 @@ if (isset($_GET['admin_id']) && $_GET['admin_id'] !== "all") {
                     </div>
                 </div>
             </div>
+            <!-- add evacuaton form -->
+            <div class="addEC-container">
+                <div class="addEC-form">
+                    <button class="closeForm"><i class="fa-solid fa-xmark"></i></button>
 
+                    <h3 class="addEC-header">
+                        Create Evacuation Center
+                    </h3>
+                    <!-- Form -->
+                    <form id="createEvacuationForm" action="../endpoints/create_evacuation_center_sa.php" method="POST"
+                        enctype="multipart/form-data">
+                        <input type="hidden" name="admin_id" value="<?= htmlspecialchars($admin_id); ?>">
+                        <input type="hidden" name="barangay" value="<?= htmlspecialchars($barangay) ?>">
+
+                        <div class="addEC-input">
+                            <label for="evacuationCenterName">Name of Evacuation Center</label>
+                            <input type="text" id="evacuationCenterName" class="evacuation-center-name"
+                                name="evacuationCenterName" required>
+                        </div>
+
+                        <div class="addEC-input">
+                            <label for="location">Street</label>
+                            <input type="text" id="location" class="evacuation-center-location" name="location"
+                                required>
+                        </div>
+                        <div class="addEC-input">
+                            <label for="barangay">Barangay</label>
+                            <input type="text" id="barangay" class="evacuation-center-barangay" name="barangay"
+                                value=" <?= htmlspecialchars($barangay) ?> " required>
+                        </div>
+
+
+                        <div class="addEC-input">
+                            <label for="capacity">Capacity (per family)</label>
+                            <input type="number" id="capacity" class="evacuation-center-capacity" name="capacity"
+                                required>
+                        </div>
+
+                        <div class="addEC-input">
+                            <label for="fileInput">Add photo</label>
+                            <input id="fileInput" type="file" class="evacuation-center-photo noBorder" name="photo"
+                                required>
+                        </div>
+
+                        <div class="addEC-input">
+                            <button type="button" class="mainBtn" id="create"
+                                onclick="confirmSubmission()">Create</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
         </main>
 
     </div>
 
     <script>
+        function confirmSubmission() {
+            // Check if all required fields are filled
+            const name = document.getElementById("evacuationCenterName").value;
+            const location = document.getElementById("location").value;
+            const capacity = document.getElementById("capacity").value;
+
+            if (name && location && capacity) {
+                // If all fields are filled, show the confirmation alert
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You are about to create a new evacuation center.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, create it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Submit the form if confirmed
+                        document.getElementById("createEvacuationForm").submit();
+                    }
+                });
+            } else {
+                // Alert if any required fields are missing
+                Swal.fire({
+                    title: 'Incomplete form',
+                    text: "Please fill in all required fields.",
+                    icon: 'error',
+                    confirmButtonColor: '#3085d6',
+                });
+            }
+        }
+
         function filterCenters() {
             const filterValue = document.getElementById('statusFilter').value;
             const centers = document.querySelectorAll('.bgEc-cards');
@@ -272,8 +382,44 @@ if (isset($_GET['admin_id']) && $_GET['admin_id'] !== "all") {
             });
         }
 
+        document.addEventListener('DOMContentLoaded', () => {
+            filterCenters();
 
-        document.addEventListener('DOMContentLoaded', filterCenters);
+            const barangayFilter = document.getElementById('barangayFilter');
+            const createButton = document.querySelector('.addBg-admin');
+
+            // Check initial state on page load
+            updateCreateButtonState();
+
+            barangayFilter.addEventListener('change', () => {
+                const selectedOption = barangayFilter.options[barangayFilter.selectedIndex];
+                const adminId = selectedOption.getAttribute('data-admin-id');
+
+                // Check if the selected option is "All Barangays"
+                if (adminId === "all") {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Select a Barangay',
+                        text: 'You cannot create evacuation centers for "All Barangays".',
+                    });
+                }
+
+                updateCreateButtonState();
+            });
+
+            function updateCreateButtonState() {
+                const selectedOption = barangayFilter.options[barangayFilter.selectedIndex];
+                const adminId = selectedOption.getAttribute('data-admin-id');
+
+                if (adminId === "all") {
+                    createButton.disabled = true;
+                    createButton.style.cursor = 'not-allowed';
+                } else {
+                    createButton.disabled = false;
+                    createButton.style.cursor = 'pointer';
+                }
+            }
+        });
 
         function filterBarangay() {
             const barangaySelect = document.getElementById('barangayFilter');
@@ -309,7 +455,7 @@ if (isset($_GET['admin_id']) && $_GET['admin_id'] !== "all") {
 
     <!-- sidebar menu -->
     <script src="../../assets/src/utils/menu-btn.js"></script>
-
+    <script src="../../assets/src/utils/addEc-popup.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
