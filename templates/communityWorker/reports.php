@@ -178,9 +178,9 @@ $stmt->close();
                             <i class="fa-solid fa-plus"></i>
                         </a> -->
 
-                        <button class="addBg-admin" onclick="confirmExport()">
+                        <!-- <button class="addBg-admin" onclick="confirmExport()">
                             Export
-                        </button>
+                        </button> -->
                     </div>
                 </div>
             </header>

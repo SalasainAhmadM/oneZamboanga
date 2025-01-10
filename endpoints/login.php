@@ -213,4 +213,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['error_message'] = 'Please submit the form using the POST method.';
     header("Location: ../login.php");
 }
-?>
+?>  
