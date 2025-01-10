@@ -24,8 +24,8 @@
             <i class="fa-solid fa-arrow-left"></i>
         </a>
         <div class="login-left">
-            <h2>ONE ZAMBOANGA</h2>
-            <img src="assets/img/icon-login.png" alt="">
+            <!-- <h2>ONE ZAMBOANGA</h2> -->
+            <img src="assets/img/ONEZAMBOANGA.png" alt="">
         </div>
 
         <div class="login-right">
