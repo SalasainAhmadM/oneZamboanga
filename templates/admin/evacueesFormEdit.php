@@ -264,7 +264,7 @@ while ($row = $membersDataResult->fetch_assoc()) {
 
                                 <div class="occupation-container">
                                     <div class="headFam-details">
-                                        <input type="date" name="birthday" class="age" id="birthday"
+                                        <input type="date" name="birthday" class="age bday" id="birthday"
                                             value="<?= htmlspecialchars($evacueeData['birthday']); ?>" required>
                                         <label class="details" for="birthday">Birthdate</label>
                                     </div>

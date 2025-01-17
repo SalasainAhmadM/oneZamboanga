@@ -139,6 +139,10 @@ label.details {
         width: 40px;
         text-align: right;
     }
+
+    input.bday {
+        width: 95px;
+    }
 }
 
 .occupation-container {

@@ -235,7 +235,7 @@ $barangay = $data['barangay'] ?? '';
 
                                 <div class="occupation-container">
                                     <div class="headFam-details">
-                                        <input type="date" name="birthday" class="age" id="birthday" required>
+                                        <input type="date" name="birthday" class="age bday" id="birthday" required>
                                         <label class="details" for="birthday">Birthdate</label>
                                     </div>
 
